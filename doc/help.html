@@ -1,0 +1,1141 @@
+<html>
+<html lang="en">
+<head>
+  <title>Packages</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      background-color: #f8f8f8;
+      font-family: verdana,arial,sans-serif;
+    }
+    h1 {
+      color: #000080;
+    }
+    h2 {
+      color: #000080;
+      font-style: italic;
+    }
+    h3 {
+      color: #000080;
+      font-size: 110%;
+    }
+    table {
+      font-size: 90%;
+      border: 1px solid #888;
+      border-collapse: collapse;
+    }
+    td, th {
+      border: 1px solid #888;
+      padding: 0 8px 0 8px;
+      vertical-align: top;
+    }
+    th {
+      background-color: #80B0f0;
+      text-align: left;
+    }
+    span.smallcaps {
+      font-variant: small-caps;
+      font-size: 110%;
+    }
+    img.center {
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+
+<body>
+<h1 style="font-variant:small-caps;font-size:64pt;font-weight:normal">Packages</h1>
+<p>
+<span class="smallcaps">Packages</span> is a tool to maintain a repository of
+packages of electronic components. It is developed with the goal that various
+applications use one and the same repository as a basis for their handling of
+packages. The repository is in a well-documented JSON format, easy to parse in
+a variety of programming languages.
+</p>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Overview">Overview</a></li>
+<li><a href="#Quick_start">Quick start</a>
+    <ul>
+      <li><a href="#Adding_modifying_and_deleting_packages">Adding, modifying and deleting packages</a>
+      <li><a href="#Searching_and_filtering_packages">Searching and filtering packages</a></li>
+    </ul>
+</li>
+<li><a href="#Package_concepts">Package concepts</a>
+    <ul>
+      <li><a href="#Common_names_variants">Common names &amp; variants</a>
+      <li><a href="#Package_dimensions_and_outlines">Package dimensions and outlines</a>
+      <li><a href="#Origin_offsets">Origin offsets</a>
+      <li><a href="#Pitch_and_spans">Pitch and spans</a>
+    </ul>
+</li>
+<li><a href="#File_format">File format</a>
+    <ul>
+      <li><a href="#File_format_notes">Notes</a></li>
+    </ul>
+</li>
+<li><a href="#SMT_terminal_types">SMT terminal types</a></li>
+<li><a href="#Normal_orientations">Normal orientations</a>
+    <ul>
+      <li><a href="#Normal_orientations_notes">Notes</a></li>
+    </ul>
+</li>
+<li><a href="#Package_naming_standards">Package naming standards</a>
+    <ul>
+      <li><a href="#Metric_versus_Imperial">Metric versus Imperial</a></li>
+      <li><a href="#IPC7351_summary">IPC-7351 summary</a></li>
+      <li><a href="#ED7303_summary">ED-7303 summary</a></li>
+      <li><a href="#Package_naming_examples">Examples of package names</a>
+    </ul>
+</li>
+
+</ul>
+
+
+<h1>Overview</h1>
+<p>
+Many packages for electronic components exist, but it is not as straightforward
+as having a long list. On occasion a package name refers to a <em>group</em> of
+packages, and package name on its own is not conclusive about <em>all</em>
+dimensions of the package. Essentially the same package may also be known under
+multiple names &mdash;this is in part the result of various standardization
+bodies that each on their own standardize packages, without regard to the other
+organizations doing the same.
+</p>
+<p>
+EDA suites (Electronic Design Application) focus on a flattened view of the
+package: the footprint. For mechanical design, the height of the package is
+important too, and pick-&-place machines often need to know the shape of the
+terminals (for example, gull-wing versus lug-lead) to recognize and centre the
+component on the nozzle. That is to say: these various applications all use
+package data, but they don&rsquo;t all need the <em>same</em> data.
+<span class="smallcaps">Packages</span> groups the data in a structured way,
+and makes it easily searchable (using both keyword search and parametric search).
+</p>
+<p>
+This manual starts with instructions on how to use and navigate the
+user-interface of the program. It then follows up with a chapter on the subject
+itself: the packages for electronic components. To use
+<span class="smallcaps">Packages</span> well, both chapters are equally
+important, and you will find these two chapter to cross-reference each other.
+</p>
+<p>
+The remaining chapters are reference material.
+</p>
+
+<h2>License</h2>
+<p>
+The <span class="smallcaps">Packages</span> application including its data set and other resources, hereby
+collectively referred to as &ldquo;the software&rdquo;, is copyright 2021 CompuPhase, and
+licensed under the Apache License version 2.
+</p>
+<p>
+This manual is copyright 2021 CompuPhase and licensed under the Creative Commons
+Attribution-Non-Commercial-ShareAlike 4.0 International License.
+</p>
+<p>
+The project is maintained at: <a href="https://github.com/compuphase/Packages">https://github.com/compuphase/Packages</a>
+</p>
+
+
+<a name="Quick_start"></a>
+<h1>Quick start</h1>
+<p>
+On start-up, <span class="smallcaps">Packages</span> opens the repository that
+was most recently used. In practice, you will probably use a single repository
+for all your packages, but you can have several repositories and select the one
+to browse/edit in the &ldquo;File&rdquo; menu.
+</p>
+<p>
+Changes or additions to the repository are saved automatically on switching to
+a new package or when closing the application. There still is a &ldquo;Save&rdquo;
+option in the File menu, if you wish to save your edits without changing to a
+different package.
+</p>
+<p>
+The application shows a single package at a time. On the top row, you will find
+the navigation buttons (browse buttons), as well as menu and search buttons.
+Below that, the package information is split in three sections.
+</p>
+<div align="center">
+  <a name="Figure_user_interface"></a>
+  <img src="mainview.png" class="center" style="max-width:90%; width:800px;">
+  Figure 1: user-interface, main view
+</div>
+<p>
+The first section gives the generic package information: its name (or
+identification), its body size, number of pins, pitch between the pins,
+termination style (shape of the leads), and other characteristics.
+</p>
+<p>
+The second section lists variants of the same &ldquo;common shape&rdquo; for the
+package. The variant adds the height of the package, the standard it conforms
+to (if any) and the presence of an exposed pad (or &ldquo;thermal pad&rdquo;) to the
+generic information. See topic <a href="#Common_names_variants">Common names &amp; variants</a>
+for the distinction between a generic package and a variant.
+</p>
+<p>
+The third section gives detailed information about the footprint for the
+package: the shape and size of the pads, and the positions of these pads. As an
+aside, <span class="smallcaps">Packages</span> does not generate footprints for
+any EDA program &mdash;that is not its goal. However, due to the open format of
+the output file, a third-party script can use the detailed information on the
+package and pads to generate these footprints.
+</p>
+<p>
+On start-up, <span class="smallcaps">Packages</span> shows the full list with
+all packages in the repository. You can restrict the range to a subset, based
+on keywords or specific package parameters (e.g. span, height, pin count). See
+topic <a href="#Searching_and_filtering_packages">Searching and filtering packages</a>
+for details.
+</p>
+
+<a name="Adding_modifying_and_deleting_packages"></a>
+<h2>Adding, modifying and deleting packages</h2>
+<p>
+Depending on the package, not all data may be relevant. However, the top section
+(of the user-interface, see <a href="#Figure_user_interface">Figure 1</a>) should
+always be completed.
+</p>
+
+<h3>Names, description</h3>
+<p>
+A package may have more than one name &mdash;this is covered in detail in the topic
+<a href="#Common_names_variants">Common names &amp; variants</a>. The names that
+refer to the generic &ldquo;flat view&rdquo; shape of the package, should be listed as
+names in the top section. Other applications can use these aliases to look up
+package information in the course of exchanging data: different programs used in
+electronics production may use different names for the same package. Applications
+can also use the aliases to translate all packages being entered into the system
+to a preferred naming convention.
+</p>
+In the case of &ldquo;chip&rdquo; packages, like 0603 and 0805, we recommend to
+include both the &ldquo;imperial&rdquo; name and the &ldquo;metric&rdquo; name
+for the package (in this case 1508 and 2012 respectively). As explained in
+<a href="#Metric_versus_Imperial">Metric versus Imperial</a>, conflicts arise for
+the smaller packages: for example, 0603 is a valid package label in both imperial
+and metric &mdash;but pointing to two very different packages. Since
+<span class="smallcaps">Packages</span> does not allow for naming conflicts, our
+recommendation is to add an &ldquo;M&rdquo; suffix to the metric label: the
+equivalent for 0603 is 1508M, and 0805 is 2012M.
+<p>
+In general, we also suggest to put the preferred name(s) first in the list of
+names. When an application translates package names into a preferred naming
+convention, it typically picks the first &ldquo;preferred name&rdquo; that matches
+the chosen naming convention.
+</p>
+<p>
+The description is optional, and contains general purpose text. The description
+is included in the search function, so you can use the description to include
+search terms that are not covered by the other fields.
+</p>
+
+<h3>Characteristics</h3>
+<p>
+For SMD type packages (the focus of the <span class="smallcaps">Packages</span>
+application and data file), the termination field is an important parameter.
+For optical alignment, pick-&amp;-place machines need to know at what elevation
+to scan the (body of the) component, and that depends on the lead shape.
+Therefore, packages that are identical apart from their termination style, must
+be entered as separate packages. For example, SOD123 and SOD123F have gull-wing
+and lug-lead terminations respectively, and they are therefore separate
+packages &mdash;not variants.
+</p>
+<p>
+The fields for the pin count and pitch are fairly self-explanatory (see also
+topic <a href="#Pitch_and_spans">Pitch and spans</a> for the pitch dimension).
+An exposed-pad (or thermal pad) is seen as an attribute of a package, and it is
+typically not included in the pin count.
+</p>
+<p>
+The tape packaging orientation is standardized for common parts (see chapter
+<a href="#Normal_orientations">Normal orientations</a>). For connectors or
+exotic packages, the tape orientation can be selected here. Tape packaging
+orientation is relevant only for components package is tape (on reel); for
+packages too big for tape packaging, leave this field at zero. Again, see
+chapter <a href="#Normal_orientations">Normal orientations</a> for details.
+</p>
+<p>
+The relevance of the &ldquo;polarized&rdquo; field is that packages for polarized
+components are regularly oriented differently in tape packaging than those for
+non-polarized parts.
+</p>
+
+<h3>Body size, lead-to-lead size</h3>
+<p>
+Body size and lead-to-lead size are also inherent characteristics of a package.
+These sizes allow for a tolerance, however (this tolerance can be looked up in
+the specifications of the respective packages). See topic
+<a href="#Package_dimensions_and_outlines">Package dimensions and outlines</a>
+for details on the various &ldquo;size&rdquo; specifications of a package.
+</p>
+<p>
+If a package does not have pins (termination is either &ldquo;endcap&rdquo; or
+&ldquo;no-lead&rdquo;, the lead-to-lead size does not need to be filled in (it is
+by consequence identical to the body size).
+</p>
+
+<h3>Variants</h3>
+<p>
+The middle section in the user interface (see <a href="#Figure_user_interface">Figure 1</a>)
+is for the variants of the generic package. The generic package portrays a
+flattened view. For a long time, EDA programs needed no more that this
+representation. For assembly of the PCB, and for mechanical design (e.g. design
+of the enclosure), the height of the package also becomes an important parameter
+(and it is quite common that a generic package exists in different heights).
+This is why the details of various variants can be entered in a table. See the
+topic <a href="#Common_names_variants">Common names &amp; variants</a> for
+background information.
+</p>
+<p>
+For example, an LQFP package and an TQFP package share all parameters (and they
+share it with the generic QFP package), except that LQFP is about 1.5&thinsp;mm thick
+and TQFP about 1.0&thinsp;mm.
+</p>
+<p>
+Each variant must have a unique name, and the name of a variant may not conflict
+with any of the aliases for the generic package either. Names for variants may
+follow a standard or an ad-hoc convention &mdash;see also topic
+<a href="#Package_naming_standards">Package naming standards</a>. If it is a
+standardized convention, you can indicate that convention on the row too. Doing
+so enables applications to translate between naming conventions.
+</p>
+<p>
+For the &ldquo;flat view&rdquo; dimensions, <span class="smallcaps">Packages</span>
+stores the <em>nominal</em> size and a tolerance from that nominal size. For the height,
+it uses a range: minimum height to maximum height. The motivation is that package
+standards also specify the height as a range; IPC-7351 only records a <em>maximum</em>
+height in its naming convention.
+</p>
+
+<h3>Footprint</h3>
+<p>
+The bottom section of the user interface (<a href="#Figure_user_interface">Figure 1</a>)
+has design parameters for the footprint.
+</p>
+<p>
+The majority of footprints use a single pad shape & size for most (or all) of
+the pins. <span class="smallcaps">Packages</span> splits the pad shapes from the
+pad positions for a package. Thus, you often need to add only one or two pad
+shapes, even for packages with a high pin count.
+</p>
+<p>
+In the pad shape specification, you can furthermore mark a pad as &ldquo;exposed
+pad&rdquo; (also called a thermal pad). A pad marked as such is then only valid
+for those variants that are also marked as having an exposed pad (in the
+&ldquo;variants&rdquo; section of <a href="#Figure_user_interface">Figure 1</a>).
+</p>
+<p>
+For example, for a HSOIC8 package (8-pin SOIC with 1.27&thinsp;mm pitch and an exposed-pad):
+</p>
+<ul>
+<li> a variant for the package must be added, with an appropriate name (for
+     example, SOIC8P127_495X600X175T330X240 according to IPC-7351, or
+     HSOIC8-3.8x4.95 according to ED-7303);
+<li> in the column &ldquo;exposed-pad&rdquo;, a tick mark should be placed on
+     the row for the variant;
+<li> in the footprint section, a pad shape must be added with the size of the
+     exposed-pad, and this pad must also have a tick mark in the column
+     &ldquo;exposed-pad&rdquo; (this will have pad-id 2 for this example package);
+<li> a pad with pin-id 9 (one more than the pin count of the package, so 9 for
+     an SOIC8) must be added, and referencing pad-id 2.
+</ul>
+<p>
+The exposed pad is typically <em>not</em> included in the pin count (in the package
+characteristics, top section of <a href="#Figure_user_interface">Figure 1</a>).
+</p>
+
+<a name="Searching_and_filtering_packages"></a>
+<h2>Searching and filtering packages</h2>
+<p>
+You can open the search view by clicking the button &ldquo;Search&rdquo; (top right
+in <a href="#Figure_user_interface">Figure 1</a>) or with the key combination
+Ctrl+F.
+</p>
+<div align="center">
+  <a name="Figure_search"></a>
+  <img src="searchview.png" class="center" style="max-width:90%; width:800px;">
+</div>
+<p>
+The search is on keywords and/or specific package parameters. Only exact matches
+are found for the pin count and the pitch, if these are set as search parameters.
+However, for the span, a 10% margin applies.
+</p>
+<p>
+Next to jumping to a match (by double-clicking on the row in the &ldquo;matches&rdquo;
+table), you can add one or more matches to a selection. When a selection is
+active, the range of packages in the main view (<a href="#Figure_user_interface">Figure 1</a>)
+is restricted to the selection. Multiple disjoint searches can be added to a
+selection.
+</p>
+
+<a name="Package_concepts"></a>
+<h1>Package concepts</h1>
+<p>
+It is obvious that a specification for a component package needs to record the
+size, number of pins, pitch, and a few other characteristics. And it needs to
+have a kind of label that uniquely identifies it. Yet, as you look at the
+user-interface of Packages, you will spot right-away that there are
+multiple, different, fields for the size of the package, as well as multiple
+&ldquo;labels&rdquo; that all uniquely point to the same package.
+</p>
+
+<a name="Common_names_variants"></a>
+<h2>Common names &amp; variants</h2>
+<p>
+The QFP group of packages comprises ranges of with pin counts from 16 to 256 and
+pitches from 0.4&nbsp;mm to 1.0&nbsp;mm. With a chosen pin count and pitch, for example
+QFP32 with pith 0.5, the name still refers to a group of packages that all share
+the essential dimensions in the flat plane. There are variants, like LQFP which
+is about 1.5&nbsp;mm thick as opposed to 2.8&nbsp;mm nominally for the plain QFP
+(the &ldquo;L&rdquo; in LQFP stands for <em>low-profile</em>), or TQFP with a
+nominal height of 1.0&nbsp;mm (&ldquo;T&rdquo; stands for <em>thin</em>). There
+are also variants with <em>bumpers</em> in the corners to protect the leads, but
+these bumpers are not included in the body size &mdash;so the core dimensions
+are still the same as for QFP.
+</p>
+<p>
+All these variants (with the same pin count & pitch) share the same footprint,
+and have the same pitch and body &amp; lead-to-lead sizes.
+<span class="smallcaps">Packages</span> therefore groups them together in a
+single specification. The variants, are listed in that specification with their
+distinguishing attributes.
+</p>
+<p>
+Regardless, even a package <em>group</em> may be known under different names. As
+already noted earlier, in part this is due to different standardization organizations
+writing their own standard for one and the same package; see chapter
+<a href="#Package_naming_standards">Package naming standards</a> for more
+information. Also note that standardization organizations tend to follow
+industry practice &mdash;the package exists before the standard gets written.
+Therefore, <span class="smallcaps">Packages</span> allows you to add aliases for
+each common name (as well as adding variants).
+</p>
+<p>
+See also the topic <a href="#Metric_versus_Imperial">Metric versus Imperial</a>
+for another reason why a class is known under different names: sometimes a
+standardization organization cannot decide what is (or should be) the <em>standard</em>.
+</p>
+
+<a name="Package_dimensions_and_outlines"></a>
+<h2>Package dimensions and outlines</h2>
+<p>
+The size or <em>bounding box</em> of a package may refer to one of <em>four</em>
+dimensions, and each has its purpose.
+</p>
+<div align="center">
+  <a name="Figure_courtyard"></a>
+  <img src="courtyard.png" class="center" style="max-width:80%; width:720px;">
+  Figure 2: Package sizes
+</div>
+<p>
+The <em>body size</em> is, indeed, the size of the bounding box around the body
+excluding the pins. The <em>lead-to-lead size</em> is the bounding box <em>including</em>
+the pins. For packages that have no pins extruding from the sides of body (like
+QFN or BGA), the body and lead-to-lead sizes are the same. In the package data
+file (see chapter <a href="#File_format_specification">File format specification</a>),
+the lead-to-lead size may be omitted in case it is equal to the body size.
+</p>
+<p>
+The <em>footprint contour</em> (also called the footprint <em>outline</em>) is
+the bounding box around the footprint. With the SOT23-5 example in the picture
+above, the contour is wider than the lead-to-lead size, but not as high. The
+<em>courtyard</em> goes around the package, the leads and the footprint; this is
+always the biggest size.
+</p>
+<p>
+<span class="smallcaps">Packages</span> stores the body size, lead-to-lead size
+and footprint contour. The courtyard is not stored, because it is the envelope
+around the lead-to-lead size and the footprint contour (and it can therefore be
+derived from these dimensions).
+</p>
+<p>
+The horizontal and vertical dimensions for body, lead-to-lead, spans and others
+depend on how the how the package is oriented: turn it by 90 degrees and the
+x&nbsp;&amp;&nbsp;y swap places. Therefore, to properly specify the any dimensions of a
+package, we must first establish the <em>normal orientation</em> (or zero-orientation)
+of that package. See chapter <a href="#Normal_orientations">Normal orientations</a>
+for the standardized normal orientations of packages.
+</p>
+
+<a name="Origin_offsets"></a>
+<h2>Origin offsets</h2>
+<p>
+An essential concept for machine assembly of a PCB (with a pick-&-place machine)
+is the centroid: the centre of mass. A pick-&-place machine picks up the component
+at its centroid. The rationale is that pick-&-place machines use suction to hold
+the component &ldquo;glued&rdquo; to its nozzle, and the amount of suction is
+calibrated to the weight of the component. However, if a component is not in
+balance beneath the nozzle, it may &ldquo;float&rdquo; on the nozzle as the
+nozzle accelerates and decelerates in its movements from the feeder to the
+placement position. In other words, placement may then be less accurate.
+</p>
+<p>
+For symmetric packages (the grand majority of packages), the centroid coincides
+with the geometric centre. For these, the origin offsets are zero, for the body,
+the lead-to-lead envelope and for the footprint contour. Otherwise, you need to
+specify the appropriate offsets of the geometric centre relative to the centroid.
+</p>
+<div align="center">
+  <a name="Figure_centroidoffset"></a>
+  <img src="centroidoffset.png" class="center" style="max-width:80%; width:640px;">
+  Figure 3: Centroid and geometric offset
+</div>
+<p>
+In the above figure of a TO-252 package (also known as DPAK), the centroid is
+marked with the blue &#x2295; symbol. When looking at the body of the TO-252 package,
+the centroid still falls on the geometric centre of the body &mdash;which is by
+design. For the lead-to-lead envelope, this is not the case: the geometric
+centre is offset to the left of the centroid. In the concrete case of the
+TO-252 package, the origin offset of the lead-to-lead envelope is
+X:&nbsp;-0.9&nbsp;mm, Y:&nbsp;0&nbsp;mm.
+</p>
+<p>
+The figure omits a drawing of the footprint for this package, but an origin
+offset applies to the footprint contour as well (and, consequently, to the
+courtyard too).
+</p>
+
+<a name="Pitch_and_spans"></a>
+<h2>Pitch and spans</h2>
+<p>
+The pitch is the distance between two pins or pads on the same row. The span is
+the distance between pads of opposing rows. It is illustrated in <a href="#Figure_pitch_span">Figure 4</a>
+with a footprint for the SOT23-5 package.
+<p>
+<div align="center">
+  <a name="Figure_pitch_span"></a>
+  <img src="footprint-pitch-span.png" class="center" style="max-width:80%; width:226px;">
+  Figure 4: Pitch and span (on a footprint)
+</div>
+</p>
+The pitch is an attribute of the package (the pitch of a footprint is
+necessarily the same as the spacing of the pins of the package), but the span
+depends on the footprint. Typically, the span (horizontal and/or vertical) is
+slightly smaller than the lead-to-lead size in the same direction, but there is
+no hard rule &mdash;it depends on the termination type amongst others. A quad-row
+package has both a horizontal and a vertical span; these are the same for square
+packages, but different for a quad-row rectangular package.
+<p>
+</p>
+A 2-pin surface-mount component typically has a span, but not a pitch.
+Through-hole 2-pin connectors form an exception, their pin distance is often
+specified as their &ldquo;pin pitch&rdquo;.
+<p>
+
+<a name="File_format"></a>
+<h1>File format</h1>
+<p>
+The package file is a JSON file with an array of &ldquo;objects&rdquo;, each object
+representing a package. The table below describes the fields for a single
+package.
+</p>
+<p>
+Fields that are not relevant for a particular package may be omitted. For
+example, the &ldquo;exposed-pad&rdquo; field is irrelevant for a 2-pin
+&ldquo;chip&rdquo; package, and it is usually not recorded. Likewise, for packages
+with &ldquo;endcap&rdquo; or &ldquo;no-lead&rdquo; terminations, the lead-to-lead
+size is identical to the body size, and it is then sufficient to record the body
+size.
+</p>
+<p>
+For fields that have an array type, if that array has no elements, the field
+may also be set to null. For example, when a package has no variants, the
+variants field may be set to null, rather than an empty array. Still, the
+preferred way to handle this case is to not include the variants field at all.
+</p>
+
+<div align="center">
+<table>
+<thead>
+<tr><th style="width:20%;">Field</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>names</td><td>array of strings</td><td>common names</td></tr>
+<tr><td>variants</td><td>array of objects</td><td>list of specific variants of the common name</td></tr>
+<tr><td>&middot;&emsp;name</td><td>string</td><td>the (normative) name of the variant</td></tr>
+<tr><td>&middot;&emsp;standard</td><td>string</td><td>name of the standard or convention (if any)</td></tr>
+<tr><td>&middot;&emsp;height</td><td>object</td><td>the height range of the variant in mm</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;low</td><td>number</td><td>minimum height in mm</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;high</td><td>number</td><td>maximum height in mm</td></tr>
+<tr><td>&middot;&emsp;exposed&#8209;pad</td><td>boolean</td><td>whether this variant has an exposed-pad</td></tr>
+<tr><td>&middot;&emsp;notes</td><td>string</td><td>optional comment or notes</td></tr>
+<tr><td>description</td><td>string</td><td>optional brief description</td></tr>
+<tr><td>type</td><td>string</td><td>&ldquo;SMD&rdquo; or &ldquo;Through-hole&rdquo;</td></tr>
+<tr><td>body</td><td>object</td><td>body size (excluding pins) and centroid</td></tr>
+<tr><td>&middot;&emsp;cx,&nbsp;cy</td><td>number</td><td>nominal horizontal and vertical dimensions in mm</td></tr>
+<tr><td>&middot;&emsp;tol.x,&nbsp;tol.y</td><td>number</td><td>optional tolerance for the horizontal and vertical dimensions in mm</td></tr>
+<tr><td>&middot;&emsp;x,&nbsp;y</td><td>number</td><td>offset of the body centre from the centroid</td></tr>
+<tr><td>lead&#8209;to&#8209;lead</td><td>object</td><td>lead-to-lead&rdquo; size and centroid (see <a href="#Figure_courtyard">Figure 2</a>)</td></tr>
+<tr><td>&middot;&emsp;cx,&nbsp;cy</td><td>number</td><td>lead-to-lead nominal horizontal and vertical dimensions in mm</td></tr>
+<tr><td>&middot;&emsp;tol.x,&nbsp;tol.y</td><td>number</td><td>optional tolerance for the horizontal and vertical dimensions in mm</td></tr>
+<tr><td>&middot;&emsp;x,&nbsp;y</td><td>number</td><td>offset of the shape centre from the centroid</td></tr>
+<tr><td>pin-count</td><td>integer</td><td>number of pins or leads of the package</td></tr>
+<tr><td>pitch</td><td>number</td><td>pin pitch in mm, if applicable</td></tr>
+<tr><td>termination</td><td>string</td><td>one of the following: &ldquo;endcap&rdquo;, &ldquo;gull-wing&rdquo;, &ldquo;inward-L&rdquo;, &ldquo;lug-lead&rdquo;, &ldquo;J-lead&rdquo;, &ldquo;no-lead&rdquo;, &ldquo;ball&rdquo;, &ldquo;castellated&rdquo; or &ldquo;through-hole&rdquo;</td></tr>
+<tr><td>polarized</td><td>boolean</td><td>true or false (may be absent if irrelevant)</td></tr>
+<tr><td>tape-orientation</td><td>integer</td><td>angle between packaging orientation (EIA-481D) and normative zero-orientation (IPC-7351), in degrees</td></tr>
+<tr><td>footprints</td><td>array of objects</td><td>list van footprints</td></tr>
+<tr><td>&middot;&emsp;type</td><td>string</td><td>one of &ldquo;nominal&rdquo;, &ldquo;least&rdquo; or &ldquo;most&rdquo;, according to the specification in IPC-7351</td></tr>
+<tr><td>&middot;&emsp;span</td><td>object</td><td>distance between pads in opposing rows (see <a href="#Figure_pitch_span">Figure 4</a>)</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;cx,&nbsp;cy</td><td>number</td><td>distance in mm</td></tr>
+<tr><td>&middot;&emsp;contour</td><td>object</td><td>footprint contour and centroid (see <a href="#Figure_courtyard">Figure 2</a>)</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;cx,&nbsp;cy</td><td>number</td><td>contour horizontal and vertical dimensions in mm</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;x,&nbsp;y</td><td>number</td><td>offset of the contour centre from the centroid</td></tr>
+<tr><td>&middot;&emsp;pad&#8209;shapes</td><td>array of objects</td><td>list of unique pad shapes and sizes used in the footprint</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;pad-id</td><td>integer</td><td>sequence number of the pad shape definition</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;cx,&nbsp;cy</td><td>number</td><td>horizontal and vertical dimensions of the pad in mm</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;shape</td><td>string</td><td>one of &ldquo;rectangle&rdquo;, &ldquo;round&rdquo;, &ldquo;roundedrect&rdquo;, &ldquo;obround&rdquo;, &ldquo;polygon&rdquo; or &ldquo;special&rdquo;</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;exposed&#8209;pad</td><td>boolean</td><td>whether this pad represents an exposed centre pad (for variants that have an exposed-pad)</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;hole</td><td>number</td><td>diameter of the hole in the pad (applicable for through-hole packages)</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;x,&nbsp;y</td><td>number</td><td>offset of the pad origin relative to the pad&rsquo;s geometric centre</td></tr>
+<tr><td>&middot;&emsp;pad&#8209;positions</td><td>array of object</td><td>list of the pad positions</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;pin-id</td><td>integer</td><td>pin number</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;pad-id</td><td>integer</td><td>reference to the pad shape for this pin</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;x,&nbsp;y</td><td>number</td><td>position of the pad origin, relative to the centroid position of the footprint</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;rotation</td><td>number</td><td>rotation of the pad shape, relative to the definition in the pad-shapes array</td></tr>
+</tbody>
+</table>
+</div>
+
+<a name="File_format_notes"></a>
+<h2>Notes</h2>
+<p>
+For the pad shape, a square pad is stored as a &ldquo;rectangle&rdquo; shape;
+the cx and cy parameters will establish that it is square. The radius for the
+rounded corners of a &ldquo;roundedrect&rdquo; shape is not specified; in the
+scope of  <span class="smallcaps">Packages</span>, the intent is to flag the pad
+shape as an intermediate form  between rectangle and obround.
+</p>
+<p>
+All coordinates assume that in the 2D projection, the Y-axis points upwards.
+This is in conformance with the Gerber standard. Some design programs use a
+downward Y-axis &mdash;a common convention in the early days of computing. Such
+programs should flip the sign on Y coordinates on reading the data from the
+JSON file.
+</p>
+<div align="center">
+  <a name="Figure_axis_orientation"></a>
+  <img src="SOIC16_0.png" class="center" style="max-width:80%; width:226px;">
+  Figure 5: X &amp; Y axis orientation
+</div>
+
+<a name="SMT_terminal_types"></a>
+<h1>SMT terminal types</h1>
+<div align="center">
+<table>
+<thead>
+<tr><th style="width:20%;">&nbsp;</th><th>Name</th><th>Notes</th></tr>
+</thead>
+<tbody>
+<tr><td><img src="term_endcap.png" width="100%"></td><td>endcap</td><td>used on 2-pin &ldquo;chip&rdquo; packages</td></tr>
+<tr><td><img src="term_gull-wing.png" width="100%"></td><td>gull-wing</td><td>common on semiconductor packages, especially for components with more than two pins<br/>(this terminal shape is also called L-lead)</td></tr>
+<tr><td><img src="term_lug-lead.png" width="100%"></td><td>lug-lead</td><td>pins extend flat from the bottom, used on some diode packages<br/>(this terminal shape is also called flat-lead)</td></tr>
+<tr><td><img src="term_inward-L.png" width="100%"></td><td>inward-L</td><td>used on 2-pin &ldquo;molded&rdquo; packages, such as tantalum capacitors (note how the pin folds underneath the package)</td></tr>
+<tr><td><img src="term_J-lead.png" width="100%"></td><td>J-lead</td><td>components with J-lead terminals can be soldered on the PCB or be inserted in a socket<br/>PLCC packages use J-lead extending from all four edges</td></tr>
+<tr><td><img src="term_no-lead.png" width="100%"></td><td>no-lead</td><td>notably QFN and DFN packages<br/>on occasion, pads are &ldquo;pulled back&rdquo; from the edges (PQFN for Pulled-back, Quad Flat No-lead)</td></tr>
+<tr><td><img src="term_ball-grid.png" width="100%"></td><td>ball-grid</td><td>&nbsp;</td></tr>
+<tr><td><img src="term_land-grid.png" width="100%"></td><td>land-grid</td><td>similar to ball-grid, but flat contact surfaces instead of solder balls<br/>may be used with a needle-pin connector, or be reflow soldered</td></tr>
+<tr><td><img src="term_castellated.png" width="100%"></td><td>castellated</td><td>common for modules, occasionally used on resistor arrays<br/>on 2-pin components, this terminal style is also called side-concave</td></tr>
+</tbody>
+</table>
+</div>
+
+<a name="Normal_orientations"></a>
+<h1>Normal orientations</h1>
+<p>
+The normal orientation is the orientation that the component has when its
+rotation is zero degrees. There are two predominant standards for the normal
+orientation of components on a PCB. Fortunately, these two standards, IPC-7351
+and IEC&nbsp;61188-7 &ldquo;Level A&rdquo;, are compatible with each other.
+</p>
+<p>
+In brief, the normal orientation of 2-pin packages is such that pin 1 is on the
+left and pin 2 is on the right. For polarized components, such as electrolytic
+or tantalum capacitors, pin 1 is the &ldquo;plus&rdquo;-pin. For diodes, pin 1 is
+the cathode. For packages with more than 2 pins, the component is oriented as
+such that pin 1 is aligned to the top left corner. If pin 1 is in the middle of
+an edge, instead of near a corner, pin 1 must be aligned to the top. A few
+exceptions to these general rules are noted beneath the table.
+</p>
+<p>
+Most surface mount components come packaged in tape, on reel. A separate
+standard exists for how the components are packaged in carrier tape, EIA-481.
+Manufacturers generally adhere to the EIA-481 standard, but many also specify
+exceptions for specific component packages; for example, many manufactures have
+continued to package QFP and QFN packages according to the rules in EIA-481<b>C</b>
+instead of adopting the changes of EIA-481<b>D</b>.
+</p>
+<p>
+The table below shows the normal orientations according to IPC-7351 and the
+packaging orientation according to the latest EIA-481 standard. The angle by
+which a package must be rotated to go from EIA-481 to IPC-7351 is also given.
+</p>
+<p>
+Note that EIA-481 only applies to packaging in tape; see the notes at the end of
+this section for tube and tray packaging.
+</p>
+<div align="center">
+<table>
+<thead>
+<tr><th style="width:25%;">EIA-481D</th><th style="width:7%;">&nbsp;</th><th style="width:12%;">IPC-7351</th><th>Notes</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td><img src="tape_chip.png" width="100%"></td>
+  <td style="vertical-align:middle;"><img src="rotate_90.png" width="100%"></td>
+  <td><img src="zero_chip.png" width="100%"></td>
+  <td>Non-polarized chip or moulded packages, e.g. resistors, capacitors, inductors, 2-pin crystals.</td>
+</tr><tr>
+  <td><img src="tape_chippol.png" width="100%"></td>
+  <td style="vertical-align:middle;"><img src="rotate_90.png" width="100%"></td>
+  <td><img src="zero_chippol.png" width="100%"></td>
+  <td>Polarized chip or moulded packages  (except capacitors, see below). For diodes, pin 1 is the cathode.</td>
+</tr><tr>
+  <td><img src="tape_tantalum.png" width="100%"></td>
+  <td style="vertical-align:middle;"><img src="rotate_270.png" width="100%"></td>
+  <td><img src="zero_tantalum.png" width="100%"></td>
+  <td>Tantalum capacitors or other capacitors in moulded packages. Pin 1 (with a bar) is the positive pole.</td>
+</tr><tr>
+  <td><img src="tape_elco.png" width="100%"></td>
+  <td style="vertical-align:middle;"><img src="rotate_270.png" width="100%"></td>
+  <td><img src="zero_elco.png" width="100%"></td>
+  <td>Electrolytic capacitors. Pin 1 is the positive pole. (The black bar marks the negative pole.)</td>
+</tr><tr>
+  <td><img src="tape_inductor.png" width="100%"></td>
+  <td style="vertical-align:middle;"><img src="rotate_90.png" width="100%"></td>
+  <td><img src="zero_inductor.png" width="100%"></td>
+  <td>Power inductors (non-polarized).</td>
+</tr><tr>
+  <td><img src="tape_plcc2.png" width="100%"></td>
+  <td style="vertical-align:middle;"><img src="rotate_90.png" width="100%"></td>
+  <td><img src="zero_plcc2.png" width="100%"></td>
+  <td>PLCC2 package (for LEDs). See also the <a href="#Normal_orientations_notes">notes</a> below.</td>
+</tr><tr>
+  <td><img src="tape_plcc6.png" width="100%"></td>
+  <td style="vertical-align:middle;"><img src="rotate_90.png" width="100%"></td>
+  <td><img src="zero_plcc6.png" width="100%"></td>
+  <td>PLCC4 and PLCC6 packages (for multi-colour LEDs). See also the <a href="#Normal_orientations_notes">notes</a> below.</td>
+</tr><tr>
+  <td><img src="tape_chiparray.png" width="100%"></td>
+  <td style="vertical-align:middle;">&nbsp;</td>
+  <td><img src="zero_chiparray.png" width="100%"></td>
+  <td>Resistor arrays and capacitor arrays in a chip package.</td>
+</tr><tr>
+  <td><img src="tape_resonator.png" width="100%"></td>
+  <td style="vertical-align:middle;"><img src="rotate_90.png" width="100%"></td>
+  <td><img src="zero_resonator.png" width="100%"></td>
+  <td>Ceramic resonators with 3 pins. See the <a href="#Normal_orientations_notes">notes</a> below for crystals and oscillators with two or four pins.</td>
+</tr><tr>
+  <td><img src="tape_crystal.png" width="100%"></td>
+  <td style="vertical-align:middle;">&nbsp;</td>
+  <td><img src="zero_crystal.png" width="100%"></td>
+  <td>Rectangual 4-pin crystals. See the <a href="#Normal_orientations_notes">notes</a> below for crystals with two pins, and oscillators with a square shape.</td>
+</tr><tr>
+  <td><img src="tape_sot23-3.png" width="100%"></td>
+  <td style="vertical-align:middle;"><img src="rotate_270.png" width="100%"></td>
+  <td><img src="zero_sot23-3.png" width="100%"></td>
+  <td>3-pin SOT style transistor, e.g. SOT23, SOT323, SOT523, SC70, TO-236.</td>
+</tr><tr>
+  <td><img src="tape_sot23-5.png" width="100%"></td>
+  <td style="vertical-align:middle;"><img src="rotate_270.png" width="100%"></td>
+  <td><img src="zero_sot23-5.png" width="100%"></td>
+  <td>5-pin SOT style packages, e.g. SOT23-5, SC70-5, SSOP-5.</td>
+</tr><tr>
+  <td><img src="tape_sot23-6.png" width="100%"></td>
+  <td style="vertical-align:middle;"><img src="rotate_270.png" width="100%"></td>
+  <td><img src="zero_sot23-6.png" width="100%"></td>
+  <td>6-pin & 8-pin SOT style packages, e.g. SOT23-6, SC70-6, SSOP-6.</td>
+</tr><tr>
+  <td><img src="tape_sot143.png" width="100%"></td>
+  <td style="vertical-align:middle;"><img src="rotate_270.png" width="100%"></td>
+  <td><img src="zero_sot143.png" width="100%"></td>
+  <td>SOT143 and SOT343.</td>
+</tr><tr>
+  <td><img src="tape_sot223.png" width="100%"></td>
+  <td style="vertical-align:middle;"><img src="rotate_270.png" width="100%"></td>
+  <td><img src="zero_sot223.png" width="100%"></td>
+  <td>SOT223, SC73, TO-89, TO-261. (See below for similar packages.)</td>
+</tr><tr>
+  <td><img src="tape_sot89.png" width="100%"></td>
+  <td style="vertical-align:middle;"><img src="rotate_180.png" width="100%"></td>
+  <td><img src="zero_sot89.png" width="100%"></td>
+  <td>SOT89, TO-293. (See above and below for similar packages.)</td>
+</tr><tr>
+  <td><img src="tape_dpak.png" width="100%"></td>
+  <td style="vertical-align:middle;"><img src="rotate_90.png" width="100%"></td>
+  <td><img src="zero_dpak.png" width="100%"></td>
+  <td>SOT89, TO-293. (See above and below for similar packages.)</td>
+</tr><tr>
+  <td><img src="tape_soic.png" width="100%"></td>
+  <td style="vertical-align:middle;">&nbsp;</td>
+  <td><img src="zero_soic.png" width="100%"></td>
+  <td>Rectangular IC packages: SOIC, SSOP, TSSOP, TSOP type 2 (but see below for TSOP type 1).</td>
+</tr><tr>
+  <td><img src="tape_tsop1.png" width="100%"></td>
+  <td style="vertical-align:middle;"><img src="rotate_90.png" width="100%"></td>
+  <td><img src="zero_tsop1.png" width="100%"></td>
+  <td>TSOP type 1.</td>
+</tr><tr>
+  <td><img src="tape_qfp.png" width="100%"></td>
+  <td style="vertical-align:middle;"><img src="rotate_90.png" width="100%"></td>
+  <td><img src="zero_qfp.png" width="100%"></td>
+  <td>Square IC packages: QFP, QFN, SON, DFN (but not BGA and most PLCC, see below).</td>
+</tr><tr>
+  <td><img src="tape_plcc.png" width="100%"></td>
+  <td style="vertical-align:middle;">&nbsp;</td>
+  <td><img src="zero_plcc.png" width="100%"></td>
+  <td>Square IC packages that have pin 1 in the middle of the row, which is common for PLCC packages.</td>
+</tr><tr>
+  <td><img src="tape_bga.png" width="100%"></td>
+  <td style="vertical-align:middle;">&nbsp;</td>
+  <td><img src="zero_bga.png" width="100%"></td>
+  <td>Square Grid array IC packages (BGA, LGA, PGA); see above for QFN, QFP and other square IC packages.</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<a name="Normal_orientations_notes"></a>
+<h2>Notes</h2>
+
+<h3>PLCC2, PLCC4 and PLCC6</h3>
+<p>
+The low pin count PLCC packages for LEDs have a chamfered corner to mark pin&nbsp;1.
+For PLCC2, pin one is usually the cathode (conforming to IPC-7351); for RGB
+LEDs in PLCC4 and PLCC6 packages, pin 1 is typically the common anode.
+</p>
+<p>
+The PLCC4 package uses a clockwise pin numbering scheme, starting from pin&nbsp;1
+in the upper left corner. The zero-orientation is not explicitly defined in the
+IPC-7351 standard (because IPC-7351 assumes a counter-clockwise pin numbering).
+</p>
+<p>
+The PLCC6 package uses a counter-clockwise pin numbering scheme, similar to
+dual-line IC packages.
+</p>
+
+<h3>Crystals, ceramic resonators, oscillators</h3>
+<p>
+Crystals in a 2-pin chip package follow the orientation of 2-pin non-polarized
+chip packages. Ceramic resonators with three aligned pins are oriented as shown
+in the table.
+</p>
+<p>
+For crystals and crystal oscillators with four pins (or more), the orientation
+in tape is inconclusive. Rectangular shaped crystals generally follow the
+alignment as shown in the table. Square packages (which are typically
+oscillators, rather than crystals) regularly use the orientation of PLCC4.
+</p>
+<p>
+4-pin crystals and oscillators may use a clockwise pin numbering, like PLCC4.
+For crystals, the pin numbering direction is mostly irrelevant, because the
+crystal is typically connected between pins 1 and 3 (with pins 2 and 4 either
+unconnected, or both connected to ground). Regardless of the direction of the
+pin numbering, pins 1&nbsp;&amp;&nbsp;3 are at the same positions.
+</p>
+
+<h3>Tube and tray orientations</h3>
+<p>
+Components are oriented sideways in tube (sticks), such that the pins of
+consecutive components do not touch. The end of the tube that &ldquo;pin&nbsp;1&rdquo;
+of the component points to is often marked with a green stop or pin.
+</p>
+<p>
+JEDEC trays have a chamfered corner. If the tray is oriented such that the
+chamfered corner is on the upper left, the components in the tray are oriented
+according to IPC-7351.
+</p>
+
+<a name="Package_naming_standards"></a>
+<h1>Package naming standards</h1>
+<p>
+There have been several attempts to come to a generic naming convention that
+describes standard packages in a more precise and less ad-hoc way. The one that
+has gained widest acceptance, is IPC-7351B &ldquo;<em>Naming Conventions for
+Standard SMT Land Patterns</em>&rdquo;. This standard is not without its flaws,
+though: internal inconsistencies and ambiguous descriptions make the standard
+open to interpretation. These were set out to be fixed in the updated IPC-7351C
+standard, but the work on this update stalled, the IPC workgroup disbanded and
+the new workgroup has not held a meeting for the past four years.
+</p>
+<p>
+A draft for the proposed updates for the chapter on the package naming
+convention, though, was published by the author of that chapter &mdash;the
+&ldquo;<em>Library Expert Footprint Naming Convention</em>&rdquo;. It is available
+from <a href="https://www.pcblibraries.com/">https://www.pcblibraries.com/</a>,
+requiring a free registration. Despite being an unofficial standard, this draft
+document is considered the <em>current</em> IPC naming convention. For a
+summary, see topic <a href="#IPC7351_summary">IPC-7351 summary</a>, and also see
+the <a href="#Package_naming_examples">examples</a>.
+</p>
+<p>
+A contender is JEITA standard ED-7303C &ldquo;<em>Name and code for integrated
+circuits package</em>&rdquo; (originally an EIAJ standard; JEITA is the successor
+of EIAJ). ED-7303 is more limited than IPC-7351, because it only deals with
+packages for integrated circuits. The advantage, however, is that the naming
+convention stays closer to the industry-standard names like TSSOP and LQFP.
+Codes for pitch, span, or body sizes are affixed at the end as needed. See
+topic <a href="#ED7303_summary">ED-7303 summary</a> for an overview,and also see
+the <a href="#Package_naming_examples">examples</a>.
+</p>
+<p>
+Of mention is furthermore the JEDEC standard JESD30 &ldquo;<em>Descriptive
+Designation System for Electronic-device Packages</em>&rdquo;. This is an
+elaborate standard that tries to describe every feature of a package. The
+resulting package names are cryptic, though, and it does not appear that this
+standard is active use. Curious, in this respect, is that JEDEC also maintains
+a large collection of design drawings for electronic packages, categorized as a
+two-letter prefix plus a sequence number (plus an optional suffix), where the
+prefix is &ldquo;DO&rdquo; for diodes, &ldquo;TO&rdquo; for transistors, and
+&ldquo;MO&rdquo; or &ldquo;MS&rdquo; for integrated circuits. These drawings
+&ldquo;reference labels&rdquo; are actually in common use (e.g. DO-219AA as
+an alias for SOD123, or TO-252 as an alias for DPAK). Yet, JESD30 ignores these
+reference drawings and restarts from scratch.
+</p>
+<p>
+Lastly, none of the above standards covers manufacturer-specific packages (and
+footprints), such as those for connectors, submodules and special components. As
+a result, there are no standard names for these packages either. The common
+convention is that these packages are named:
+</p>
+<blockquote>
+  <em>Manufacturer Name</em> + &ldquo;_&rdquo; + <em>Product Number</em>
+</blockquote>
+<p>
+An example of the above convention is CUI_PJ-001AH-67. &mdash;a SMT mounted DC
+power connector manufactured by CUI.
+</p>
+<p>
+The product number may contain wild-card characters (typically an &ldquo;x&rdquo;),
+in case there is a range of components that all use the same package.
+</p>
+
+<a name="Metric_versus_Imperial"></a>
+<h2>Metric versus Imperial</h2>
+<p>
+In the 1980s, the various standardization organizations for the electronics
+industry came to an agreement to move to metric and specify the dimensions in
+all future standards in millimetres. However, when the (USA-based) EIA published
+the PDP-100 standard on the &ldquo;chip&rdquo; packages (for surface mount
+resistors, capacitors, ferrite beads and other 2-pin parts) in 1987, the
+backlash from the USA industry was such that the EIA back-pedalled on its
+decision and republished the standard a year later with dimensions in both
+imperial and metric.
+</p>
+<p>
+The trouble is: the EIA also chose to identify the packages by their size. For
+example, the 0805 package is a chip with a length of 8/100<sup>th</sup>&nbsp;inch
+and a width of 5/100<sup>th</sup>&nbsp;inch. In other words, the package&rsquo;s
+<em>label</em> is simply its dimensions in the 2D plane in increments of
+0.01&nbsp;inch. In metric, this size is roughly 2.0&nbsp;&times;&nbsp;1.25&nbsp;mm.
+That same 0805 package can also be labelled 2012 &mdash;again the length and
+width of the package, but now in increments of 0.1&nbsp;mm. Both 0805 and 2012
+refer to the same package; both are valid, standardized names for one and the
+same package; both are in active use, although imperial is more common
+than metric (especially in the USA).
+</p>
+<p>
+A complication is that you cannot tell from looking at the package name alone,
+whether it should be interpreted as imperial or metric. At this time, there does
+not exist a package with the imperial size of 2012, so in this case you can make
+an educated guess that 2012 must be interpreted as metric. However, conflicts do
+exist: 0603, 0402 and 0201 are valid imperial sizes for a package as well as a
+valid metric sizes &mdash;but the metric packages being more than twice as small
+as their imperial counterparts with the same moniker.
+</p>
+<div align="center">
+<table>
+<thead>
+<tr><th>Imperial</th><th>Metric</th><th>Body size</th></tr>
+<tr><td>008004</td><td>0201</td><td>0.25&times;0.125&nbsp;mm</td></tr>
+<tr><td>01005</td><td>0402</td><td>0.4&times;0.2&nbsp;mm</td></tr>
+<tr><td>0201</td><td>0603</td><td>0.6&times;0.3&nbsp;mm</td></tr>
+<tr><td>0402</td><td>1005</td><td>1.0&times;0.5&nbsp;mm</td></tr>
+<tr><td>0603</td><td>1608</td><td>1.6&times;0.8&nbsp;mm</td></tr>
+<tr><td>0805</td><td>2012</td><td>2.0&times;1.25&nbsp;mm</td></tr>
+<tr><td>1008</td><td>2520</td><td>2.5&times;2.0&nbsp;mm</td></tr>
+<tr><td>1206</td><td>3216</td><td>3.2&times;1.6&nbsp;mm</td></tr>
+<tr><td>1210</td><td>3225</td><td>3.2&times;2.5&nbsp;mm</td></tr>
+<tr><td>1808</td><td>4520</td><td>4.5&times;2.0&nbsp;mm</td></tr>
+<tr><td>1812</td><td>4532</td><td>4.5&times;3.2&nbsp;mm</td></tr>
+<tr><td>2010</td><td>5025</td><td>5.0&times;2.5&nbsp;mm</td></tr>
+<tr><td>2012</td><td>5032</td><td>5.0x3.2&nbsp;mm</td></tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+Common &ldquo;chip package&rdquo; sizes, in imperial and metric
+</div>
+<p>
+There was some hope, roughly twenty years ago, that the schism between metric
+and imperial would be resolved, because the EIA suspended its yearly updates to
+the PDP-100 standard in 1995, due to it being &ldquo;in revision&rdquo;. It
+never materialized, though (and neither were the updates resumed). The EIA
+ceased its operations in 2011.
+</p>
+<p>
+A convention that is increasingly applied (but not yet universal) is to add an
+&ldquo;M&rdquo; suffix to the metric specifications of the packages. Thus, we
+speak of 0805 and 2012M.
+</p>
+
+<a name="IPC7351_summary"></a>
+<h2>IPC-7351 summary</h2>
+<p>
+IPC-7351 touts itself as a standard for &ldquo;land patterns&rdquo; (footprints),
+and it adds a suffix at the end of every footprint name to indicate the desired
+<em>density</em> of the assembly. A high density imposes a smaller footprint,
+and thus IPC-7351 identifies each package with three different labels for
+three standardized densities: <em>Nominal</em>, <em>Least</em> and <em>Most</em>
+&mdash;where &ldquo;least&rdquo; is for the footprint with the least spacing and
+the smallest pads, so for the <em>highest</em> density. In its label, the last
+letter (&ldquo;N&rdquo;, &ldquo;L&rdquo; or &ldquo;M&rdquo;) indicates the
+density. The density is not relevant for a package description, therefore this
+letter may be dropped on the package name or variant name.
+</p>
+<p>
+Dimensions are in 1/100<sup>th</sup> of a millimetre. The X, Y and Z dimensions
+are separated with an &ldquo;X&rdquo;, and the &ldquo;X&rdquo; and &ldquo;Y&rdquo;
+dimensions refer to the lead-to-lead size. For the X and Y dimensions, the value
+is the nominal size; for the X dimension, the value is the maximum size. For
+example, a 20-pin TSSOP package (with standard 0.65&nbsp;mm pitch) is named as
+SOP20P65_650X640X110. You can dissect this name as:
+</p>
+<ul>
+<li>package style = small outline with pins (&ldquo;SOP&rdquo;)
+<li>20 pins, pitch = 0.65&nbsp;mm (65/100&nbsp;mm)
+<li>lead-to-lead size = 6.5&times;6.4&nbsp;mm, max. height = 1.1&nbsp;mm
+</ul>
+<p>
+However, for packages for discrete components, IPC-7351 switches to the (metric)
+convention of PDP-100, which is 1/10th of a millimetre, and drops the
+&ldquo;X&rdquo; between the X and Y dimensions. For example, a common
+&ldquo;chip&rdquo; style resistor is RESC2012X50N, which we can dissect as:
+</p>
+<ul>
+<li>component type = resistor (&ldquo;RES&rdquo;)
+<li>package style = chip (&ldquo;C&rdquo;)
+<li>lead-to-lead size (same as the body size) = 2.0&times1.2&nbsp;mm, max. height = 0.5&nbsp;mm
+</ul>
+<p>
+The inclusion of the component type in the package name leads to a proliferation
+of package/footprint specifications that all are essentially identical &mdash;the
+type of a component is neither relevant for the package, nor for the footprint.
+</p>
+
+<a name="ED7303_summary"></a>
+<h2>ED-7303 summary</h2>
+<p>
+ED-7303 limits itself to packages for integrated circuits. For discrete
+semiconductors, JEITA suggests using the &ldquo;SC&rdquo; codes (separate JEITA
+standards). No guideline is given for discrete passive components, but EIA
+PDP-100 is the obvious choice. However, that still does not solve the issue of
+metric versus imperial.
+</p>
+<p>
+The recent ED-7303 standard specifies the package sizes in millimetres. These
+are plain millimetres, not scaled millimetres like in IPC-7351. Also in contrast
+to IPC-7351 is that ED-7303 specifies the dimensions of the <em>body</em> of the
+package, rather than the lead-to-lead size. However, ED-7303 comes of age: the
+original specification is from June 1998, and it carries that history in the form
+of legacy notations that are now redundant and no longer recommended &mdash;yet
+still valid. This manual restricts itself to summarizing the recommended
+standard.
+</p>
+<p>
+The height of the package is encoded in a prefix to the general package name.
+For example, VQFP is a QFP with a height between 0.8&nbsp;mm and 1.0&nbsp;mm;
+see the table below.
+</p>
+<div align="center">
+<table>
+<thead>
+<tr><th>Code</th><th>Description</th><th>Seated height</th></tr>
+<tr><td>L</td><td>Low profile</td><td>1.2 mm  &lt;  L &le; 1.7 mm</td></tr>
+<tr><td>T</td><td>Thin</td><td>1.0 mm  &lt;  T &le; 1.2 mm</td></tr>
+<tr><td>V</td><td>Very thin</td><td>0.8 mm  &lt;  V &le; 1.0 mm</td></tr>
+<tr><td>W</td><td>Very very thin</td><td>0.65 mm &lt;  W &le; 0.8 mm</td></tr>
+<tr><td>U</td><td>Ultra thin</td><td>0.5 mm  &lt;  U &le; 0.65 mm</td></tr>
+<tr><td>X</td><td>Extremely thin</td><td>X &le; 0.5 mm</td></tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+</div>
+<p>
+Other prefixes flag features like the presence of an exposed-pad (&ldquo;H&rdquo;),
+or bumpered corners (&ldquo;B&rdquo;). Multiple prefixes can be chained.
+</p>
+<p>
+An example for a package code according to ED-7303 is P-HTSSOP24-7.8x4.4-0.65,
+which means:
+</p>
+<li>plastic body (&ldquo;P-&rdquo;)
+<li>exposed-pad (&ldquo;H&rdquo;)
+<li>thin (&ldquo;T&rdquo;), height between 1.0&nbsp;mm and 1.2&nbsp;mm
+<li>package style = shrink small outline with pins (&ldquo;SSOP&rdquo;)
+<li>24 pins
+<li>body size = 7.8&times;4.4&nbsp;mm
+<li>pitch 0.65&nbsp;mm
+<p>
+The material code (&ldquo;P-&rdquo; in the above example) is required according
+to the standard, but actually superfluous &mdash;so it is, in fact, often omitted.
+</p>
+
+<a name="Package_naming_examples"></a>
+<h2>Examples of package names</h2>
+<div align="center">
+<table>
+<thead>
+<tr><th>IPC-7351C (draft) &#x2460;</th><th>ED-7303C / JEITA</th><th>Description</th></tr>
+<tr><td>RESC2012X50 &#x2461;</td><td>&nbsp;</td><td>0805 imperial, resistor, 2.0&times;1.25&nbsp;mm, 0.5&nbsp;mm high (max.)</td></tr>
+<tr><td>CAPC1608X80 &#x2461;</td><td>&nbsp;</td><td>0603 imperial, capacitor 1.6&times;0.8&nbsp;mm, 0.8&nbsp;mm high (max.)</td></tr>
+<tr><td>CAPMP3216X120 &#x2461;</td><td>&nbsp;</td><td>polarized capacitor in molded package (e.g. tantalum capacitor), 2.0&times;1.25&nbsp;mm, 1.2&nbsp;mm high (max.)</td></tr>
+<tr><td>CAPAE660X610 &#x2461;</td><td>&nbsp;</td><td>aluminium electrolytic capacitor, case D, lead span 6.6&nbsp;mm (body 6.3&nbsp;mm), 6.1&nbsp;mm high</td></tr>
+<tr><td>BEADC2012X60 &#x2461;</td><td>&nbsp;</td><td>0805 imperial, ferrite bead, 2.0&times;1.25&nbsp;mm, 0.6&nbsp;mm high (max.)</td></tr>
+<tr><td>INDM4240X350 &#x2461;</td><td>&nbsp;</td><td>power inductor in molded package, 4.2&times;4.0&nbsp;mm lead-to-lead size, 3.5&nbsp;mm high (max.)</td></tr>
+<tr><td>RESCAV10P65_3216X50 &#x2461;</td><td>&nbsp;</td><td>0612-10 imperial, resistor array, 10 pins, 1.6&times;3.2&nbsp;mm, 0.5&nbsp;mm high</td></tr>
+<tr><td>CFP6P65_2012X70</td><td>&nbsp;</td><td>0508-6 imperial, ceramic flat package (6 pins), 1.25&times;2.0&nbsp;mm, 0.7&nbsp;mm high</td></tr>
+<tr><td>DIOM5538X262 &#x2461;</td><td>&nbsp;</td><td>SOD132, DO-214AA</td></tr>
+<tr><td>DIOMELF5025 &#x2461;</td><td>&nbsp;</td><td>SOD87, DO-213AB, MELF package</td></tr>
+<tr><td>LEDC3216X110 &#x2461;</td><td>&nbsp;</td><td>LED in chip package (1206 imperial), may have a dome</td></tr>
+<tr><td>SOD3816X110</td><td>SC-109D &#x2462;</td><td>SOD123, DO-219AA</td></tr>
+<tr><td>SOT6P65_210X110</td><td>SC-70-6 &#x2462;</td><td>SOT363, MO-203AB</td></tr>
+<tr><td>DPAK3P230_1000X230</td><td>SC-63 &#x2462;</td><td>DPAK, TO-252</td></tr>
+<tr><td>XTALDFN2520X50 &#x2461;</td><td>&nbsp;</td><td>4-pin crystal, no-lead, body 2.0&times;2.5&nbsp;mm</td></tr>
+<tr><td>SOP20P65_650X640X110 &#x2464;</td><td>P-TSSOP20-6.5x4.4-0.65 &#x2463;</td><td>TSSOP 20-pin, 0.65&nbsp;mm pitch, 6.5&times;4.4&nbsp;mm body size, 6.5&times;6.4&nbsp;mm lead-to-lead, 1.1&nbsp;mm height</td></tr>
+<tr><td>SOIC8P127_495X600X175T330X240 &#x2464;</td><td>P-HSOIC8-3.8x4.95 &#x2463;</td><td>SOIC 8-pin with exposed-pad, 1.27&nbsp;mm pitch, 3.8&times;4.95&nbsp;mm body size, 6.0&times;4.95&nbsp;mm lead-to-lead, 1.75&nbsp;mm height</td></tr>
+<tr><td>QFP48P50_900X900X110 &#x2464;</td><td>P-TQFP48-7x7-0.50 &#x2463;</td><td>QFP 48-pin, 0.5&nbsp;mm pitch, 7&times;7&nbsp;mm body size, 9&times;9&nbsp;mm lead-to-lead size, 1.1&nbsp;mm height</td></tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+</div>
+<h3>Notes</h3>
+<p>&#x2460; The last letter in an IPC-7351 &ldquo;land pattern&rdquo; name is a
+   code for the footprint density. It is usually &ldquo;N&rdquo;, which stands
+   for nominal, but may also be &ldquo;L&rdquo; (least) or &ldquo;M&rdquo; (most).
+   It is not relevant for package names, and therefore has been omitted in these
+   examples.
+<p>&#x2461; IPC-7351 includes the component category in the name (CAP for
+   capacitor, RES for resistor, etc), even though this is irrelevant for both the
+   package and the footprint.
+<p>&#x2462; JEITA ED-7303 standardizes only package codes for integrated circuits. For discrete
+   components, the standard refers to separate JEITA standards, notably ED-7500B.
+<p>&#x2463; The first letter of a package name in ED-7303 indicates the material
+   for the body, like &ldquo;P&rdquo; for plastic or &ldquo;C&rdquo; for ceramic.
+   The standard asserts this prefix is mandatory; it is irrelevant for the package
+   dimensions, however, and is frequently omitted.
+<p>&#x2464; IPC-7351 uses the lead-to-lead size of a package, whereas ED-7303 uses
+   the body size. Furthermore, for these packages, IPC-7351 changes its notation
+   for the size.
+
+</body>
+</html>
