@@ -520,8 +520,7 @@ public class App extends Application{
                 if(!oneDot){
                     output += '.';
                     oneDot = true;
-                }                
-                //else just ignore it
+                }  //else just ignore it 
             } else if(c == '-' && i == 0 && permitNegative){
                 output += '-';
             } else{
@@ -544,8 +543,8 @@ public class App extends Application{
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("JSON files (*.json)", "*.json");
         final MenuItem loadItem = new MenuItem("Open...");
         MenuItem saveItem = new MenuItem("Save"); //initialized here instead of below for visibility
-        if(config.pathSet){
-            loadedFile = new File(config.path);
+        if(Config.pathSet){
+            loadedFile = new File(Config.path);
         } else{
             saveItem.setDisable(true);
         }
@@ -583,7 +582,7 @@ public class App extends Application{
                     loadedFile = selectedFile;
                     fileIsSet = true;
                     saveItem.setDisable(false);
-                    config.setPath(loadedFile.getPath());
+                    Config.setPath(loadedFile.getPath());
                     saveConfig(config);
                 }
                 else{
@@ -2985,7 +2984,7 @@ public class App extends Application{
      * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      */
     private Scene initHelpScene(Stage primaryStage) {
-        final ScrollPane root = new ScrollPane();
+        final FlowPane root = new FlowPane();
         final VBox helpBranch = new VBox(5);
         helpBranch.setFillWidth(true);
         helpBranch.prefWidthProperty().bind(root.widthProperty());
@@ -3019,7 +3018,7 @@ public class App extends Application{
 
         helpBranch.setPadding(new Insets(fieldSpacing, fieldSpacing, 0, fieldSpacing));
         helpBranch.getChildren().addAll(backButton, webView);
-        root.setContent(helpBranch);
+        root.getChildren().add(helpBranch);
         Scene scene = new Scene(root, STARTING_WINDOW_WIDTH, STARTING_WINDOW_HEIGHT); //node, width, minHeight
         return scene;
     }
