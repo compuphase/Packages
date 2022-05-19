@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html style="direction: ltr;" lang="en">
+<head>
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>Partbase</title>
+  <link rel="stylesheet" href="webviewstyle.css" type="text/css">
+</head>
+<body>
+
+<!-- help menu button & drop-down menu -->
+<div class="dropdown-menu">
+  <input type="image" src="b_menu.png" onclick="DropDownMenu()" class="dropbtn"/>
+  <div id="DropDownHelp" class="dropdown-content">
+    <a href="help-index.html#Overview">Overview</a>
+    <a href="help-main.html">Editing Packages</a>
+    <a href="help-search.html">Search &amp; Selections</a>
+    <a href="help-export.html">Exporting packages</a>
+    <a href="help-import.html">Importing packages</a>
+    <a href="help-concepts.html#Package_concepts">Package concepts</a>
+    <a href="help-fileformat.html#File_format">File format</a>
+    <a href="help-packages.html#SMT_terminal_types">SMT terminal types</a>
+    <a href="help-packages.html#Normal_orientations">Normal orientations</a>
+    <a href="help-standards.html#Package_naming_standards">Package naming standards</a>
+  </div>
+</div>
+<script src="help-menu.js"></script>
+
+<a name="Adding_modifying_and_deleting_packages"></a>
+<h1>Adding, modifying and deleting packages</h1>
+<div class="midsection">
+<p>
+The application shows a single package at a time. On the top row, you will find
+the navigation buttons (browse buttons), as well as menu and search buttons.
+Below that, the package information is split in three sections.
+</p>
+<div align="center">
+  <a name="Figure_user_interface"></a>
+  <img src="mainview.png" class="center" style="max-width:90%; width:800px;">
+  Figure 1: user-interface, main view
+</div>
+<p>
+The first section gives the generic package information: its name (or
+identification), its body size, number of pins, pitch between the pins,
+termination style (shape of the leads), and other characteristics.
+</p>
+<p>
+The second section lists variants of the same &ldquo;common shape&rdquo; for the
+package. The variant adds the height of the package, the standard it conforms
+to (if any) and the presence of an exposed pad (or &ldquo;thermal pad&rdquo;) to the
+generic information. See topic <a href="help-concepts.html#Common_names_variants">Common names &amp; variants</a>
+for the distinction between a generic package and a variant.
+</p>
+<p>
+The third section gives detailed information about the footprint for the
+package: the shape and size of the pads, and the positions of these pads. As an
+aside, <span class="smallcaps">Packages</span> does not generate footprints for
+any EDA program &mdash;that is not its goal. However, due to the open format of
+the output file, a third-party script can use the detailed information on the
+package and pads to generate these footprints.
+</p>
+<p>
+Depending on the package, not all data may be relevant. However, the top section
+(of the user-interface, see <a href="#Figure_user_interface">Figure 1</a>) should
+always be completed.
+</p>
+</div>
+
+<h2>Names, description</h2>
+<div class="midsection">
+<p>
+A package may have more than one name &mdash;this is covered in detail in the topic
+<a href="help-concepts.html#Common_names_variants">Common names &amp; variants</a>. The names that
+refer to the generic &ldquo;flat view&rdquo; shape of the package, should be listed as
+names in the top section. Other applications can use these aliases to look up
+package information in the course of exchanging data: different programs used in
+electronics production may use different names for the same package. Applications
+can also use the aliases to translate all packages being entered into the system
+to a preferred naming convention.
+</p>
+In the case of &ldquo;chip&rdquo; packages, like 0603 and 0805, we recommend to
+include both the &ldquo;imperial&rdquo; name and the &ldquo;metric&rdquo; name
+for the package (in this case 1508 and 2012 respectively). As explained in
+<a href="help-standards.html#Metric_versus_Imperial">Metric versus Imperial</a>, conflicts arise for
+the smaller packages: for example, 0603 is a valid package label in both imperial
+and metric &mdash;but pointing to two very different packages. Since
+<span class="smallcaps">Packages</span> does not allow for naming conflicts, our
+recommendation is to add an &ldquo;M&rdquo; suffix to the metric label: the
+equivalent for 0603 is 1508M, and 0805 is 2012M.
+<p>
+In general, we also suggest to put the preferred name(s) first in the list of
+names. When an application translates package names into a preferred naming
+convention, it typically picks the first &ldquo;preferred name&rdquo; that matches
+the chosen naming convention.
+</p>
+<p>
+The description is optional, and contains general purpose text. The description
+is included in the search function, so you can use the description to include
+search terms that are not covered by the other fields.
+</p>
+</div>
+
+<h2>Characteristics</h2>
+<div class="midsection">
+<p>
+For SMD type packages (the focus of the <span class="smallcaps">Packages</span>
+application and data file), the termination field is an important parameter.
+For optical alignment, pick-&amp;-place machines need to know at what elevation
+to scan the (body of the) component, and that depends on the lead shape.
+Therefore, packages that are identical apart from their termination style, must
+be entered as separate packages. For example, SOD123 and SOD123F have gull-wing
+and lug-lead terminations respectively, and they are therefore separate
+packages &mdash;not variants.
+</p>
+<p>
+The fields for the pin count and pitch are fairly self-explanatory (see also
+topic <a href="help-concepts.html#Pitch_and_spans">Pitch and spans</a> for the pitch dimension).
+An exposed-pad (or thermal pad) is seen as an attribute of a package, and it is
+typically not included in the pin count.
+</p>
+<p>
+The tape packaging orientation is standardized for common parts (see chapter
+<a href="help-packages.html#Normal_orientations">Normal orientations</a>). For connectors or
+exotic packages, the tape orientation can be selected here. Tape packaging
+orientation is relevant only for components package is tape (on reel); for
+packages too big for tape packaging, leave this field at zero. Again, see
+chapter <a href="help-packages.html#Normal_orientations">Normal orientations</a> for details.
+</p>
+<p>
+The relevance of the &ldquo;polarized&rdquo; field is that packages for polarized
+components are regularly oriented differently in tape packaging than those for
+non-polarized parts.
+</p>
+</div>
+
+<h2>Body size, lead-to-lead size</h2>
+<div class="midsection">
+<p>
+Body size and lead-to-lead size are also inherent characteristics of a package.
+These sizes allow for a tolerance, however (this tolerance can be looked up in
+the specifications of the respective packages). See topic
+<a href="help-concepts.html#Package_dimensions_and_outlines">Package dimensions and outlines</a>
+for details on the various &ldquo;size&rdquo; specifications of a package.
+</p>
+<p>
+If a package does not have pins (termination is either &ldquo;endcap&rdquo; or
+&ldquo;no-lead&rdquo;, the lead-to-lead size does not need to be filled in (it is
+by consequence identical to the body size).
+</p>
+</div>
+
+<h2>References</h2>
+<div class="midsection">
+<p>
+If a package is standardized by one or more normative institutions, the name of
+the standard and the name of the institution can be added here. These fields are
+informational; if your company uses internal standards, these can be added here
+as well.
+</p>
+</div>
+
+<h2>Related packages</h2>
+<div class="midsection">
+<p>
+If a package is related to a different package, the name of the other package
+can be added here. For example, the diode packages SOD123 and SOD123F are identical
+except for their pin shape (gull-wing versus lug-lead). It then makes sense to
+mark these packages as related to each other.
+</p>
+</div>
+
+<h2>Variants</h2>
+<div class="midsection">
+<p>
+The middle section in <a href="#Figure_user_interface">the user interface</a>
+is for the variants of the generic package. The generic package portrays a
+flattened view. For a long time, EDA programs needed no more that this
+representation. For assembly of the PCB, and for mechanical design (e.g. design
+of the enclosure), the height of the package also becomes an important parameter
+(and it is quite common that a generic package exists in different heights).
+This is why the details of various variants can be entered in a table. See the
+topic <a href="help-concepts.html#Common_names_variants">Common names &amp; variants</a> for
+background information.
+</p>
+<p>
+For example, an LQFP package and an TQFP package share all parameters (and they
+share it with the generic QFP package), except that LQFP is about 1.5&thinsp;mm thick
+and TQFP about 1.0&thinsp;mm.
+</p>
+<p>
+Each variant must have a unique name, and the name of a variant may not conflict
+with any of the aliases for the generic package either. Names for variants may
+follow a standard or an ad-hoc convention &mdash;see also topic
+<a href="help-standards.html#Package_naming_standards">Package naming standards</a>.
+If it is a standardized convention, you can indicate that convention on the row too.
+Doing so enables applications to translate between naming conventions.
+</p>
+<p>
+For the &ldquo;flat view&rdquo; dimensions, <span class="smallcaps">Packages</span>
+stores the <em>nominal</em> size and a tolerance from that nominal size. For the height,
+it uses a range: minimum height to maximum height. The motivation is that package
+standards also specify the height as a range; IPC-7351 only records a <em>maximum</em>
+height in its naming convention.
+</p>
+</div>
+
+<h2>Footprint</h2>
+<div class="midsection">
+<p>
+The bottom section of <a href="#Figure_user_interface">Figure 1</a>
+has design parameters for the footprint. A single package may have multiple
+footprints. For example, the IPC-7351 standard defines footprints for <em>Least</em>,
+<em>Nominal</em> and <em>Most</em> spacing between components (less spacing allows
+for higher density). Some packages may also define an adjusted footprint for
+wave soldering (as opposed to reflow).
+</p>
+<p>
+The majority of footprints use a single pad shape & size for most (or all) of
+the pins. <span class="smallcaps">Packages</span> splits the pad shapes from the
+pad positions for a package. Thus, you often need to add only one or two pad
+shapes, even for packages with a high pin count.
+</p>
+<p>
+In the pad shape specification, you can furthermore mark a pad as &ldquo;exposed
+pad&rdquo; (also called a thermal pad). A pad marked as such is then only valid
+for those variants that are also marked as having an exposed pad (in the
+&ldquo;variants&rdquo; section of <a href="#Figure_user_interface">the user interface</a>).
+</p>
+<p>
+For example, for a HSOIC8 package (8-pin SOIC with 1.27&thinsp;mm pitch and an exposed-pad):
+</p>
+<ul>
+<li> a variant for the package must be added, with an appropriate name (for
+     example, SOIC8P127_495X600X175T330X240 according to IPC-7351, or
+     HSOIC8-3.8x4.95 according to ED-7303);
+<li> in the column &ldquo;exposed-pad&rdquo;, a tick mark should be placed on
+     the row for the variant;
+<li> in the footprint section, a pad shape must be added with the size of the
+     exposed-pad, and this pad must also have a tick mark in the column
+     &ldquo;exposed-pad&rdquo; (this will have pad-id 2 for this example package);
+<li> a pad with pin-id 9 (one more than the pin count of the package, so 9 for
+     an SOIC8) must be added, and referencing pad-id 2.
+</ul>
+<p>
+The exposed pad is typically <em>not</em> included in the pin count (in the package
+characteristics, top section of <a href="#Figure_user_interface">the user interface</a>).
+</p>
+</div>
+
+</body>
+</html>

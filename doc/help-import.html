@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html style="direction: ltr;" lang="en">
+<head>
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>Partbase</title>
+  <link rel="stylesheet" href="webviewstyle.css" type="text/css">
+</head>
+<body style="margin-right:1em">
+
+<!-- help menu button & drop-down menu -->
+<div class="dropdown-menu">
+  <input type="image" src="b_menu.png" onclick="DropDownMenu()" class="dropbtn"/>
+  <div id="DropDownHelp" class="dropdown-content">
+    <a href="help-index.html#Overview">Overview</a>
+    <a href="help-main.html">Editing Packages</a>
+    <a href="help-search.html">Search &amp; Selections</a>
+    <a href="help-export.html">Exporting packages</a>
+    <a href="help-import.html">Importing packages</a>
+    <a href="help-concepts.html#Package_concepts">Package concepts</a>
+    <a href="help-fileformat.html#File_format">File format</a>
+    <a href="help-packages.html#SMT_terminal_types">SMT terminal types</a>
+    <a href="help-packages.html#Normal_orientations">Normal orientations</a>
+    <a href="help-standards.html#Package_naming_standards">Package naming standards</a>
+  </div>
+</div>
+<script src="help-menu.js"></script>
+
+<a name="Importing_packages"></a>
+<h2>Importing packages</h2>
+<div class="midsection">
+<p>
+Packages inserted (or modified) in one repository can also be exported, and
+subse­quently imported into another repository. To import a package file, open the
+&ldquo;File&rdquo; menu and select &ldquo;Import&rdquo;
+</p>
+<p>
+When importing a file, conflicts may occur. Packages requires each package name
+(and alias) to be unique, and each variant name must be unique too. Any conflicts
+that arise must be resolved before the file can be imported (partially or fully).
+</p>
+<div align="center">
+  <a name="Figure_search"></a>
+  <img src="searchview.png" class="center" style="max-width:90%; width:800px;">
+</div>
+<p>
+The view for resolving import conflicts has three lists. The leftmost list contains
+the packages that do not conflict. Only these can be imported. Note that the button
+&ldquo;Confirm imports&rdquo; only imports the packages that have a tick in the
+rightmost column, so that you can do a partial import.
+</p>
+<p>
+To the right of the &ldquo;Non-conflicting&rdquo; list, is the list with packages
+that do conflict. When you resolve all conflicts for a package, the package gets
+removed from the &ldquo;Conflicting&rdquo; list and inserted in the
+&ldquo;Non-conflicting&rdquo; list.
+</p>
+<p>
+On selecting an item in the &ldquo;Conflicting&rdquo; list, the section at the
+right shows the names and aliases of the package, and the table below shows the
+variants of the package (if any). Conflicts may appear in either.
+</p>
+<p>
+When names/aliases conflict, these have a yellow background. You may edit these
+names, so that they no longer conflict. The table for the variants has a column
+labelled &ldquo;conflict&rdquo; near the right with tick-marks for those variants
+that conflict. Note that the table lists both conflicting and non-conflicting
+variants. As stated above, when all variants are adjusted to be non-conflicting
+and non of the names/aliases are conflicting, the package is moved to the
+&ldquo;Non-conflicting&rdquo; column.
+</p>
+<p>
+There is a final option for variants of a package with conflicting names: the
+variants may be merged to the existing package in the repository. For this function,
+select the variants by placing a tick in the rightmost column, and click on the
+button &ldquo;Merge selected variants&rdquo;. Only those variants will then be
+imported, and they will be stored as variants of the existing package.
+</p>
+<p>
+Note that you can only place a tick-mark on variants that do not conflict. If a
+variant conflicts, you must rename it before merging.
+</p>
+</div>
+
+</body>
+</html>

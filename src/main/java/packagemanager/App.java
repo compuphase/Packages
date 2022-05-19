@@ -1,3 +1,4 @@
+
 /*
  * @author Guido Daniel Wolff
  * Copyright 2021, 2022 CompuPhase
@@ -18,6 +19,7 @@
 package packagemanager;
 /* 1 */
 import javafx.application.Application;
+import javafx.application.Platform;
 
 import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
@@ -32,11 +34,8 @@ import javafx.scene.image.Image;
 import javafx.scene.control.*;
 import javafx.scene.control.TableColumn.CellEditEvent;
 import javafx.scene.control.cell.PropertyValueFactory;
-//import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.ComboBoxTableCell;
-//import javafx.util.converter.DoubleStringConverter;
-//import javafx.util.converter.IntegerStringConverter;
 import javafx.util.Callback;
 import javafx.scene.input.*;
 import javafx.scene.layout.*;
@@ -50,18 +49,22 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.VPos;
 import javafx.geometry.Pos;
+
 import java.util.*;
 import java.io.*;
 import java.net.URLDecoder;
+import java.nio.channels.FileLock;
 import java.nio.charset.StandardCharsets;
+import java.util.Random;
+import java.util.TimeZone;
+import java.text.SimpleDateFormat;
 
 import com.github.cliftonlabs.json_simple.Jsoner;
 import com.github.cliftonlabs.json_simple.Jsonable;
-import com.github.cliftonlabs.json_simple.JsonException;
 import com.github.cliftonlabs.json_simple.JsonObject;
 import com.github.cliftonlabs.json_simple.JsonArray;
+import com.github.cliftonlabs.json_simple.JsonException;
 import com.github.cliftonlabs.json_simple.JsonKey;
-import javafx.scene.text.TextAlignment;
 
 
 
@@ -105,52 +108,81 @@ public class App extends Application{
     double prevWidth;                       // current window width (including borders)
     double prevHeight;                      // current window height (including caption and borders)
 
-    final String programVersion = "1.0";    //current version number
+    final String programVersion = "1.2";    //current version number
 
-    final int firstid = 0;                  //for the first entry in an array for footprints (that for now will only have that one)
+    final int IMAGE_WIDTH = 200;
+    final int IMAGE_HEIGHT = 170;
 
     final int fieldSpacing = 8;             //spacing between items on a row
+    final int SPACING_VBOX = 5;
+    final int SPACING_HBOX = 3;
     final double intInputPrefWidth = 40;    //width for TextFields that will hold values with up to 3 digits
     final double dimInputPrefWidth = 55;    //width for TextFields that will hold numbers (dimensions etc.)
     final double tolInputPrefWidth = 45;    //width for TextFields that will hold tolerances of dimensions
 
+    final double THINCOLUMN_MINWIDTH = 72;
+    final double THINCOLUMN_PREFWIDTH = 90;
+    final double THINCOLUMN_MAXWIDTH = 130;
+
+    final static int IO_RETRIES = 10;   //the number of times that an IO process will try again after failing the first time
+    static int ioTryCounter;            //not a constant but it's strongly connected to IO_RETRIES
+    static Random ioRandomDelay = new Random(SystemInfo.machineId());   //for randomizing delays between read/write attempts
+
     /*functional fields; do not represent data to be stored*/
     static Config config;
-    StageHolder stage;                                                          // A wrapper for the main (and only) Stage
+    Stage stage;                                                          // Stage is declared globally for convenience
     Popup delWarning;
+    Popup fpDelWarning;
     AboutPopup aboutPopup;
-    BasicPopup exportPopup;
+    Popup impSuccess;
+    BasicPopup impFailed;
+    ImportConflictPopup impConflicted;
     BasicPopup selectionCanceledWarning;
     BasicPopup incompleteDataWarning;
+    BasicPopup packageNotFound;
     DuplicateWarning dupWarning;                                                // A inheritor of Popup that contains a SearchResult
+    BasicPopup dupSoftWarning;
+    PolygonBuilder polyBuilder;
+    BasicPopup vertexIdWarning;
+    ImagePopup previewPopup;
     static File configFile;
     static boolean configExists;
     boolean fileIsSet = false;
     File loadedFile;
     boolean viewingSelection;
-    Canvas canvas;
-    GraphicsContext gc;
-    double scaleFactor;
-    
+    Canvas mainCanvas;
+    GraphicsContext mainGc;
+    long lastModified;
+    boolean changesWereMade;
+
+    String currentSceneName;    /* for context-sensitive help */
+    WebView webView;
+
     Scene mainScene;
     Scene searchScene;
+    Scene importScene;
     Scene helpScene;
-    Scene testScene;
+    Scene currentScene;
+    Scene previousScene;    /* to jump back to the previous scene when closing help */
 
     GridPane grid;
 
-    /*field declarations, mirrors data contained in Package */
-    ArrayList <Package> viewedPackages;
-    ArrayList <Package> allPackages;
-    ArrayList <Package> selectedPackages;
-
-    Package crntPkg;
-    int crntIndex;
-
-    Label displayedIndex;
+    CustomMenuItem exportItem;
 
     Button newPack;
     Button backToFull;
+
+    /*field declarations, mirrors data contained in Package */
+    ArrayList<Package> loadedPackages;
+    ArrayList<Package> viewedPackages;
+    ArrayList<Package> allPackages;
+    ArrayList<Package> selectedPackages;
+
+    Package crntPkg;
+    Package backupPkg;
+    int crntIndex;
+
+    Label displayedIndex;
 
     Label nameLbl;
 
@@ -163,7 +195,7 @@ public class App extends Application{
     ComboBox charatypeBox;
     ComboBox terminationBox;
     CheckBox polarCheck;
-    TextField pinnumber;
+    TextField pinNumber;
     ComboBox tapeOrientation;
 
     TextField bodyXsize;
@@ -182,6 +214,8 @@ public class App extends Application{
 
     final ObservableList<SpepaMirror> spePacks = FXCollections.observableArrayList();
 
+    int fpIndex;
+    Label fpIndexLabel;
     ComboBox footprinttypeBox;
     TextField pitchField;
     TextField spanXField;
@@ -191,21 +225,28 @@ public class App extends Application{
     TextField fpolOrgX;
     TextField fpolOrgY;
 
+    final ObservableList<PadDimMirror> pdDimensions = FXCollections.observableArrayList();
+    TextField padIdInput;
+
+    final ObservableList<PadPosMirror> pdPositions = FXCollections.observableArrayList();
+    TextField pinIdInput;
+    TextField pinPadIdInput;
+
+    final ObservableList<ReferenceMirror> referenceList = FXCollections.observableArrayList();
+    final ObservableList<RelatedPack> relatedList = FXCollections.observableArrayList();
+
+    final ObservableList<ImportedPackage> cleanImportPacks = FXCollections.observableArrayList();
+    final ObservableList<ImportedPackage> conflictedImportPacks = FXCollections.observableArrayList();
+    ImportedPackage inspectedImport;
+    Package inspectedPackage;
+
     final ObservableList<SearchResult> results = FXCollections.observableArrayList();
     final ObservableList<SearchResult> selection = FXCollections.observableArrayList();
     TextField searchField;
 
-    final ObservableList<PadDimmirror> pdDimensions = FXCollections.observableArrayList();
-    TextField padIdInput;
-
-    final ObservableList<PadPosmirror> pdPositions = FXCollections.observableArrayList();
-    TextField pinIdInput;
-    TextField pinPadIdInput;
-
-
     /* 4 */
     @Override
-    public void start(Stage primaryStage) throws IOException{
+    public void start(Stage primaryStage){
         initConfig();   //checks for the existence of a config folder, if it doesn't exist, create it and a config file in it
 
         /* code that runs on exit */
@@ -213,24 +254,32 @@ public class App extends Application{
             saveAndQuit();
         });
 
-        /* Put primaryStage in a wrapper so that it's accessible outside of start() */
-        stage = new StageHolder(primaryStage);
+        /* Set global Stage to reference primaryStage */
+        stage = primaryStage;
 
         /* Set application icon*/
         setIcon();
 
-        /* Load an empty Package */
-        viewedPackages = new ArrayList();
-        crntPkg = new Package();
-        viewedPackages.add(crntPkg);
-        crntIndex = 0;
+        /* init main list */
+        allPackages = new ArrayList();
+        allPackages.add(new Package());
 
+        /* Load an empty Package */
+        viewedPackages = allPackages;
+        crntIndex = 0;
+        crntPkg = viewedPackages.get(crntIndex);
+
+        /* init backup package */
+        backupPkg = new Package();
+
+        loadedPackages = new ArrayList();
         selectedPackages = new ArrayList();
 
         /* Load the lists with mirror classes.*/
         loadSpePacks();
         loadDimensions();
         loadPositions();
+
 
 
         /* Here I begin instatiating UI elements for the main Scene.
@@ -242,10 +291,9 @@ public class App extends Application{
         grid.setPadding(new Insets(0, fieldSpacing, 0, fieldSpacing));
         grid.setHgap(5.0);
         grid.setVgap(4.0);
-        //grid.setStyle("-fx-grid-lines-visible: true");  // to help visualize the layout
-        
+        //grid.setStyle("-fx-grid-lines-visible: true");  // to help visualize the layout when debugging
 
-        initPopups();          //initializes delWarning and dupWarning and their components, also aboutPopup
+        initPopups();          //initializes all Popups and children of Popups
 
         /* First row of components controls navigation */
         final int navRow = 0;
@@ -254,19 +302,17 @@ public class App extends Application{
         final HBox navBox = initNavBox();       // initialize subcomponents and add them as children
         GridPane.setConstraints(navBox, 1, navRow); //thing, column, row
 
-        final HBox searchBox = new HBox(3);
+        final HBox searchBox = new HBox(SPACING_HBOX);
         searchBox.setAlignment(Pos.CENTER_RIGHT);
+        searchBox.setPadding(new Insets(3, 10, 0, 0));
         searchScene = initSearchScene();
         GridPane.setConstraints(searchBox, 2, navRow); //thing, column, row
         final Button searchButton = new Button("search");
         searchButton.setTooltip(new Tooltip("Ctrl+F"));
         searchButton.setOnAction((ActionEvent arg0) -> {
-            prevWidth = stage.stage.getWidth();
-            prevHeight = stage.stage.getHeight();
-            primaryStage.setScene(searchScene);
-            stage.stage.setHeight(prevHeight);
-            stage.stage.setWidth(prevWidth);
-            searchField.requestFocus();
+            changeScene(searchScene);
+            //searchField.requestFocus(); //weird bug: this doesn't work the first time but does work any subsequent time
+            Platform.runLater(()->searchField.requestFocus());
         });
         searchBox.getChildren().add(searchButton);
         /* Adding a shortcut, CTRL+F (mnemonic on a control only works with Alt,
@@ -274,26 +320,21 @@ public class App extends Application{
          * to the scene later (because the scene has not been initialized yet) */
         KeyCombination searchShort = new KeyCodeCombination(KeyCode.F, KeyCombination.CONTROL_DOWN);
         Runnable searchShortCut = () -> {
-            prevWidth = stage.stage.getWidth();
-            prevHeight = stage.stage.getHeight();
-            primaryStage.setScene(searchScene);
-            stage.stage.setHeight(prevHeight);
-            stage.stage.setWidth(prevWidth);
-            searchField.requestFocus();
+            changeScene(searchScene);
+            //searchField.requestFocus(); //weird bug: this doesn't work the first time but does work any subsequent time
+            Platform.runLater(()->searchField.requestFocus());
         };
-
-        /* Space reserved for testing scene and shortcut init method call */
 
         /* Second row of nodes. controls Package.names through a dynamic number of TextFields */
         final int nameRow = navRow + 1;
         nameLbl = new Label("Name/alias");
         GridPane.setConstraints(nameLbl, 0, nameRow); // ((node, column, row), columnspan, rowspan)
         GridPane.setValignment(nameLbl, VPos.TOP);
-        nameBox = new dtfManager(5);      //no separate init method because it's a custom class with it's own load method
+        nameBox = new dtfManager();      //A modified VBox that holds a dynamic number of TextFields, organized in rows of up to 5
         GridPane.setConstraints(nameBox, 1, nameRow);
         GridPane.setColumnSpan(nameBox, 2);
         GridPane.setHgrow(nameBox, Priority.ALWAYS);
-        nameBox.load(); //sets up rows with TextFields, the number of which depends on how many are in crntPkg.names
+        nameBox.load(crntPkg);  //fill the dtfManager with data from the current Package
 
 
         /* Third row of nodes manages 'Description'. One TextField, nice and easy. */
@@ -307,8 +348,8 @@ public class App extends Application{
 
         /* Display an image of the Package footprint */
         final VBox imageBox = initImage();
-        GridPane.setConstraints(imageBox, 2, descRow, 1, 4);
-        gc = canvas.getGraphicsContext2D();
+        GridPane.setConstraints(imageBox, 2, descRow, 1, 5);
+        mainGc = mainCanvas.getGraphicsContext2D();
         //loadImage(); //If I run this here it makes an image of the empty Package
 
         /* Fourth row of nodes manages 'characteristics'*/
@@ -343,29 +384,42 @@ public class App extends Application{
         GridPane.setHgrow(ltolBranch, Priority.ALWAYS);
         loadLeadToLead();
 
+        /* Seventh row manages references  */
+        final int refRow = ltolRow + 1;
+        final Label refLbl = new Label("References");
+        GridPane.setConstraints(refLbl, 0, refRow);
+        GridPane.setValignment(refLbl, VPos.TOP);
+        final TitledPane refHolder = initRefHolder();
+        refHolder.setMaxHeight(200);
+        GridPane.setConstraints(refHolder, 1, refRow);
+        GridPane.setHgrow(refHolder, Priority.ALWAYS);
 
-        /* Seventh row manages specific package  */
-        int spepaRow = ltolRow + 1;
+        /* [number] row manages 'Related packages' */
+        final int relPackRow = refRow + 1;
+        final TitledPane relPackHolder = initRelPackHolder();
+        relPackHolder.setMaxHeight(250);
+        GridPane.setConstraints(relPackHolder, 1, relPackRow);
+        GridPane.setColumnSpan(relPackHolder, 2);
+        GridPane.setHgrow(relPackHolder, Priority.ALWAYS);
+
+        /* Eigth row manages specific package  */
+        int spepaRow = relPackRow + 1;
         Label packageLbl = new Label("Variants");
         GridPane.setConstraints(packageLbl, 0, spepaRow);
         GridPane.setValignment(packageLbl, VPos.TOP);
+        final TitledPane spepaHolder = initSpepaHolder();
+        spepaHolder.setMaxHeight(250);
+        GridPane.setConstraints(spepaHolder, 1, spepaRow);
+        GridPane.setColumnSpan(spepaHolder, 2);
+        GridPane.setHgrow(spepaHolder, Priority.ALWAYS);
 
-        final TitledPane spepaholder = initSpepaholder();
-        spepaholder.setMaxHeight(250);
-        GridPane.setConstraints(spepaholder, 1, spepaRow);
-        GridPane.setColumnSpan(spepaholder, 2);
-        GridPane.setHgrow(spepaholder, Priority.ALWAYS);
 
-
-        /* Eigth row manages footprint */
-        /* TODO: add support for multple footprints. For now everything that accesses
-         * footprints does so with 'firstid', which is a constant integer set at 0 */
+        /* Ninth row manages footprint */
         final int ftprintRow = spepaRow + 1;
         final Label footprintLbl = new Label("Footprint");
         footprintLbl.setPadding(new Insets(4, 0, 0, 0));    // to align the label with the row
         GridPane.setConstraints(footprintLbl, 0, ftprintRow);
         GridPane.setValignment(footprintLbl, VPos.TOP);
-
         final HBox footprintBranch = initFootprintBranch();
         GridPane.setConstraints(footprintBranch, 1, ftprintRow);
         GridPane.setColumnSpan(footprintBranch, 2);
@@ -373,22 +427,22 @@ public class App extends Application{
         loadFootPrint();
 
 
-        /* Ninth row manages PadShapes/PadDimensions */
-        int padshapetableRow = ftprintRow + 1;
-        TitledPane padshapeholder = initPadshapeholder();
-        padshapeholder.setMaxHeight(100);
-        GridPane.setConstraints(padshapeholder, 1, padshapetableRow);
-        GridPane.setColumnSpan(padshapeholder, 2);
-        GridPane.setHgrow(padshapeholder, Priority.ALWAYS);
+        /* Tenth row manages PadShapes/PadDimensions */
+        final int padshapetableRow = ftprintRow + 1;
+        final TitledPane padshapeHolder = initPadshapeHolder();
+        padshapeHolder.setMaxHeight(205);
+        GridPane.setConstraints(padshapeHolder, 1, padshapetableRow);
+        GridPane.setColumnSpan(padshapeHolder, 2);
+        GridPane.setHgrow(padshapeHolder, Priority.ALWAYS);
 
 
-        /* Tenth row manages padPositions */
-        int padpostablerow = padshapetableRow + 1;
-        TitledPane padposholder = initPadposholder();
-        padshapeholder.setMaxHeight(200);
-        GridPane.setConstraints(padposholder, 1, padpostablerow);
-        GridPane.setColumnSpan(padposholder, 2);
-        GridPane.setHgrow(padposholder, Priority.ALWAYS);
+        /* Eleventh row manages padPositions */
+        final int padpostablerow = padshapetableRow + 1;
+        final TitledPane padposHolder = initPadposHolder();
+        padposHolder.setMaxHeight(250);
+        GridPane.setConstraints(padposHolder, 1, padpostablerow);
+        GridPane.setColumnSpan(padposHolder, 2);
+        GridPane.setHgrow(padposHolder, Priority.ALWAYS);
 
 
         /* Add components to GridPane. Sorted by row */
@@ -398,10 +452,12 @@ public class App extends Application{
                                   characLbl, charaBranch,
                                   bodysizeLbl, bodySizeBranch,
                                   leadtoleadLbl, ltolBranch,
-                                  packageLbl, spepaholder,
+                                  refLbl, refHolder,
+                                  relPackHolder,
+                                  packageLbl, spepaHolder,
                                   footprintLbl, footprintBranch,
-                                  padshapeholder,
-                                  padposholder);
+                                  padshapeHolder,
+                                  padposHolder);
         /* Put GridPane in a VBox and that in a Scrollpane */
         final ScrollPane realRoot = new ScrollPane();
         realRoot.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -414,8 +470,11 @@ public class App extends Application{
 
         /* Put Scrollpane in a Scene, and put the scene in the Stage */
         mainScene = new Scene(realRoot, STARTING_WINDOW_WIDTH, STARTING_WINDOW_HEIGHT); //node, width, minHeight
+        mainScene.setUserData(new String("main"));
         primaryStage.setTitle("PACKAGES: repository for component packages & footprints");
         primaryStage.setScene(mainScene);
+        currentScene = mainScene;
+        currentSceneName = "main";
 
         /* Add any shortcuts to the scene */
         mainScene.getAccelerators().put(searchShort, searchShortCut);
@@ -441,21 +500,28 @@ public class App extends Application{
         };
         mainScene.getAccelerators().put(nxtPackShort, nxtPackShortCut);
 
+        /* F1 must work in all scenes */
+        KeyCombination helpShort = new KeyCodeCombination(KeyCode.F1);
+        Runnable helpShortCut = () -> {
+            updateHelpTopic();
+            changeScene(helpScene);
+        };
+        mainScene.getAccelerators().put(helpShort, helpShortCut);
+        searchScene.getAccelerators().put(helpShort, helpShortCut);
+        importScene.getAccelerators().put(helpShort, helpShortCut);
+
         /* If the configuration was loaded then attempt to open the last used json file. */
         if(Config.pathSet){
-            try {
-                File file = new File(Config.path);
-                if(load(file)){
-                    loadedFile = file;
-                    fileIsSet = true;
-                    stage.stage.setWidth(Config.width);
-                    stage.stage.setHeight(Config.height);
-                }
-                else{
-                    System.out.println("Failed to load" + Config.path);
-                }
-            } catch (IOException | JsonException ex) {
-                System.out.println(ex);
+            File file = new File(Config.path);
+            if(loadMainList(file)){
+                loadedFile = file;
+                fileIsSet = true;
+                lastModified = file.lastModified();
+                stage.setWidth(Config.width);
+                stage.setHeight(Config.height);
+            }
+            else{
+                System.out.println("Failed to load " + Config.path);
             }
         }
         loadImage();    //in case auto-load doesn't work
@@ -464,17 +530,62 @@ public class App extends Application{
         /* resize grid to window width; note that the width & height can only be
          * queried after initial display of the stage
          */
-        prevWidth = stage.stage.getWidth();
-        prevHeight = stage.stage.getHeight();
-        /* scale main scene to window width */
-        //double sceneWidth = mainScene.getWidth();
-        //grid.setPrefWidth(sceneWidth+50);
+        prevWidth = stage.getWidth();
+        prevHeight = stage.getHeight();
+
+
+        /* Set periodic code for saving */
+        PeriodicPulse pulse = new PeriodicPulse(10) {   //argument is seconds between pulses
+            @Override
+            public void run() {
+                if(fileIsSet){
+                    if(loadedFileChanged()){
+                        update();
+                    }
+                    if(changesWereMade){
+                        try{
+                            if(!save(loadedFile)){
+                                System.out.println("Auto-save failed");
+                            }
+                        } catch (IOException ex) {
+                            System.out.println(ex);
+                        }
+                    }
+                }
+            }
+        };
+        pulse.start();
+
     }
     /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! End of start() !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      */
 
+
+    /* Change the displayed Scene while keeping window dimensions */
+    private void changeScene(Scene nextScene){
+        assert(nextScene != null);
+        if (nextScene == null)
+            nextScene = mainScene;
+
+        previousScene = currentScene;   /* save, so help scene switches back to active scene */
+        currentScene = nextScene;
+
+        prevWidth = stage.getWidth();
+        prevHeight = stage.getHeight();
+        stage.setScene(nextScene);
+        stage.setHeight(prevHeight);
+        stage.setWidth(prevWidth);
+        Object obj = nextScene.getUserData();
+        currentSceneName = obj.toString();
+    }
+
+    /* The global boolean changesWereMade will determine whether auto-save triggers */
+    private void change(String s){
+        changesWereMade = true;
+        crntPkg.dateUpdate();
+    }
 
     /* Set the application icon */
     private void setIcon(){
@@ -485,9 +596,8 @@ public class App extends Application{
             Image icon;
             try{
                 icon = new Image(file.toURI().toString());
-                stage.stage.getIcons().add(icon);
+                stage.getIcons().add(icon);
             } catch(Exception e){
-                //e.printStackTrace();
                 System.out.println("Image failed to load!");
             }
         }
@@ -500,27 +610,41 @@ public class App extends Application{
         HBox.setHgrow(spacer, Priority.ALWAYS);
         return spacer;
     }
-    
+
     /* A method that verifies correct input for those that require a number */
     private boolean verifyInput(TextField tf){
-        return verifyInput(tf, true, true);
+        return verifyInput(tf, true, true, false, false);
     }
     private boolean verifyInput(TextField tf, boolean permitNegative){
-        return verifyInput(tf, permitNegative, true);
+        return verifyInput(tf, permitNegative, true, false, false);
     }
     private boolean verifyInput(TextField tf, boolean permitNegative, boolean permitDecimal){
+        return verifyInput(tf, permitNegative, permitDecimal, false, false);
+    }
+    private boolean verifyInput(TextField tf, boolean permitNegative, boolean permitDecimal, boolean permitLetterPrefix, boolean permitStar){
         String input = tf.getText();
         String output = "";
+        int start = 0;
+        if(permitStar && input.compareTo("*") == 0){
+            output = input;
+            start = input.length();
+        } else if(permitLetterPrefix){
+            char c = input.charAt(start);
+            if(Character.isAlphabetic(c)){
+                output += Character.toUpperCase(c);
+                start += 1;
+            }
+        }
         boolean oneDot = false;
-        for (int i = 0; i < input.length(); i++){
-            char c = input.charAt(i);        
+        for (int i = start; i < input.length(); i++){
+            char c = input.charAt(i);
             if(Character.isDigit(c)){
                 output += c;
             } else if((c == '.' || c == ',') && permitDecimal){
                 if(!oneDot){
                     output += '.';
                     oneDot = true;
-                }  //else just ignore it 
+                }  //else just ignore it
             } else if(c == '-' && i == 0 && permitNegative){
                 output += '-';
             } else{
@@ -536,15 +660,16 @@ public class App extends Application{
 
     /* Methods that intitialize UI in main scene */
     private HBox initMenuBox(){
-        final HBox menuBox = new HBox(3);
+        final HBox menuBox = new HBox(SPACING_HBOX);
 
         final MenuBar menubar = new MenuBar();
         final Menu fileMenu = new Menu("File");
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("JSON files (*.json)", "*.json");
-        final MenuItem loadItem = new MenuItem("Open...");
-        MenuItem saveItem = new MenuItem("Save"); //initialized here instead of below for visibility
+        final MenuItem loadItem = new MenuItem("_Open...");
+        MenuItem saveItem = new MenuItem("_Save"); //initialized here instead of below for visibility
         if(Config.pathSet){
             loadedFile = new File(Config.path);
+            lastModified = loadedFile.lastModified();
         } else{
             saveItem.setDisable(true);
         }
@@ -552,103 +677,159 @@ public class App extends Application{
         final FileChooser loadChooser = new FileChooser();
         loadChooser.getExtensionFilters().add(extFilter);
         loadItem.setOnAction((ActionEvent t) -> {
-            File selectedFile = loadChooser.showOpenDialog(stage.stage);
-            System.out.println("Attempting to load");
-            try {
-                if(load(selectedFile)){
-                    System.out.println("Successfully loaded");
-                    loadedFile = selectedFile;
-                    fileIsSet = true;
-                    saveItem.setDisable(false);
-                    Config.setPath(loadedFile.getPath());
-                    saveConfig(config);
+            File selectedFile = loadChooser.showOpenDialog(stage);
+            if(selectedFile != null){
+                try {
+                    if(loadMainList(selectedFile)){
+                        //System.out.println("Successfully loaded");
+                        loadedFile = selectedFile;
+                        lastModified = loadedFile.lastModified();
+                        fileIsSet = true;
+                        saveItem.setDisable(false);
+                        Config.setPath(loadedFile.getPath());
+                        saveConfig(config);
+                    } else{
+                        System.out.println("Failed to load " + selectedFile.getCanonicalPath());
+                    }
+                } catch (IOException ex) {
+                    System.out.println(ex);
                 }
-                else{
-                    System.out.println("failed to load");
-                }
-            } catch (IOException | JsonException ex) {
-                System.out.println(ex);
             }
         });
-        final MenuItem saveAsItem = new MenuItem("Save as...");
+
+        final MenuItem saveAsItem = new MenuItem("Save _as...");
         final FileChooser saveChooser = new FileChooser();
         saveChooser.getExtensionFilters().add(extFilter);
         saveAsItem.setOnAction((ActionEvent t) -> {
-            File selectedFile = saveChooser.showSaveDialog(stage.stage);
-            System.out.println("Attempting to save");
-            try {
-                if(save(selectedFile)){
-                    System.out.println("Successfully saved");
-                    loadedFile = selectedFile;
-                    fileIsSet = true;
-                    saveItem.setDisable(false);
-                    Config.setPath(loadedFile.getPath());
-                    saveConfig(config);
+            File selectedFile = saveChooser.showSaveDialog(stage);
+            if(selectedFile != null){
+                try {
+                    if(save(selectedFile)){
+                        // System.out.println("Successfully saved");
+                        loadedFile = selectedFile;
+                        lastModified = loadedFile.lastModified();
+                        fileIsSet = true;
+                        saveItem.setDisable(false);
+                        Config.setPath(loadedFile.getPath());
+                        saveConfig(config);
+                    }
+                    else{
+                         System.out.println("Failed to save " + selectedFile.getCanonicalPath());
+                    }
+                } catch (IOException ex) {
+                    System.out.println(ex);
                 }
-                else{
-                     System.out.println("failed to save");
-                }
-            } catch (IOException ex) {
-                System.out.println(ex);
             }
         });
-        final MenuItem newItem = new MenuItem("New...");
+
+        final MenuItem newItem = new MenuItem("_New...");
         newItem.setOnAction((ActionEvent t) -> {
-            File selectedFile = saveChooser.showSaveDialog(stage.stage);
-            System.out.println("Attempting to create new file");
-            ArrayList<Package> newList = new ArrayList();
-            newList.add(new Package());
-            try {
-                if(save(selectedFile, newList)){
-                    System.out.println("Successfully saved new file");
-                    loadedFile = selectedFile;
-                    fileIsSet = true;
-                    saveItem.setDisable(false);
-                    Config.setPath(loadedFile.getPath());
-                    saveConfig(config);
-                    allPackages = newList;
-                    setPackageSelection(false, 0);
+            File selectedFile = saveChooser.showSaveDialog(stage);
+            if(selectedFile != null){
+                ArrayList<Package> newList = new ArrayList();
+                newList.add(new Package());
+                try {
+                    if(save(selectedFile, newList, false)){
+                        //System.out.println("Successfully saved new file " + selectedFile.getCanonicalPath());
+                        loadedFile = selectedFile;
+                        lastModified = loadedFile.lastModified();
+                        fileIsSet = true;
+                        saveItem.setDisable(false);
+                        Config.setPath(loadedFile.getPath());
+                        saveConfig(config);
+                        allPackages.clear();
+                        allPackages.addAll(newList);
+                        setPackageSelection(false, 0);
+                    }
+                    else{
+                         System.out.println("Failed to save new file " + selectedFile.getCanonicalPath());
+                    }
+                } catch (IOException ex) {
+                    System.out.println(ex);
                 }
-                else{
-                     System.out.println("failed to save new file");
-                }
-            } catch (IOException ex) {
-                System.out.println(ex);
             }
         });
+
         //final MenuItem saveItem = new MenuItem("Save"); declared/initialized above other stuff for visibility
         saveItem.setOnAction((ActionEvent t) -> {
-            System.out.println("Attempting to save");
             try {
                 if(save(loadedFile)){
-                    System.out.println("Successfully saved");
+                    // System.out.println("Successfully saved");
+                    lastModified = loadedFile.lastModified();
                 }
                 else{
-                     System.out.println("failed to save");
+                     System.out.println("Failed to save " + loadedFile.getCanonicalPath());
                 }
             } catch (IOException ex) {
                 System.out.println(ex);
+            }
+        });
+        final MenuItem importItem = new MenuItem("Import...");
+        importScene = initImportScene();
+        importItem.setOnAction((ActionEvent t) -> {
+            if(viewingSelection){
+                setPackageSelection(false, allPackages.indexOf(crntPkg));
+            }
+            File selectedFile = loadChooser.showOpenDialog(stage);
+            if(selectedFile != null) {
+                switch(importPackages(selectedFile)){
+                    case -1:
+                        //System.out.println("Import failed");
+                        impFailed.show(stage);
+                        break;
+                    case 0:
+                        //System.out.println("Loaded packages. No conflicts");
+                        impSuccess.show(stage);
+                        change("importItem");
+                        break;
+                    case 1:
+                        //System.out.println("Duplicate conflict with imported Packages");
+                        impConflicted.update(conflictedImportPacks.size());
+                        impConflicted.show(stage);
+                }
+            }
+        });
+
+        final Label exportLabel = new Label("Export...");
+        Tooltip exportTip = new Tooltip("Make a selection through the search menu to export");
+        Tooltip.install(exportLabel, exportTip);
+        exportItem = new CustomMenuItem(exportLabel);
+        exportItem.setDisable(true);
+        exportItem.setOnAction((ActionEvent t) -> {
+            //'save as' for selected packages
+            File selectedFile = saveChooser.showSaveDialog(stage);
+            if(selectedFile != null){
+                try {
+                    if(save(selectedFile, selectedPackages, true)){
+                        //System.out.println("Successfully exported");
+                    }
+                    else{
+                         System.out.println("Failed to export " + selectedFile.getCanonicalPath());
+                    }
+                } catch (IOException ex) {
+                    System.out.println(ex);
+                }
             }
         });
         final MenuItem helpItem = new MenuItem("Help");
-        helpScene = initHelpScene(stage.stage);
+        KeyCombination helpShortcut = new KeyCodeCombination(KeyCode.F1);
+        helpItem.setAccelerator(helpShortcut);
+        helpScene = initHelpScene();
         helpItem.setOnAction((ActionEvent t) -> {
-            prevWidth = stage.stage.getWidth();
-            prevHeight = stage.stage.getHeight();
-            stage.stage.setScene(helpScene);
-            stage.stage.setHeight(prevHeight);
-            stage.stage.setWidth(prevWidth);
+            updateHelpTopic();
+            changeScene(helpScene);
         });
         final MenuItem aboutItem = new MenuItem("About");
         aboutItem.setOnAction((ActionEvent t) -> {
-            aboutPopup.Update();    /* update current package/variant counts */
-            aboutPopup.show(stage.stage);
+            aboutPopup.update();    /* update current package/variant counts */
+            aboutPopup.show(stage);
         });
-        final MenuItem exitItem = new MenuItem("Exit");
+        final MenuItem exitItem = new MenuItem("E_xit");
         exitItem.setOnAction((ActionEvent t) -> {
             saveAndQuit();
         });
         fileMenu.getItems().addAll(newItem, loadItem, saveItem, saveAsItem,
+                                   new SeparatorMenuItem(), importItem, exportItem,
                                    new SeparatorMenuItem(), helpItem, aboutItem,
                                    new SeparatorMenuItem(), exitItem);
         menubar.getMenus().add(fileMenu);
@@ -658,7 +839,8 @@ public class App extends Application{
     }
 
     private HBox initNavBox(){
-        final HBox navButtons = new HBox(3); // spacing = 3
+        final HBox navButtons = new HBox(SPACING_HBOX); // spacing = 3
+        navButtons.setPadding(new Insets(3, 0, 0, 0));
 
         navButtons.setAlignment(Pos.CENTER_LEFT);
         final Button prvPack = new Button("<<");
@@ -682,12 +864,22 @@ public class App extends Application{
         newPack = new Button("new");
         newPack.setOnAction((ActionEvent arg0) -> {
             viewedPackages.add(new Package());
+            change("newPack");
             navigate(viewedPackages.size() - 1);
         });
 
         final Button delPack = new Button("delete");
         delPack.setOnAction((ActionEvent arg0) -> {
-            delWarning.show(stage.stage);
+            delWarning.show(stage);
+        });
+
+        final Button revert = new Button("revert");
+        revert.setTooltip(new Tooltip("Undo all changes made since selecting this package"));
+        revert.setOnAction((ActionEvent arg0) -> {
+            //TODO: confirmation popup?
+            crntPkg.copy(backupPkg);
+            loadAll();
+            change("revert");
         });
 
         backToFull = new Button("Back to full list");
@@ -696,7 +888,7 @@ public class App extends Application{
         });
         backToFull.setVisible(false);   /* invisible by default */
 
-        navButtons.getChildren().addAll(prvPack, displayedIndex, nxtPack, newPack, delPack, backToFull);
+        navButtons.getChildren().addAll(prvPack, displayedIndex, nxtPack, newPack, delPack, revert, backToFull);
         return navButtons;
     }
 
@@ -706,11 +898,19 @@ public class App extends Application{
         descField.setOnKeyPressed( event -> {
             if( event.getCode() == KeyCode.ENTER ) {
                 crntPkg.description = descField.getText();
+                if(!crntPkg.description.equals(backupPkg.description)){
+                    change("descField");
+                }
             }
         });
         descField.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
             if (!newPropertyValue){
                 crntPkg.description = descField.getText();
+                if(!crntPkg.description.equals(backupPkg.description)){
+                    if(!crntPkg.description.equals(backupPkg.description)){
+                        change("descField");
+                    }
+                }
             }
         });
     }
@@ -723,9 +923,9 @@ public class App extends Application{
         final HBox midBox = new HBox();
         final Separator leftSep = new Separator(Orientation.VERTICAL);
         final Separator rightSep = new Separator(Orientation.VERTICAL);
-        canvas = new Canvas(200, 144);
+        mainCanvas = new Canvas(IMAGE_WIDTH, IMAGE_HEIGHT);
 
-        midBox.getChildren().addAll(leftSep, canvas, rightSep);
+        midBox.getChildren().addAll(leftSep, mainCanvas, rightSep);
 
         final Separator botSep = new Separator(Orientation.HORIZONTAL);
 
@@ -734,43 +934,52 @@ public class App extends Application{
     }
 
     private VBox initCharaBranch(){
-        VBox charaBranch = new VBox(5); //holds two HBoxes to from two rows of components
+        VBox charaBranch = new VBox(SPACING_VBOX); //holds two HBoxes to from two rows of components
 
-        final HBox topChaRow = new HBox(3);     //contains first row of the characteristics
+        final HBox topChaRow = new HBox(SPACING_HBOX);     //contains first row of the characteristics
 
-        HBox typeBoxBox = new HBox(3);
+        HBox typeBoxBox = new HBox(SPACING_HBOX);
         typeBoxBox.setAlignment(Pos.CENTER_LEFT);
         final Label chaTypeLabel = new Label("type");
         charatypeBox = new ComboBox();
         charatypeBox.getItems().addAll(Package.charTypeValues());
         charatypeBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
             crntPkg.type = Package.charTypefromString((String) charatypeBox.getValue());
+            if(crntPkg.type != backupPkg.type){
+                change("charatypeBox");
+            }
         });
         typeBoxBox.getChildren().addAll(chaTypeLabel, charatypeBox);
 
-        HBox pinsBox = new HBox(3);
+        HBox pinsBox = new HBox(SPACING_HBOX);
         pinsBox.setAlignment(Pos.CENTER);
-        pinnumber = new TextField();
-        pinnumber.setMaxWidth(intInputPrefWidth);
-        pinnumber.setOnKeyPressed( event -> {
+        pinNumber = new TextField();
+        pinNumber.setMaxWidth(intInputPrefWidth);
+        pinNumber.setOnKeyPressed(event -> {
             if( event.getCode() == KeyCode.ENTER ) {
-                if(verifyInput(pinnumber, false, false)){
-                    crntPkg.nrOfPins = Integer.parseInt(pinnumber.getText());
+                if(verifyInput(pinNumber, false, false)){
+                    crntPkg.nrOfPins = Integer.parseInt(pinNumber.getText());
+                    if(crntPkg.nrOfPins != backupPkg.nrOfPins){
+                        change("pinNumber");
+                    }
                 }
             }
         });
-        pinnumber.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
+        pinNumber.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
             if (!newPropertyValue){
-                if(verifyInput(pinnumber, false, false)){
-                    crntPkg.nrOfPins = Integer.parseInt(pinnumber.getText());
+                if(verifyInput(pinNumber, false, false)){
+                    crntPkg.nrOfPins = Integer.parseInt(pinNumber.getText());
+                    if(crntPkg.nrOfPins != backupPkg.nrOfPins){
+                        change("pinNumber");
+                    }
                 }
             }
         });
         final Label pincountLabel = new Label("pin count");
         pincountLabel.setPadding(new Insets(0, 0, 0, fieldSpacing));
-        pinsBox.getChildren().addAll(pincountLabel, pinnumber);
+        pinsBox.getChildren().addAll(pincountLabel, pinNumber);
 
-        final HBox pitchBox = new HBox(3);
+        final HBox pitchBox = new HBox(SPACING_HBOX);
         pitchBox.setAlignment(Pos.CENTER);
         pitchField = new TextField();
         pitchField.setMaxWidth(dimInputPrefWidth);
@@ -778,6 +987,9 @@ public class App extends Application{
             if( event.getCode() == KeyCode.ENTER ) {
                 if(verifyInput(pitchField, false)){
                     crntPkg.pitch = Double.parseDouble(pitchField.getText());
+                    if(crntPkg.pitch != backupPkg.pitch){
+                        change("pitchField");
+                    }
                 }
             }
         });
@@ -785,6 +997,9 @@ public class App extends Application{
             if (!newPropertyValue){
                 if(verifyInput(pitchField, false)){
                     crntPkg.pitch = Double.parseDouble(pitchField.getText());
+                    if(crntPkg.pitch != backupPkg.pitch){
+                        change("pitchField");
+                    }
                 }
             }
         });
@@ -799,31 +1014,40 @@ public class App extends Application{
             @Override
             public void changed(ObservableValue ov,Boolean old_val, Boolean new_val) {
                 crntPkg.polarized = polarCheck.isSelected();
+                if(crntPkg.polarized != backupPkg.polarized){
+                    change("polarCheck");
+                }
             }
         });
 
         topChaRow.getChildren().addAll(typeBoxBox, pinsBox, pitchBox, polarCheck);
 
-        final HBox botChaRow = new HBox(3);         //contains second row of the characteristics
+        final HBox botChaRow = new HBox(SPACING_HBOX);         //contains second row of the characteristics
         botChaRow.setAlignment(Pos.CENTER_LEFT);
 
-        HBox termBoxBox = new HBox(3);
+        HBox termBoxBox = new HBox(SPACING_HBOX);
         termBoxBox.setAlignment(Pos.CENTER);
         terminationBox = new ComboBox();
         terminationBox.getItems().addAll(Package.termTypeValues());
         terminationBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
             crntPkg.termination = Package.termTypefromString((String) terminationBox.getValue());
             checkLeadToLead();
+            if(crntPkg.termination != backupPkg.termination){
+                change("terminationBox");
+            }
         });
         Label termLabel = new Label("terminals");
         termBoxBox.getChildren().addAll(termLabel, terminationBox);
 
-        HBox tapeOrientBox = new HBox(3);
+        HBox tapeOrientBox = new HBox(SPACING_HBOX);
         tapeOrientBox.setAlignment(Pos.CENTER);
         tapeOrientation = new ComboBox();
         tapeOrientation.getItems().addAll(Package.orientationValues());
         tapeOrientation.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
             crntPkg.tapeOrient = Package.orientationFromInt(Integer.parseInt((String)tapeOrientation.getValue()));
+            if(crntPkg.tapeOrient != backupPkg.tapeOrient){
+                change("tapeOrientation");
+            }
         });
         Label tapeOrientationLabel = new Label("tape packaging orientation");
         tapeOrientationLabel.setPadding(new Insets(0, 0, 0, fieldSpacing));
@@ -836,9 +1060,9 @@ public class App extends Application{
     }
 
     private HBox initBodySizeBranch(){
-        HBox bodySizeBranch = new HBox(3);
+        HBox bodySizeBranch = new HBox(SPACING_HBOX);
         bodySizeBranch.setAlignment(Pos.CENTER_LEFT);
-        final HBox bodySizeBox = new HBox(3);
+        final HBox bodySizeBox = new HBox(SPACING_HBOX);
         bodySizeBox.setAlignment(Pos.CENTER_LEFT);
 
         bodyXsize = new TextField();
@@ -849,6 +1073,9 @@ public class App extends Application{
                     crntPkg.body.bodyX = Double.parseDouble(bodyXsize.getText());
                     checkBodySize();
                     loadImage();
+                    if(crntPkg.body.bodyX != backupPkg.body.bodyX){
+                        change("bodyXsize");
+                    }
                 }
             }
         });
@@ -858,6 +1085,9 @@ public class App extends Application{
                     crntPkg.body.bodyX = Double.parseDouble(bodyXsize.getText());
                     checkBodySize();
                     loadImage();
+                    if(crntPkg.body.bodyX != backupPkg.body.bodyX){
+                        change("bodyXsize");
+                    }
                 }
             }
         });
@@ -867,6 +1097,9 @@ public class App extends Application{
             if( event.getCode() == KeyCode.ENTER ) {
                 if(verifyInput(bodyXtol, false)){
                     crntPkg.body.bodyXtol = Double.parseDouble(bodyXtol.getText());
+                    if(crntPkg.body.bodyXtol != backupPkg.body.bodyXtol){
+                        change("bodyXtol");
+                    }
                 }
             }
         });
@@ -874,6 +1107,9 @@ public class App extends Application{
             if (!newPropertyValue){
                 if(verifyInput(bodyXtol, false)){
                     crntPkg.body.bodyXtol = Double.parseDouble(bodyXtol.getText());
+                    if(crntPkg.body.bodyXtol != backupPkg.body.bodyXtol){
+                        change("bodyXtol");
+                    }
                 }
             }
         });
@@ -885,6 +1121,9 @@ public class App extends Application{
                     crntPkg.body.bodyY = Double.parseDouble(bodyYsize.getText());
                     checkBodySize();
                     loadImage();
+                    if(crntPkg.body.bodyY != backupPkg.body.bodyY){
+                        change("bodyYsize");
+                    }
                 }
             }
         });
@@ -894,6 +1133,9 @@ public class App extends Application{
                     crntPkg.body.bodyY = Double.parseDouble(bodyYsize.getText());
                     checkBodySize();
                     loadImage();
+                    if(crntPkg.body.bodyY != backupPkg.body.bodyY){
+                        change("bodyYsize");
+                    }
                 }
             }
         });
@@ -903,6 +1145,9 @@ public class App extends Application{
             if( event.getCode() == KeyCode.ENTER ) {
                 if(verifyInput(bodyYtol, false)){
                     crntPkg.body.bodyYtol = Double.parseDouble(bodyYtol.getText());
+                    if(crntPkg.body.bodyYtol != backupPkg.body.bodyYtol){
+                        change("bodyYtol");
+                    }
                 }
             }
         });
@@ -910,13 +1155,16 @@ public class App extends Application{
             if (!newPropertyValue){
                 if(verifyInput(bodyYtol, false)){
                     crntPkg.body.bodyYtol = Double.parseDouble(bodyYtol.getText());
+                    if(crntPkg.body.bodyYtol != backupPkg.body.bodyYtol){
+                        change("bodyYtol");
+                    }
                 }
             }
         });
 
         bodySizeBox.getChildren().addAll(bodyXsize, new Label("±"), bodyXtol, new Label("x"), bodyYsize, new Label("±"), bodyYtol, new Label("mm"));
 
-        final HBox bodySizeOrgBox = new HBox(3);
+        final HBox bodySizeOrgBox = new HBox(SPACING_HBOX);
         bodySizeOrgBox.setAlignment(Pos.CENTER_LEFT);
 
         bodyOrgX = new TextField();
@@ -925,6 +1173,10 @@ public class App extends Application{
             if( event.getCode() == KeyCode.ENTER ) {
                 if(verifyInput(bodyOrgX)){
                     crntPkg.body.bodyOrgX = Double.parseDouble(bodyOrgX.getText());
+                    loadImage();
+                    if(crntPkg.body.bodyOrgX != backupPkg.body.bodyOrgX){
+                        change("bodyOrgX");
+                    }
                 }
             }
         });
@@ -932,6 +1184,10 @@ public class App extends Application{
             if (!newPropertyValue){
                 if(verifyInput(bodyOrgX)){
                     crntPkg.body.bodyOrgX = Double.parseDouble(bodyOrgX.getText());
+                    loadImage();
+                    if(crntPkg.body.bodyOrgX != backupPkg.body.bodyOrgX){
+                        change("bodyOrgX");
+                    }
                 }
             }
         });
@@ -942,6 +1198,10 @@ public class App extends Application{
             if( event.getCode() == KeyCode.ENTER ) {
                 if(verifyInput(bodyOrgY)){
                     crntPkg.body.bodyOrgY = Double.parseDouble(bodyOrgY.getText());
+                    loadImage();
+                    if(crntPkg.body.bodyOrgY != backupPkg.body.bodyOrgY){
+                        change("bodyOrgY");
+                    }
                 }
             }
         });
@@ -949,6 +1209,10 @@ public class App extends Application{
             if (!newPropertyValue){
                 if(verifyInput(bodyOrgY)){
                     crntPkg.body.bodyOrgY = Double.parseDouble(bodyOrgY.getText());
+                    loadImage();
+                    if(crntPkg.body.bodyOrgY != backupPkg.body.bodyOrgY){
+                        change("bodyOrgY");
+                    }
                 }
             }
         });
@@ -957,13 +1221,13 @@ public class App extends Application{
         bodyOrgLbl.setPadding(new Insets(0, 0, 0, fieldSpacing));
         bodySizeOrgBox.getChildren().addAll(bodyOrgLbl, bodyOrgX, new Label("Y"), bodyOrgY);
 
-        bodySizeBranch.getChildren().addAll(bodySizeBox, createHSpacer(), bodySizeOrgBox, createHSpacer());
+        bodySizeBranch.getChildren().addAll(bodySizeBox, bodySizeOrgBox, createHSpacer());
         return bodySizeBranch;
     }
 
     private HBox initLtolBranch(){
-        HBox ltolBranch = new HBox(3);
-        final HBox ltolBox = new HBox(3);
+        HBox ltolBranch = new HBox(SPACING_HBOX);
+        final HBox ltolBox = new HBox(SPACING_HBOX);
         ltolBox.setAlignment(Pos.CENTER_LEFT);
 
         ltolXsize = new TextField();
@@ -974,6 +1238,9 @@ public class App extends Application{
                     crntPkg.lead2lead.x = Double.parseDouble(ltolXsize.getText());
                     checkLeadToLead();
                     loadImage();
+                    if(crntPkg.lead2lead.x != backupPkg.lead2lead.x){
+                        change("ltolXsize");
+                    }
                 }
             }
         });
@@ -983,6 +1250,9 @@ public class App extends Application{
                     crntPkg.lead2lead.x = Double.parseDouble(ltolXsize.getText());
                     checkLeadToLead();
                     loadImage();
+                    if(crntPkg.lead2lead.x != backupPkg.lead2lead.x){
+                        change("ltolXsize");
+                    }
                 }
             }
         });
@@ -992,6 +1262,9 @@ public class App extends Application{
             if( event.getCode() == KeyCode.ENTER ) {
                 if(verifyInput(ltolXtol, false)){
                     crntPkg.lead2lead.xTol = Double.parseDouble(ltolXtol.getText());
+                    if(crntPkg.lead2lead.xTol != backupPkg.lead2lead.xTol){
+                        change("ltolXtol");
+                    }
                 }
             }
         });
@@ -999,6 +1272,9 @@ public class App extends Application{
             if (!newPropertyValue){
                 if(verifyInput(ltolXtol, false)){
                     crntPkg.lead2lead.xTol = Double.parseDouble(ltolXtol.getText());
+                    if(crntPkg.lead2lead.xTol != backupPkg.lead2lead.xTol){
+                        change("ltolXtol");
+                    }
                 }
             }
         });
@@ -1011,6 +1287,9 @@ public class App extends Application{
                     crntPkg.lead2lead.y = Double.parseDouble(ltolYsize.getText());
                     checkLeadToLead();
                     loadImage();
+                    if(crntPkg.lead2lead.y != backupPkg.lead2lead.y){
+                        change("ltolYsize");
+                    }
                 }
             }
         });
@@ -1020,6 +1299,9 @@ public class App extends Application{
                     crntPkg.lead2lead.y = Double.parseDouble(ltolYsize.getText());
                     checkLeadToLead();
                     loadImage();
+                    if(crntPkg.lead2lead.y != backupPkg.lead2lead.y){
+                        change("ltolYsize");
+                    }
                 }
             }
         });
@@ -1030,6 +1312,9 @@ public class App extends Application{
             if( event.getCode() == KeyCode.ENTER ) {
                 if(verifyInput(ltolYtol, false)){
                     crntPkg.lead2lead.yTol = Double.parseDouble(ltolYtol.getText());
+                    if(crntPkg.lead2lead.yTol != backupPkg.lead2lead.yTol){
+                        change("ltolYtol");
+                    }
                 }
             }
         });
@@ -1037,13 +1322,16 @@ public class App extends Application{
             if (!newPropertyValue){
                 if(verifyInput(ltolYtol, false)){
                     crntPkg.lead2lead.yTol = Double.parseDouble(ltolYtol.getText());
+                    if(crntPkg.lead2lead.yTol != backupPkg.lead2lead.yTol){
+                        change("ltolYtol");
+                    }
                 }
             }
         });
 
         ltolBox.getChildren().addAll(ltolXsize, new Label("±"), ltolXtol, new Label("x"), ltolYsize, new Label("±"), ltolYtol, new Label("mm"));
 
-        final HBox ltolOrgBox = new HBox(3);
+        final HBox ltolOrgBox = new HBox(SPACING_HBOX);
         ltolOrgBox.setAlignment(Pos.CENTER_LEFT);
 
         ltolOrgX = new TextField();
@@ -1052,6 +1340,10 @@ public class App extends Application{
             if( event.getCode() == KeyCode.ENTER ) {
                 if(verifyInput(ltolOrgX)){
                     crntPkg.lead2lead.orgX = Double.parseDouble(ltolOrgX.getText());
+                    loadImage();
+                    if(crntPkg.lead2lead.orgX != backupPkg.lead2lead.orgX){
+                        change("ltolOrgX");
+                    }
                 }
             }
         });
@@ -1059,6 +1351,10 @@ public class App extends Application{
             if (!newPropertyValue){
                 if(verifyInput(ltolOrgX)){
                     crntPkg.lead2lead.orgX = Double.parseDouble(ltolOrgX.getText());
+                    loadImage();
+                    if(crntPkg.lead2lead.orgX != backupPkg.lead2lead.orgX){
+                        change("ltolOrgX");
+                    }
                 }
             }
         });
@@ -1068,6 +1364,10 @@ public class App extends Application{
             if( event.getCode() == KeyCode.ENTER ) {
                 if(verifyInput(ltolOrgY)){
                     crntPkg.lead2lead.orgY = Double.parseDouble(ltolOrgY.getText());
+                    loadImage();
+                    if(crntPkg.lead2lead.orgY != backupPkg.lead2lead.orgY){
+                        change("ltolOrgY");
+                    }
                 }
             }
         });
@@ -1075,6 +1375,10 @@ public class App extends Application{
             if (!newPropertyValue){
                 if(verifyInput(ltolOrgY)){
                     crntPkg.lead2lead.orgY = Double.parseDouble(ltolOrgY.getText());
+                    loadImage();
+                    if(crntPkg.lead2lead.orgY != backupPkg.lead2lead.orgY){
+                        change("ltolOrgY");
+                    }
                 }
             }
         });
@@ -1082,14 +1386,14 @@ public class App extends Application{
         final Label ltolOrgLbl = new Label("origin X");
         ltolOrgLbl.setPadding(new Insets(0, 0, 0, fieldSpacing));
         ltolOrgBox.getChildren().addAll(ltolOrgLbl, ltolOrgX, new Label("Y"), ltolOrgY);
-        ltolBranch.getChildren().addAll(ltolBox, createHSpacer(), ltolOrgBox, createHSpacer());
+        ltolBranch.getChildren().addAll(ltolBox, ltolOrgBox, createHSpacer());
         return ltolBranch;
     }
 
-    private TitledPane initSpepaholder(){
+    private TitledPane initSpepaHolder(){
         TitledPane spepaholder = new TitledPane();
         spepaholder.setText("Specific package variants");
-        VBox spepaBranch = new VBox(5);
+        VBox spepaBranch = new VBox(SPACING_VBOX);
 
         /*The table */
         TableView<SpepaMirror> spepaTable = new TableView<>();
@@ -1099,6 +1403,7 @@ public class App extends Application{
 
         Callback<TableColumn, TableCell> cellFactory = (TableColumn p) -> new CustomCell();
         Callback<TableColumn, TableCell> cellDoubleFactory = (TableColumn p) -> new EditingDoubleCell();
+        Callback<TableColumn, TableCell> cellDelFactory = (TableColumn p) -> new DelButtonCell(spepaTable);
         //Callback<TableColumn, TableCell> cellCheckFactory = (TableColumn p) -> new CustomCheckBoxCell();
 
 
@@ -1110,73 +1415,94 @@ public class App extends Application{
             new EventHandler<CellEditEvent<SpepaMirror, String>>() {
                 @Override
                 public void handle(CellEditEvent<SpepaMirror, String> t) {
-                    ((SpepaMirror) t.getTableView().getItems().get(
-                            t.getTablePosition().getRow())
-                            ).setIpcName(t.getNewValue());
-                    updateVariants();
+                    SpepaMirror spep = ((SpepaMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    spep.getVariant().variantName = t.getNewValue();
+                    spep.setIpcName(t.getNewValue());
+                    if(spep.getVariant(backupPkg) == null || !spep.getVariant().variantName.equals(spep.getVariant(backupPkg).variantName)){
+                        change("spepipcname");
+                    }
                 }
             }
         );
 
 
         TableColumn minHeightCol = new TableColumn("min. height");
-        minHeightCol.setMinWidth(60);
+        minHeightCol.setMinWidth(THINCOLUMN_MINWIDTH);
+        minHeightCol.setPrefWidth(THINCOLUMN_PREFWIDTH);
+        minHeightCol.setMaxWidth(THINCOLUMN_MAXWIDTH);
         minHeightCol.setCellValueFactory(new PropertyValueFactory<>("minHeightppt"));
         minHeightCol.setCellFactory(cellDoubleFactory);
         minHeightCol.setOnEditCommit(
             new EventHandler<CellEditEvent<SpepaMirror, Double>>() {
                 @Override
                 public void handle(CellEditEvent<SpepaMirror, Double> t) {
-                    ((SpepaMirror) t.getTableView().getItems().get(
-                            t.getTablePosition().getRow())
-                            ).setMinHeight(t.getNewValue());
-                    updateVariants();
+                    SpepaMirror spep = ((SpepaMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    spep.setMinHeight(t.getNewValue());
+                    spep.getVariant().heightRange.minHeight = t.getNewValue();
+                    if(spep.getVariant(backupPkg) == null || spep.getVariant().heightRange.minHeight != spep.getVariant(backupPkg).heightRange.minHeight){
+                        change("spepminheight");
+                    }
                 }
             }
         );
 
         TableColumn maxHeightCol = new TableColumn("max. height");
-        maxHeightCol.setMinWidth(100);
+        maxHeightCol.setMinWidth(THINCOLUMN_MINWIDTH);
+        maxHeightCol.setPrefWidth(THINCOLUMN_PREFWIDTH);
+        maxHeightCol.setMaxWidth(THINCOLUMN_MAXWIDTH);
         maxHeightCol.setCellValueFactory(new PropertyValueFactory<>("maxHeightppt"));
         maxHeightCol.setCellFactory(cellDoubleFactory);
         maxHeightCol.setOnEditCommit(
             new EventHandler<CellEditEvent<SpepaMirror, Double>>() {
                 @Override
                 public void handle(CellEditEvent<SpepaMirror, Double> t) {
-                    ((SpepaMirror) t.getTableView().getItems().get(
-                            t.getTablePosition().getRow())
-                            ).setMaxHeight(t.getNewValue());
-                    updateVariants();
+                    SpepaMirror spep = ((SpepaMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    spep.setMinHeight(t.getNewValue());
+                    spep.getVariant().heightRange.maxHeight = t.getNewValue();
+                    if(spep.getVariant(backupPkg) == null || spep.getVariant().heightRange.maxHeight != spep.getVariant(backupPkg).heightRange.maxHeight){
+                        change("spepmaxheight");
+                    }
                 }
             }
         );
 
         TableColumn standardCol = new TableColumn("standard");
-        standardCol.setMinWidth(100);
+        standardCol.setMinWidth(THINCOLUMN_MINWIDTH);
+        standardCol.setPrefWidth(THINCOLUMN_PREFWIDTH);
+        standardCol.setMaxWidth(THINCOLUMN_MAXWIDTH);
         standardCol.setCellValueFactory(new PropertyValueFactory<>("standardppt"));
         standardCol.setCellFactory(ComboBoxTableCell.forTableColumn(Package.nameStandardValues()));
         standardCol.setOnEditCommit(
             new EventHandler<CellEditEvent<SpepaMirror, String>>() {
                 @Override
                 public void handle(CellEditEvent<SpepaMirror, String> t) {
-                    ((SpepaMirror) t.getTableView().getItems().get(t.getTablePosition().getRow())).setStandard(t.getNewValue());
-                    updateVariants();
+                    SpepaMirror spep = ((SpepaMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    spep.setStandard(t.getNewValue());
+                    spep.getVariant().standard = Package.nameStandardFromString(t.getNewValue());
+                    if(spep.getVariant(backupPkg) == null || spep.getVariant().standard != spep.getVariant(backupPkg).standard){
+                        change("spepstandard");
+                    }
                 }
             }
         );
 
         TableColumn xposedCol = new TableColumn("exposed pad");
-        xposedCol.setMinWidth(80);
+        xposedCol.setMinWidth(90);  //needs to be a little wider than other thin columns in order for the name not to be abreviated
+        xposedCol.setPrefWidth(THINCOLUMN_PREFWIDTH);
+        xposedCol.setMaxWidth(THINCOLUMN_MAXWIDTH);
         xposedCol.setCellValueFactory(new PropertyValueFactory<>("padExposedppt"));
         xposedCol.setCellFactory(CustomCheckBoxCell.forTableColumn(new Callback<Integer, ObservableValue<Boolean>>() {
             @Override
             public ObservableValue<Boolean> call(Integer param) {
-                spePacks.get(param).padExposed = spePacks.get(param).padExposedppt.get();
-                updateVariants();
-                return spePacks.get(param).padExposedppt;
+                SpepaMirror spep = spePacks.get(param);
+                spep.padExposed = spep.padExposedppt.get();
+                spep.getVariant().centerPadExposed = spep.padExposed;
+                if(spep.getVariant(backupPkg) == null || spep.getVariant().centerPadExposed != spep.getVariant(backupPkg).centerPadExposed){
+                        change("spepexposedpad");
+                    }
+                return spep.padExposedppt;
             }
         }));
-
 
         TableColumn notesCol = new TableColumn("notes");
         notesCol.setMinWidth(120);
@@ -1186,18 +1512,26 @@ public class App extends Application{
             new EventHandler<CellEditEvent<SpepaMirror, String>>() {
                 @Override
                 public void handle(CellEditEvent<SpepaMirror, String> t) {
-                    ((SpepaMirror) t.getTableView().getItems().get(
-                            t.getTablePosition().getRow())
-                            ).setNotes(t.getNewValue());
-                    updateVariants();
+                    SpepaMirror spep = ((SpepaMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    spep.setNotes(t.getNewValue());
+                    spep.getVariant().variantNotes = t.getNewValue();
+                    if(spep.getVariant(backupPkg) == null || !spep.getVariant().variantNotes.equals(spep.getVariant(backupPkg).variantNotes)){
+                        change("spepnotes");
+                    }
                 }
             }
         );
 
-        spepaTable.setItems(spePacks);
-        spepaTable.getColumns().addAll(ipcNameCol, minHeightCol, maxHeightCol, standardCol, xposedCol, notesCol);
+        TableColumn delCol = new TableColumn("");
+        delCol.setMinWidth(50);
+        delCol.setPrefWidth(50);
+        delCol.setMaxWidth(50);
+        delCol.setCellFactory(cellDelFactory);
 
-        HBox spepaAdditionBox = new HBox(3);
+        spepaTable.setItems(spePacks);
+        spepaTable.getColumns().addAll(ipcNameCol, minHeightCol, maxHeightCol, standardCol, xposedCol, notesCol, delCol);
+
+        HBox spepaAdditionBox = new HBox(SPACING_HBOX);
         spepaAdditionBox.setAlignment(Pos.CENTER_LEFT);
 
         final TextField ipcNameInput = new TextField();
@@ -1225,8 +1559,7 @@ public class App extends Application{
             }
         });
 
-        final ComboBox nameStandardInput =  new ComboBox();
-        nameStandardInput.getItems().addAll(Package.nameStandardValues());
+        final ComboBox nameStandardInput =  new ComboBox(Package.nameStandardValues());
 
         final CheckBox exposedInput = new CheckBox("exposed center pad");
         exposedInput.setPadding(new Insets(0, fieldSpacing, 0, fieldSpacing));
@@ -1237,20 +1570,25 @@ public class App extends Application{
         final Button addSpepaButton = new Button("Add");
         addSpepaButton.setOnAction((ActionEvent e) -> {
             if(ipcNameInput.getText().length() == 0){
-                incompleteDataWarning.show(stage.stage);
+                incompleteDataWarning.show(stage);
             } else if(notDuplicate(ipcNameInput.getText())){
-                spePacks.add(new SpepaMirror( //args: String ipcName, double minHeight, double maxHeight, boolean padExposed, String alias
+                /* Create mirror object */
+                SpepaMirror newSpep = new SpepaMirror( //args: String ipcName, NameStandard, double minHeight, double maxHeight, boolean padExposed, String alias
                     ipcNameInput.getText(),
                     Package.nameStandardFromString((String)nameStandardInput.getValue()),
                     (minHeightInput.getText().length() > 0) ? Double.parseDouble(minHeightInput.getText()) : 0,
                     (maxHeightInput.getText().length() > 0) ? Double.parseDouble(maxHeightInput.getText()) : 0,
                     exposedInput.isSelected(),
                     spepaNotesInput.getText()
-                ));
+                );
+                /* Add to real list */
+                crntPkg.specPacks.add(crntPkg.new Variant(newSpep));
+                /* Add to mirror list*/
+                spePacks.add(newSpep);
+                change("addSpepaButton");
             } else{
-                dupWarning.show(stage.stage);
+                dupWarning.show(stage);
             }
-
             ipcNameInput.clear();
             nameStandardInput.valueProperty().set(null);
             minHeightInput.clear();
@@ -1258,52 +1596,81 @@ public class App extends Application{
             exposedInput.setSelected(false);
             spepaNotesInput.clear();
             spepaTable.scrollTo(spepaTable.getItems().size() - 1);
-
-            updateVariants(); //vernieuwt Package.specPacks
         });
 
         spepaAdditionBox.getChildren().addAll(ipcNameInput, minHeightInput, maxHeightInput, nameStandardInput, exposedInput, spepaNotesInput, addSpepaButton);
 
-        HBox spepaDeletionBox = new HBox(3);
-        final Button spepaDeleteButton = new Button("Delete selected");
-        spepaDeleteButton.setOnAction(e -> {
-            SpepaMirror selectedItem = spepaTable.getSelectionModel().getSelectedItem();
-            spepaTable.getItems().remove(selectedItem);
-            updateVariants();
-        });
-        spepaDeletionBox.getChildren().add(spepaDeleteButton);
-        spepaBranch.getChildren().addAll(spepaTable, spepaAdditionBox ,spepaDeletionBox );
+        spepaBranch.getChildren().addAll(spepaTable, spepaAdditionBox);
         spepaholder.setContent(spepaBranch);
 
         return spepaholder;
     }
 
     private HBox initFootprintBranch(){
-        HBox footprintBranch = new HBox(3);
+        final HBox footprintBranch = new HBox(SPACING_HBOX);
+
+        final HBox navBox = new HBox(SPACING_HBOX);
+        navBox.setAlignment(Pos.CENTER);
+        final Button prevButton = new Button("<<");
+        prevButton.setOnAction((ActionEvent arg0) -> {
+            if(fpIndex > 0){
+                fpIndex -=1;
+                loadFootPrintInclusive();
+            }
+        });
+        fpIndexLabel = new Label(Integer.toString(fpIndex + 1) + " of " + Integer.toString(crntPkg.footPrints.size()));
+        final Button nextButton = new Button(">>");
+        nextButton.setOnAction((ActionEvent arg0) -> {
+            if(fpIndex < crntPkg.footPrints.size() - 1){
+                fpIndex +=1;
+                loadFootPrintInclusive();
+            }
+        });
+        final Button newButton = new Button("new");
+        newButton.setOnAction((ActionEvent arg0) -> {
+            crntPkg.addFootprint(crntPkg.new Footprint());
+            fpIndex = crntPkg.footPrints.size() -1;
+            loadFootPrintInclusive();
+            change("new footprint");
+        });
+        final Button delButton = new Button("delete");
+        delButton.setOnAction((ActionEvent arg0) -> {
+            fpDelWarning.show(stage);
+        });
+        navBox.getChildren().addAll(prevButton, fpIndexLabel, nextButton, newButton, delButton);
 
         footprinttypeBox = new ComboBox();
         footprinttypeBox.getItems().addAll(Package.footprintTypeValues());
         footprinttypeBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-            crntPkg.footPrints[0].ftprntType = Package.footprintTypefromString((String)footprinttypeBox.getValue());
+            crntPkg.footPrints.get(fpIndex).ftprntType = Package.footprintTypefromString((String)footprinttypeBox.getValue());
+            if(crntPkg.footPrints.get(fpIndex).ftprntType != backupPkg.footPrints.get(fpIndex).ftprntType){
+                change("footprinttypeBox");
+            }
         });
 
-        HBox spanBox = new HBox(3);
+        final HBox spanBox = new HBox(SPACING_HBOX);
         spanBox.setAlignment(Pos.CENTER_LEFT);
         spanXField = new TextField();
         spanXField.setMaxWidth(dimInputPrefWidth);
         spanXField.setOnKeyPressed( event -> {
             if( event.getCode() == KeyCode.ENTER ) {
                 if(verifyInput(spanXField, false)){
-                    crntPkg.footPrints[firstid].span.x = Double.parseDouble(spanXField.getText());
-                checkSpan();
+                    crntPkg.footPrints.get(fpIndex).span.x = Double.parseDouble(spanXField.getText());
+                    checkSpan();
+                    if(crntPkg.footPrints.get(fpIndex).span.x != backupPkg.footPrints.get(fpIndex).span.x){
+                        change("fpspan");
+                    }
                 }
             }
         });
         spanXField.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
             if (!newPropertyValue){
                 if(verifyInput(spanXField, false)){
-                    crntPkg.footPrints[firstid].span.x = Double.parseDouble(spanXField.getText());
-                checkSpan();
+                    crntPkg.footPrints.get(fpIndex).span.x = Double.parseDouble(spanXField.getText());
+                    checkSpan();
+                    if(crntPkg.footPrints.get(fpIndex).span.x != backupPkg.footPrints.get(fpIndex).span.x){
+                        change("fpspan");
+                    }
                 }
             }
         });
@@ -1313,16 +1680,22 @@ public class App extends Application{
         spanYField.setOnKeyPressed( event -> {
             if( event.getCode() == KeyCode.ENTER ) {
                 if(verifyInput(spanYField, false)){
-                    crntPkg.footPrints[firstid].span.y = Double.parseDouble(spanYField.getText());
+                    crntPkg.footPrints.get(fpIndex).span.y = Double.parseDouble(spanYField.getText());
                     checkSpan();
+                    if(crntPkg.footPrints.get(fpIndex).span.y != backupPkg.footPrints.get(fpIndex).span.y){
+                        change("fpspanx");
+                    }
                 }
             }
         });
         spanYField.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
             if (!newPropertyValue){
                 if(verifyInput(spanYField, false)){
-                    crntPkg.footPrints[firstid].span.y = Double.parseDouble(spanYField.getText());
+                    crntPkg.footPrints.get(fpIndex).span.y = Double.parseDouble(spanYField.getText());
                     checkSpan();
+                    if(crntPkg.footPrints.get(fpIndex).span.y != backupPkg.footPrints.get(fpIndex).span.y){
+                        change("fpspany");
+                    }
                 }
             }
         });
@@ -1331,25 +1704,31 @@ public class App extends Application{
         spanLbl.setPadding(new Insets(0, 0, 0, fieldSpacing));
         spanBox.getChildren().addAll(spanLbl, spanXField, new Label("x"), spanYField, new Label("mm"));
 
-        final HBox fpoutlineBox = new HBox(3);
+        final HBox fpoutlineBox = new HBox(SPACING_HBOX);
         fpoutlineBox.setAlignment(Pos.CENTER_LEFT);
         fpolLength = new TextField();   //TODO: possibly swap length and width. Currently length is X and width is Y here, but it's different elsewhere
         fpolLength.setMaxWidth(dimInputPrefWidth);
         fpolLength.setOnKeyPressed( event -> {
             if( event.getCode() == KeyCode.ENTER ) {
                 if(verifyInput(fpolLength, false)){
-                    crntPkg.footPrints[firstid].outline.length = Double.parseDouble(fpolLength.getText());
+                    crntPkg.footPrints.get(fpIndex).outline.length = Double.parseDouble(fpolLength.getText());
                     checkContour();
                     loadImage();
+                    if(crntPkg.footPrints.get(fpIndex).outline.length != backupPkg.footPrints.get(fpIndex).outline.length){
+                        change("fpoutlinelength");
+                    }
                 }
             }
         });
         fpolLength.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
             if (!newPropertyValue){
                 if(verifyInput(fpolLength, false)){
-                    crntPkg.footPrints[firstid].outline.length = Double.parseDouble(fpolLength.getText());
+                    crntPkg.footPrints.get(fpIndex).outline.length = Double.parseDouble(fpolLength.getText());
                     checkContour();
                     loadImage();
+                    if(crntPkg.footPrints.get(fpIndex).outline.length != backupPkg.footPrints.get(fpIndex).outline.length){
+                        change("fpoutlinelength");
+                    }
                 }
             }
         });
@@ -1358,18 +1737,24 @@ public class App extends Application{
         fpolWidth.setOnKeyPressed( event -> {
             if( event.getCode() == KeyCode.ENTER ) {
                 if(verifyInput(fpolWidth, false)){
-                    crntPkg.footPrints[firstid].outline.width = Double.parseDouble(fpolWidth.getText());
+                    crntPkg.footPrints.get(fpIndex).outline.width = Double.parseDouble(fpolWidth.getText());
                     checkContour();
                     loadImage();
+                    if(crntPkg.footPrints.get(fpIndex).outline.width != backupPkg.footPrints.get(fpIndex).outline.width){
+                        change("fpoutlinewidth");
+                    }
                 }
             }
         });
         fpolWidth.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
             if (!newPropertyValue){
                 if(verifyInput(fpolWidth, false)){
-                    crntPkg.footPrints[firstid].outline.width = Double.parseDouble(fpolWidth.getText());
+                    crntPkg.footPrints.get(fpIndex).outline.width = Double.parseDouble(fpolWidth.getText());
                     checkContour();
                     loadImage();
+                    if(crntPkg.footPrints.get(fpIndex).outline.width != backupPkg.footPrints.get(fpIndex).outline.width){
+                        change("fpoutlinewidth");
+                    }
                 }
             }
         });
@@ -1378,18 +1763,24 @@ public class App extends Application{
         fpolOrgX.setOnKeyPressed( event -> {
             if( event.getCode() == KeyCode.ENTER ) {
                 if(verifyInput(fpolOrgX)){
-                    crntPkg.footPrints[firstid].outline.orgX = Double.parseDouble(fpolOrgX.getText());
+                    crntPkg.footPrints.get(fpIndex).outline.orgX = Double.parseDouble(fpolOrgX.getText());
                     checkContour();
                     loadImage();
+                    if(crntPkg.footPrints.get(fpIndex).outline.orgX != backupPkg.footPrints.get(fpIndex).outline.orgX){
+                        change("fpoutlineorgX");
+                    }
                 }
             }
         });
         fpolOrgX.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
             if (!newPropertyValue){
                 if(verifyInput(fpolOrgX)){
-                    crntPkg.footPrints[firstid].outline.orgX = Double.parseDouble(fpolOrgX.getText());
+                    crntPkg.footPrints.get(fpIndex).outline.orgX = Double.parseDouble(fpolOrgX.getText());
                     checkContour();
                     loadImage();
+                    if(crntPkg.footPrints.get(fpIndex).outline.orgX != backupPkg.footPrints.get(fpIndex).outline.orgX){
+                        change("fpoutlineorgX");
+                    }
                 }
             }
         });
@@ -1398,18 +1789,24 @@ public class App extends Application{
         fpolOrgY.setOnKeyPressed( event -> {
             if( event.getCode() == KeyCode.ENTER ) {
                 if(verifyInput(fpolOrgY)){
-                    crntPkg.footPrints[firstid].outline.orgY = Double.parseDouble(fpolOrgY.getText());
+                    crntPkg.footPrints.get(fpIndex).outline.orgY = Double.parseDouble(fpolOrgY.getText());
                     checkContour();
                     loadImage();
+                    if(crntPkg.footPrints.get(fpIndex).outline.orgY != backupPkg.footPrints.get(fpIndex).outline.orgY){
+                        change("fpoutlineorgY");
+                    }
                 }
             }
         });
         fpolOrgY.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
             if (!newPropertyValue){
                 if(verifyInput(fpolOrgY)){
-                    crntPkg.footPrints[firstid].outline.orgY = Double.parseDouble(fpolOrgY.getText());
+                    crntPkg.footPrints.get(fpIndex).outline.orgY = Double.parseDouble(fpolOrgY.getText());
                     checkContour();
                     loadImage();
+                    if(crntPkg.footPrints.get(fpIndex).outline.orgY != backupPkg.footPrints.get(fpIndex).outline.orgY){
+                        change("fpoutlineorgY");
+                    }
                 }
             }
         });
@@ -1419,19 +1816,19 @@ public class App extends Application{
         final Label fporiginLbl = new Label("origin X");
         fporiginLbl.setPadding(new Insets(0, 0, 0, fieldSpacing));
         fpoutlineBox.getChildren().addAll(fpoutlineLbl, fpolLength, new Label("Y"), fpolWidth, fporiginLbl, fpolOrgX, new Label("Y"), fpolOrgY);
-        footprintBranch.getChildren().addAll(footprinttypeBox, spanBox, createHSpacer(), fpoutlineBox, createHSpacer());
+        footprintBranch.getChildren().addAll(navBox, createHSpacer(), footprinttypeBox, spanBox, createHSpacer(), fpoutlineBox, createHSpacer());
 
         return footprintBranch;
     }
 
-    private TitledPane initPadshapeholder(){
+    private TitledPane initPadshapeHolder(){
         TitledPane padshapeholder = new TitledPane();
         padshapeholder.setText("Pad shapes");
         padshapeholder.setExpanded(false);
-        VBox shaBranch = new VBox(5);//parameter is spacing
+        VBox shaBranch = new VBox(SPACING_VBOX);//parameter is spacing
 
         /* the table */
-        TableView<PadDimmirror> padshapeTable = new TableView<>();
+        TableView<PadDimMirror> padshapeTable = new TableView<>();
         padshapeTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         padshapeTable.setEditable(true);
         padshapeTable.getSelectionModel().setCellSelectionEnabled(true);
@@ -1444,13 +1841,16 @@ public class App extends Application{
         nrCol.setCellValueFactory(new PropertyValueFactory<>("padIdppt"));
         nrCol.setCellFactory(cellIntFactory);
         nrCol.setOnEditCommit(
-            new EventHandler<CellEditEvent<PadDimmirror, Integer>>() {
+            new EventHandler<CellEditEvent<PadDimMirror, Integer>>() {
                 @Override
-                public void handle(CellEditEvent<PadDimmirror, Integer> t) {
-                    ((PadDimmirror) t.getTableView().getItems().get(
-                            t.getTablePosition().getRow())
-                            ).setPadId(t.getNewValue());
-                    updateDimensions();
+                public void handle(CellEditEvent<PadDimMirror, Integer> t) {
+                    PadDimMirror dim = ((PadDimMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    dim.getDimension().setPadId(t.getNewValue());
+                    dim.setPadId(t.getNewValue());
+                    dimChecks();
+                    if(dim.getDimension(backupPkg) == null || dim.getDimension().padId != dim.getDimension(backupPkg).padId){
+                        change("pad shape pad-id");
+                    }
                 }
             }
         );
@@ -1460,13 +1860,16 @@ public class App extends Application{
         widCol.setCellValueFactory(new PropertyValueFactory<>("widthppt"));
         widCol.setCellFactory(cellDoubleFactory);
         widCol.setOnEditCommit(
-            new EventHandler<CellEditEvent<PadDimmirror, Double>>() {
+            new EventHandler<CellEditEvent<PadDimMirror, Double>>() {
                 @Override
-                public void handle(CellEditEvent<PadDimmirror, Double> t) {
-                    ((PadDimmirror) t.getTableView().getItems().get(
-                            t.getTablePosition().getRow())
-                            ).setWidth(t.getNewValue());
-                    updateDimensions();
+                public void handle(CellEditEvent<PadDimMirror, Double> t) {
+                    PadDimMirror dim = ((PadDimMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    dim.getDimension().setWidth(t.getNewValue());
+                    dim.setWidth(t.getNewValue());
+                    dimChecks();
+                    if(dim.getDimension(backupPkg) == null || dim.getDimension().getWidth() != dim.getDimension(backupPkg).getWidth()){
+                        change("pad shape width");
+                    }
                 }
             }
         );
@@ -1476,13 +1879,16 @@ public class App extends Application{
         lenCol.setCellValueFactory(new PropertyValueFactory<>("lengthppt"));
         lenCol.setCellFactory(cellDoubleFactory);
         lenCol.setOnEditCommit(
-            new EventHandler<CellEditEvent<PadDimmirror, Double>>() {
+            new EventHandler<CellEditEvent<PadDimMirror, Double>>() {
                 @Override
-                public void handle(CellEditEvent<PadDimmirror, Double> t) {
-                    ((PadDimmirror) t.getTableView().getItems().get(
-                            t.getTablePosition().getRow())
-                            ).setLength(t.getNewValue());
-                    updateDimensions();
+                public void handle(CellEditEvent<PadDimMirror, Double> t) {
+                    PadDimMirror dim = ((PadDimMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    dim.getDimension().setLength(t.getNewValue());
+                    dim.setLength(t.getNewValue());
+                    dimChecks();
+                    if(dim.getDimension(backupPkg) == null || dim.getDimension().getLength() != dim.getDimension(backupPkg).getLength()){
+                        change("pad shape Length");
+                    }
                 }
             }
         );
@@ -1492,13 +1898,16 @@ public class App extends Application{
         holeCol.setCellValueFactory(new PropertyValueFactory<>("holeDiamppt"));
         holeCol.setCellFactory(cellDoubleFactory);
         holeCol.setOnEditCommit(
-            new EventHandler<CellEditEvent<PadDimmirror, Double>>() {
+            new EventHandler<CellEditEvent<PadDimMirror, Double>>() {
                 @Override
-                public void handle(CellEditEvent<PadDimmirror, Double> t) {
-                    ((PadDimmirror) t.getTableView().getItems().get(
-                            t.getTablePosition().getRow())
-                            ).setHoleDiam(t.getNewValue());
-                    updateDimensions();
+                public void handle(CellEditEvent<PadDimMirror, Double> t) {
+                    PadDimMirror dim = ((PadDimMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    dim.getDimension().setHoleDiam(t.getNewValue());
+                    dim.setHoleDiam(t.getNewValue());
+                    dimChecks();
+                    if(dim.getDimension(backupPkg) == null || dim.getDimension().getHoleDiam() != dim.getDimension(backupPkg).getHoleDiam()){
+                        change("pad shape hole diam");
+                    }
                 }
             }
         );
@@ -1508,13 +1917,16 @@ public class App extends Application{
         ognxCol.setCellValueFactory(new PropertyValueFactory<>("originXppt"));
         ognxCol.setCellFactory(cellDoubleFactory);
         ognxCol.setOnEditCommit(
-            new EventHandler<CellEditEvent<PadDimmirror, Double>>() {
+            new EventHandler<CellEditEvent<PadDimMirror, Double>>() {
                 @Override
-                public void handle(CellEditEvent<PadDimmirror, Double> t) {
-                    ((PadDimmirror) t.getTableView().getItems().get(
-                            t.getTablePosition().getRow())
-                            ).setOriginX(t.getNewValue());
-                    updateDimensions();
+                public void handle(CellEditEvent<PadDimMirror, Double> t) {
+                    PadDimMirror dim = ((PadDimMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    dim.getDimension().setOriginX(t.getNewValue());
+                    dim.setOriginX(t.getNewValue());
+                    dimChecks();
+                    if(dim.getDimension(backupPkg) == null || dim.getDimension().getOriginX() != dim.getDimension(backupPkg).getOriginX()){
+                        change("pad shape orgX");
+                    }
                 }
             }
         );
@@ -1524,13 +1936,16 @@ public class App extends Application{
         ognyCol.setCellValueFactory(new PropertyValueFactory<>("originYppt"));
         ognyCol.setCellFactory(cellDoubleFactory);
         ognyCol.setOnEditCommit(
-            new EventHandler<CellEditEvent<PadDimmirror, Double>>() {
+            new EventHandler<CellEditEvent<PadDimMirror, Double>>() {
                 @Override
-                public void handle(CellEditEvent<PadDimmirror, Double> t) {
-                    ((PadDimmirror) t.getTableView().getItems().get(
-                            t.getTablePosition().getRow())
-                            ).setOriginY(t.getNewValue());
-                    updateDimensions();
+                public void handle(CellEditEvent<PadDimMirror, Double> t) {
+                    PadDimMirror dim = ((PadDimMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    dim.getDimension().setOriginY(t.getNewValue());
+                    dim.setOriginY(t.getNewValue());
+                    dimChecks();
+                    if(dim.getDimension(backupPkg) == null || dim.getDimension().getOriginY() != dim.getDimension(backupPkg).getOriginY()){
+                        change("pad shape orgY");
+                    }
                 }
             }
         );
@@ -1540,32 +1955,66 @@ public class App extends Application{
         shapeCol.setCellValueFactory(new PropertyValueFactory<>("shapeppt"));
         shapeCol.setCellFactory(ComboBoxTableCell.forTableColumn(Package.padShapeValues()));
         shapeCol.setOnEditCommit(
-            new EventHandler<CellEditEvent<PadDimmirror, String>>() {
+            new EventHandler<CellEditEvent<PadDimMirror, String>>() {
                 @Override
-                public void handle(CellEditEvent<PadDimmirror, String> t) {
-                    ((PadDimmirror) t.getTableView().getItems().get(t.getTablePosition().getRow())).setShape(t.getNewValue());
-                    updateDimensions();
+                public void handle(CellEditEvent<PadDimMirror, String> t) {
+                    PadDimMirror dim = ((PadDimMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    Package.PadShape shape = Package.padShapefromString(t.getNewValue());
+                    dim.getDimension().setPadShape(shape);
+                    dim.setShape(t.getNewValue());
+                    dimChecks();
+                    if(dim.getDimension(backupPkg) == null || dim.getDimension().getPadshape() != dim.getDimension(backupPkg).getPadshape()){
+                        change("pad shape shape");
+                    }
+                    if(shape == Package.PadShape.POLYGON){
+                        dim.setIsPoly(true);
+                    } else{
+                        dim.setIsPoly(false);
+                    }
                 }
             }
         );
 
-        TableColumn xposedCol = new TableColumn("exposed pad");
+        TableColumn xposedCol = new TableColumn("pad type");
         xposedCol.setMinWidth(80);
-        xposedCol.setCellValueFactory(new PropertyValueFactory<>("padExposedppt"));
-        xposedCol.setCellFactory(CheckBoxTableCell.forTableColumn(new Callback<Integer, ObservableValue<Boolean>>() {
-            @Override
-            public ObservableValue<Boolean> call(Integer param) {
-                pdDimensions.get(param).padExposed = pdDimensions.get(param).padExposedppt.get();
-                updateDimensions();
-                return pdDimensions.get(param).padExposedppt;
+        xposedCol.setCellValueFactory(new PropertyValueFactory<>("padTypeppt"));
+        xposedCol.setCellFactory(ComboBoxTableCell.forTableColumn(Package.padTypeValues()));
+        xposedCol.setOnEditCommit(
+            new EventHandler<CellEditEvent<PadDimMirror, String>>() {
+                @Override
+                public void handle(CellEditEvent<PadDimMirror, String> t) {
+                    PadDimMirror dim = ((PadDimMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    Package.PadType type = Package.padTypeFromString(t.getNewValue());
+                    dim.getDimension().padType = type;
+                    dim.setPadExposed(type);
+                    dimChecks();
+                    if(dim.getDimension(backupPkg) == null || dim.getDimension().padType != dim.getDimension(backupPkg).padType){
+                        change("pad shape type");
+                    }
+                }
             }
-        }));
+        );
+
+        Callback<TableColumn, TableCell> cellDelFactory = (TableColumn p) -> new DelButtonCell(padshapeTable);
+        TableColumn delCol = new TableColumn("");
+        delCol.setMinWidth(50);
+        delCol.setPrefWidth(50);
+        delCol.setMaxWidth(50);
+        delCol.setCellFactory(cellDelFactory);
+
+        Callback<TableColumn, TableCell> cellEditFactory = (TableColumn p) -> new EditButtonCell(padshapeTable);
+        TableColumn editCol = new TableColumn("Edit");
+        editCol.setMinWidth(45);
+        editCol.setPrefWidth(45);
+        editCol.setMaxWidth(45);
+        editCol.setCellValueFactory(new PropertyValueFactory<>("isPoly"));
+        editCol.setCellFactory(cellEditFactory);
 
         padshapeTable.setItems(pdDimensions);
-        padshapeTable.getColumns().addAll(nrCol, widCol, lenCol, holeCol, ognxCol, ognyCol, shapeCol, xposedCol);
+        padshapeTable.getColumns().addAll(nrCol, widCol, lenCol, holeCol, ognxCol, ognyCol, shapeCol, xposedCol, delCol, editCol);
 
         /* shapeAdditionBox contains controls for adding items the list, and therefore the padShape table */
-        HBox shapeAdditionBox = new HBox(3);
+        HBox shapeAdditionBox = new HBox(SPACING_HBOX);
         shapeAdditionBox.setAlignment(Pos.CENTER_LEFT);
 
         padIdInput = new TextField(Integer.toString(highestPadId() + 1));
@@ -1639,13 +2088,12 @@ public class App extends Application{
             }
         });
 
-        final ComboBox shapeBox = new ComboBox();
-        shapeBox.getItems().addAll(Package.padShapeValues());
+        final ComboBox shapeBox = new ComboBox(Package.padShapeValues());
         shapeBox.setTooltip(new Tooltip("Pad shape (mandatory)."));
 
-        final CheckBox exposedInput = new CheckBox("exposed center pad");
-        exposedInput.setPadding(new Insets(0, fieldSpacing, 0, fieldSpacing));
-        exposedInput.setTooltip(new Tooltip("Tick this field if the pad definition is for a thermal pad."));
+        final ComboBox padTypeInput = new ComboBox(Package.padTypeValues());
+        padTypeInput.setPadding(new Insets(0, fieldSpacing, 0, fieldSpacing));
+        padTypeInput.setValue(Package.padTypeAsString(Package.PadType.STANDARD));
 
         final Button addShapeButton = new Button("Add");
         addShapeButton.setOnAction((ActionEvent e) -> {
@@ -1655,9 +2103,10 @@ public class App extends Application{
                widthInput.getText().length() == 0 ||
                lengthInput.getText().length() == 0 ||
                shapeBox.getValue() == null || shapeBox.getValue().toString().length() == 0){
-                incompleteDataWarning.show(stage.stage);
+                incompleteDataWarning.show(stage);
             } else {
-                pdDimensions.add(new PadDimmirror( //args: int padId, double length, double width, Package.PadShape shape, double holeDiam, double originX, double originY, boolean padExposed
+                /* Add to mirror list */
+                PadDimMirror newDim = new PadDimMirror( //args: int padId, double length, double width, Package.PadShape shape, double holeDiam, double originX, double originY, PadType pt
                         Integer.parseInt(padIdInput.getText()),
                         Double.parseDouble(lengthInput.getText()),
                         Double.parseDouble(widthInput.getText()),
@@ -1665,8 +2114,15 @@ public class App extends Application{
                         (holeInput.getText().length() > 0) ? Double.parseDouble(holeInput.getText()) : 0,
                         (oriXinput.getText().length() > 0) ? Double.parseDouble(oriXinput.getText()) : 0,
                         (oriYinput.getText().length() > 0) ? Double.parseDouble(oriYinput.getText()) : 0,
-                        exposedInput.isSelected()
-                ));
+                        Package.padTypeFromString((String) padTypeInput.getValue()),
+                        null //this is where a Polygon would go... if I had one!
+                );
+                pdDimensions.add(newDim);
+                /* Add to real list */
+                crntPkg.footPrints.get(fpIndex).dimensions.add(crntPkg.footPrints.get(fpIndex).new PadDimension(newDim));
+                change("added padshape");
+
+                /* reset input fields */
                 padIdInput.setText(Integer.toString(highestPadId() + 1));
                 lengthInput.clear();
                 widthInput.clear();
@@ -1674,37 +2130,28 @@ public class App extends Application{
                 holeInput.clear();
                 oriXinput.clear();
                 oriYinput.clear();
-                exposedInput.setSelected(false);
+                padTypeInput.setValue(Package.padTypeAsString(Package.PadType.STANDARD));
                 padshapeTable.scrollTo(padshapeTable.getItems().size() - 1);
-                updateDimensions();
+                dimChecks();
             }
         });
-        shapeAdditionBox.getChildren().addAll(padIdInput, lengthInput, widthInput, holeInput,
-                                              oriXinput, oriYinput, shapeBox, exposedInput, addShapeButton);
 
-        /* shapeDeletionBox contains controls for removing items from the list */
-        HBox shapeDeletionBox = new HBox(3);
-        final Button shapeDeleteButton = new Button("Delete selected");
-        shapeDeleteButton.setOnAction(e -> {
-            PadDimmirror selectedItem = padshapeTable.getSelectionModel().getSelectedItem();
-            padshapeTable.getItems().remove(selectedItem);
-            updateDimensions();
-        });
-        shapeDeletionBox.getChildren().addAll(shapeDeleteButton);
+        shapeAdditionBox.getChildren().addAll(padIdInput, lengthInput, widthInput, holeInput, oriXinput, oriYinput,
+                                              shapeBox, padTypeInput, addShapeButton, createHSpacer()/*, polyInstruct, editPolyButton*/);
 
-        shaBranch.getChildren().addAll(padshapeTable, shapeAdditionBox ,shapeDeletionBox );
+        shaBranch.getChildren().addAll(padshapeTable, shapeAdditionBox);
         padshapeholder.setContent(shaBranch);
 
         return padshapeholder;
     }
 
-    private TitledPane initPadposholder(){
+    private TitledPane initPadposHolder(){
         TitledPane padposholder = new TitledPane();
         padposholder.setText("Pad positions");
         padposholder.setExpanded(false);
-        VBox posBranch = new VBox(5);//parameter is spacing
+        VBox posBranch = new VBox(SPACING_VBOX);//parameter is spacing
 
-        TableView<PadPosmirror> padposTable = new TableView<>();
+        TableView<PadPosMirror> padposTable = new TableView<>();
         padposTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         padposTable.setEditable(true);
         padposTable.getSelectionModel().setCellSelectionEnabled(true);
@@ -1718,13 +2165,16 @@ public class App extends Application{
         idCol.setCellValueFactory(new PropertyValueFactory<>("pinIdppt"));
         idCol.setCellFactory(cellFactory);
         idCol.setOnEditCommit(
-            new EventHandler<CellEditEvent<PadPosmirror, String>>() {
+            new EventHandler<CellEditEvent<PadPosMirror, String>>() {
                 @Override
-                public void handle(CellEditEvent<PadPosmirror, String> t) {
-                    ((PadPosmirror) t.getTableView().getItems().get(
-                            t.getTablePosition().getRow())
-                            ).setPinId(t.getNewValue());
-                    updatePositions();
+                public void handle(CellEditEvent<PadPosMirror, String> t) {
+                    PadPosMirror pos = ((PadPosMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    pos.getPosition().setPinId(t.getNewValue());
+                    pos.setPinId(t.getNewValue());
+                    posChecks();
+                    if(pos.getPosition(backupPkg) == null || !pos.getPosition().getPinId().equals(pos.getPosition(backupPkg).getPinId())){
+                        change("padpos pin-id");
+                    }
                 }
             }
         );
@@ -1734,13 +2184,16 @@ public class App extends Application{
         padidCol.setCellValueFactory(new PropertyValueFactory<>("padIdppt"));
         padidCol.setCellFactory(cellIntFactory);
         padidCol.setOnEditCommit(
-            new EventHandler<CellEditEvent<PadPosmirror, Integer>>() {
+            new EventHandler<CellEditEvent<PadPosMirror, Integer>>() {
                 @Override
-                public void handle(CellEditEvent<PadPosmirror, Integer> t) {
-                    ((PadPosmirror) t.getTableView().getItems().get(
-                            t.getTablePosition().getRow())
-                            ).setPadId(t.getNewValue());
-                    updatePositions();
+                public void handle(CellEditEvent<PadPosMirror, Integer> t) {
+                    PadPosMirror pos = ((PadPosMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    pos.getPosition().setPadId(t.getNewValue());
+                    pos.setPadId(t.getNewValue());
+                    posChecks();
+                    if(pos.getPosition(backupPkg) == null || pos.getPosition().getPadId() != pos.getPosition(backupPkg).getPadId()){
+                        change("padpos pad-id");
+                    }
                 }
             }
         );
@@ -1750,13 +2203,16 @@ public class App extends Application{
         xposCol.setCellValueFactory(new PropertyValueFactory<>("xPosppt"));
         xposCol.setCellFactory(cellDoubleFactory);
         xposCol.setOnEditCommit(
-            new EventHandler<CellEditEvent<PadPosmirror, Double>>() {
+            new EventHandler<CellEditEvent<PadPosMirror, Double>>() {
                 @Override
-                public void handle(CellEditEvent<PadPosmirror, Double> t) {
-                    ((PadPosmirror) t.getTableView().getItems().get(
-                            t.getTablePosition().getRow())
-                            ).setXPos(t.getNewValue());
-                    updatePositions();
+                public void handle(CellEditEvent<PadPosMirror, Double> t) {
+                    PadPosMirror pos = ((PadPosMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    pos.getPosition().setXPos(t.getNewValue());
+                    pos.setXPos(t.getNewValue());
+                    posChecks();
+                    if(pos.getPosition(backupPkg) == null || pos.getPosition().getXPos() != pos.getPosition(backupPkg).getXPos()){
+                        change("padpos x");
+                    }
                 }
             }
         );
@@ -1766,13 +2222,16 @@ public class App extends Application{
         yposCol.setCellValueFactory(new PropertyValueFactory<>("yPosppt"));
         yposCol.setCellFactory(cellDoubleFactory);
         yposCol.setOnEditCommit(
-            new EventHandler<CellEditEvent<PadPosmirror, Double>>() {
+            new EventHandler<CellEditEvent<PadPosMirror, Double>>() {
                 @Override
-                public void handle(CellEditEvent<PadPosmirror, Double> t) {
-                    ((PadPosmirror) t.getTableView().getItems().get(
-                            t.getTablePosition().getRow())
-                            ).setYPos(t.getNewValue());
-                    updatePositions();
+                public void handle(CellEditEvent<PadPosMirror, Double> t) {
+                    PadPosMirror pos = ((PadPosMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    pos.getPosition().setYPos(t.getNewValue());
+                    pos.setYPos(t.getNewValue());
+                    posChecks();
+                    if(pos.getPosition(backupPkg) == null || pos.getPosition().getYPos() != pos.getPosition(backupPkg).getYPos()){
+                        change("padpos y");
+                    }
                 }
             }
         );
@@ -1782,27 +2241,40 @@ public class App extends Application{
         rotCol.setCellValueFactory(new PropertyValueFactory<>("rotationppt"));
         rotCol.setCellFactory(ComboBoxTableCell.forTableColumn(Package.orientationValues()));
         rotCol.setOnEditCommit(
-            new EventHandler<CellEditEvent<PadPosmirror, String>>() {
+            new EventHandler<CellEditEvent<PadPosMirror, String>>() {
                 @Override
-                public void handle(CellEditEvent<PadPosmirror, String> t) {
-                    ((PadPosmirror) t.getTableView().getItems().get(t.getTablePosition().getRow())).setRotation(t.getNewValue());
-                    updatePositions();
+                public void handle(CellEditEvent<PadPosMirror, String> t) {
+                    PadPosMirror pos = ((PadPosMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    pos.getPosition().setRotation(Package.orientationFromString(t.getNewValue()));
+                    pos.setRotation(t.getNewValue());
+                    posChecks();
+                    if(pos.getPosition(backupPkg) == null || pos.getPosition().getRotation() != pos.getPosition(backupPkg).getRotation()){
+                        change("padpos rotation");
+                    }
                 }
             }
         );
 
-        padposTable.setItems(pdPositions);
-        padposTable.getColumns().addAll(idCol, padidCol, xposCol, yposCol, rotCol);
+        Callback<TableColumn, TableCell> cellDelFactory = (TableColumn p) -> new DelButtonCell(padposTable);
+        TableColumn delCol = new TableColumn("");
+        delCol.setMinWidth(50);
+        delCol.setPrefWidth(50);
+        delCol.setMaxWidth(50);
+        delCol.setCellFactory(cellDelFactory);
 
-        HBox positionAdditionBox = new HBox(3);
+        padposTable.setItems(pdPositions);
+        padposTable.getColumns().addAll(idCol, padidCol, xposCol, yposCol, rotCol, delCol);
+
+        HBox positionAdditionBox = new HBox(SPACING_HBOX);
 
         pinIdInput = new TextField(Integer.toString(highestPinId() + 1));
         pinIdInput.setMaxWidth(dimInputPrefWidth);
         pinIdInput.setPromptText("pin-id");
+        pinIdInput.setTooltip(new Tooltip("Pin number or pin name (may be a * for a mechanical pad)"));
         pinIdInput.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
             if (!newPropertyValue){
-                if(verifyInput(pinIdInput, false, false)){
-                    //TODO: maybe dissable 'add'button
+                if(verifyInput(pinIdInput, false, false, true, true)){
+                    //TODO: maybe disable 'add'button
                 }
             }
         });
@@ -1810,6 +2282,7 @@ public class App extends Application{
         pinPadIdInput = new TextField();
         pinPadIdInput.setMaxWidth(dimInputPrefWidth);
         pinPadIdInput.setPromptText("pad-id");
+        pinPadIdInput.setTooltip(new Tooltip("Pad number, as defined above"));
         pinPadIdInput.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
             if (!newPropertyValue){
                 if(verifyInput(pinPadIdInput, false, false)){
@@ -1821,6 +2294,7 @@ public class App extends Application{
         final TextField posXinput = new TextField();
         posXinput.setMaxWidth(dimInputPrefWidth);
         posXinput.setPromptText("X");
+        posXinput.setTooltip(new Tooltip("Pin X position"));
         posXinput.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
             if (!newPropertyValue){
                 if(verifyInput(posXinput)){
@@ -1832,6 +2306,7 @@ public class App extends Application{
         final TextField posYinput = new TextField();
         posYinput.setMaxWidth(dimInputPrefWidth);
         posYinput.setPromptText("Y");
+        posYinput.setTooltip(new Tooltip("Pin Y position"));
         posYinput.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
             if (!newPropertyValue){
                 if(verifyInput(posYinput)){
@@ -1845,14 +2320,20 @@ public class App extends Application{
 
         final Button addPosButton = new Button("Add");
         addPosButton.setOnAction((ActionEvent e) -> {
-            pdPositions.add(new PadPosmirror( //args: String pinId, double xPos, double yPos, int padId, Package.Orientation rotation
+            /* Add to mirror list */
+            PadPosMirror newPos = new PadPosMirror( //args: String pinId, double xPos, double yPos, int padId, Package.Orientation rotation
                     pinIdInput.getText(),
                     Double.parseDouble(posXinput.getText()),
                     Double.parseDouble(posYinput.getText()),
                     Integer.parseInt(pinPadIdInput.getText()),
                     Package.orientationFromInt(Integer.parseInt((String)rotationBox.getValue()))
-            ));
-            pinIdInput.setText(Integer.toString(highestPinId() + 1));
+            );
+            pdPositions.add(newPos);
+            /* Add to real list */
+            crntPkg.footPrints.get(fpIndex).padPositions.add(crntPkg.footPrints.get(fpIndex).new PadPosition(newPos));
+            change("Added pad position");
+            /* Reset input fields */
+            pinIdInput.setText(predictPinId());
             pinPadIdInput.setText(Integer.toString(mostRecentPadId()));
             double[] predict = {0.0, 0.0};
             if(predictPadPosition(predict)){
@@ -1864,27 +2345,18 @@ public class App extends Application{
             }
             rotationBox.valueProperty().set(Integer.toString(mostRecentPadRotation()));
             padposTable.scrollTo(padposTable.getItems().size() - 1);
-            updatePositions();
+            posChecks();
         });
         positionAdditionBox.getChildren().addAll(pinIdInput, pinPadIdInput, posXinput, posYinput, rotationBox, addPosButton);
 
-        HBox positionDeletionBox = new HBox(3);
-        final Button posDeleteButton = new Button("Delete selected");
-        positionDeletionBox.getChildren().addAll(posDeleteButton);
-        posDeleteButton.setOnAction(e -> {
-            PadPosmirror selectedItem = padposTable.getSelectionModel().getSelectedItem();
-            padposTable.getItems().remove(selectedItem);
-            updatePositions();
-        });
-
-        posBranch.getChildren().addAll(padposTable, positionAdditionBox ,positionDeletionBox );
+        posBranch.getChildren().addAll(padposTable, positionAdditionBox);
         padposholder.setContent(posBranch);
 
         return padposholder;
     }
     private int highestPadId(){
         int highest = 0;
-        for(PadDimmirror p: pdDimensions){
+        for(PadDimMirror p: pdDimensions){
             if(p.padId > highest){
                 highest = p.padId;
             }
@@ -1893,7 +2365,7 @@ public class App extends Application{
     }
     private int highestPinId(){
         int highest = 0;
-        for(PadPosmirror p: pdPositions){
+        for(PadPosMirror p: pdPositions){
             try{
                 if(Integer.parseInt(p.pinId) > highest){
                     highest = Integer.parseInt(p.pinId);
@@ -1904,6 +2376,27 @@ public class App extends Application{
             }
         }
         return highest;
+    }
+
+    private String predictPinId(){
+        int count = pdPositions.size();
+        if(count < 1){
+            return "";
+        }
+        String lastPin = pdPositions.get(count - 1).pinId;
+
+        /* check if this pin has the specification of a grid */
+        if(lastPin.length() > 0){
+            char c = lastPin.charAt(0);
+            if(Character.isAlphabetic(c)){
+                lastPin = lastPin.substring(1);
+                int nr = Integer.parseInt(lastPin);
+                return String.format("%c%d", Character.toUpperCase(c), nr + 1);
+            }
+        }
+
+        /* general case */
+        return Integer.toString(highestPinId() + 1);
     }
 
     private int mostRecentPadId(){
@@ -1948,79 +2441,194 @@ public class App extends Application{
         return false;
     }
 
+    private TitledPane initRefHolder(){
+        TitledPane refholder = new TitledPane();
+        refholder.setText("References");
+        refholder.setExpanded(false);
+        final VBox refBranch = new VBox(SPACING_VBOX);
+
+        final TableView<ReferenceMirror> refTable = new TableView<>();
+        refTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        refTable.setEditable(true);
+        refTable.getSelectionModel().setCellSelectionEnabled(true);
+
+        Callback<TableColumn, TableCell> cellFactory = (TableColumn p) -> new CustomCell();
+        Callback<TableColumn, TableCell> cellDelFactory = (TableColumn p) -> new DelButtonCell(refTable);
+
+        final TableColumn standardCol = new TableColumn("standard");
+        //standardCol.setMinWidth(100);
+        standardCol.setCellValueFactory(new PropertyValueFactory<>("standard"));
+        standardCol.setCellFactory(cellFactory);
+        standardCol.setOnEditCommit(
+            new EventHandler<CellEditEvent<ReferenceMirror, String>>() {
+                @Override
+                public void handle(CellEditEvent<ReferenceMirror, String> t) {
+                    ReferenceMirror ref = ((ReferenceMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    ref.getReference().standard = t.getNewValue();
+                    ref.standard.set(t.getNewValue());
+                    if(ref.getReference(backupPkg) == null || !ref.getReference().standard.equals(ref.getReference(backupPkg).standard)){
+                        change("reference standard");
+                    }
+                }
+            }
+        );
+
+        final TableColumn companyCol = new TableColumn("organization");
+        //companyCol.setMinWidth(100);
+        companyCol.setCellValueFactory(new PropertyValueFactory<>("company"));
+        companyCol.setCellFactory(cellFactory);
+        companyCol.setOnEditCommit(
+            new EventHandler<CellEditEvent<ReferenceMirror, String>>() {
+                @Override
+                public void handle(CellEditEvent<ReferenceMirror, String> t) {
+                    ReferenceMirror ref = ((ReferenceMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    ref.getReference().company = t.getNewValue();
+                    ref.company.set(t.getNewValue());
+                    if(ref.getReference(backupPkg) == null || !ref.getReference().company.equals(ref.getReference(backupPkg).company)){
+                        change("reference company");
+                    }
+                }
+            }
+        );
+
+        TableColumn delCol = new TableColumn("");
+        delCol.setMinWidth(50);
+        delCol.setPrefWidth(50);
+        delCol.setMaxWidth(50);
+        delCol.setCellFactory(cellDelFactory);
+
+        refTable.setItems(referenceList);
+        refTable.getColumns().addAll(standardCol, companyCol, delCol);
+
+        final HBox refAdditionBox = new HBox(SPACING_HBOX);
+        refAdditionBox.setAlignment(Pos.CENTER_LEFT);
+        final TextField standardInput = new TextField();
+        standardInput.setPromptText("standard");
+        final TextField companyInput = new TextField();
+        companyInput.setPromptText("organization");
+
+        final Button addButton = new Button("Add");
+        addButton.setOnAction((ActionEvent e) -> {
+            if(standardInput.getText().length() == 0){
+                incompleteDataWarning.show(stage);
+            } else{
+                /* Add to mirror list */
+                referenceList.add(new ReferenceMirror(
+                    standardInput.getText(),
+                    companyInput.getText()
+                ));
+                /* Add to real list */
+                crntPkg.references.add(crntPkg.new Reference(standardInput.getText(), companyInput.getText()));
+                change("Added reference");
+            }
+            standardInput.clear();
+            companyInput.clear();
+        });
+        refAdditionBox.getChildren().addAll(standardInput, companyInput, addButton);
+
+        refBranch.getChildren().addAll(refTable, refAdditionBox/* ,refDeletionBox */);
+        refholder.setContent(refBranch);
+        return refholder;
+    }
+
+    private TitledPane initRelPackHolder(){
+        TitledPane relpaholder = new TitledPane();
+        relpaholder.setText("Related Packages");
+        relpaholder.setExpanded(false);
+        final VBox relpaBranch = new VBox(SPACING_VBOX);
+
+        final TableView<RelatedPack> relpaTable = new TableView<>();
+        relpaTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        relpaTable.setEditable(false);
+
+        Callback<TableColumn, TableCell> cellDelFactory = (TableColumn p) -> new DelButtonCell(relpaTable);
+
+        relpaTable.setRowFactory(tv -> {
+            TableRow<RelatedPack> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2 && (! row.isEmpty()) ) {
+                    RelatedPack rel = row.getItem();
+                    int newIndex;
+
+                    if(viewingSelection){
+                        newIndex = rel.getIndex(viewedPackages);
+                        if(newIndex == -1){
+                            newIndex = rel.getIndex(allPackages);
+                            setPackageSelection(false, newIndex);
+                            selectionCanceledWarning.show(stage);
+                        }
+                        navigate(newIndex);
+                    } else{
+                        newIndex = rel.getIndex(allPackages);
+                        navigate(newIndex);
+                    }
+                }
+            });
+            return row;
+        });
+
+        final TableColumn nameCol = new TableColumn("name");
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+
+        final TableColumn descCol = new TableColumn("description");
+        descCol.setCellValueFactory(new PropertyValueFactory<>("description"));
+
+        TableColumn delCol = new TableColumn("");
+        delCol.setMinWidth(50);
+        delCol.setPrefWidth(50);
+        delCol.setMaxWidth(50);
+        delCol.setCellFactory(cellDelFactory);
+
+        relpaTable.setItems(relatedList);
+        relpaTable.getColumns().addAll(nameCol, descCol, delCol);
+
+        final HBox relpaAdditionBox = new HBox(SPACING_HBOX);
+        relpaAdditionBox.setAlignment(Pos.CENTER_LEFT);
+        final TextField nameInput = new TextField();
+        nameInput.setPromptText("name");
+
+        final Button addButton = new Button("Add");
+        addButton.setOnAction((ActionEvent e) -> {
+            if(nameInput.getText().length() == 0){
+                incompleteDataWarning.show(stage);
+            } else{
+                if(notDuplicate(nameInput.getText())){
+                    packageNotFound.show(stage);
+                } else{
+                    relatedList.add(new RelatedPack(nameInput.getText()));
+                    if(crntPkg.relatedPackNames == null) crntPkg.relatedPackNames = new ArrayList();
+                    crntPkg.relatedPackNames.add(nameInput.getText());
+                    change("Added related package");
+                }
+            }
+            nameInput.clear();
+        });
+        relpaAdditionBox.getChildren().addAll(nameInput, addButton, createHSpacer(), new Label("Double click a package to navigate to it"));
+
+        relpaBranch.getChildren().addAll(relpaTable, relpaAdditionBox /*,refDeletionBox */);
+        relpaholder.setContent(relpaBranch);
+        return relpaholder;
+    }
+
     private void initPopups(){
-        /* the style String will be used for all Popups. TODO: learn more about the formatting */
-        String style = "-fx-border-color:#a9a9a9; -fx-border-radius:4px; -fx-border-width:3px; -fx-background-color:#f0f0ea; -fx-padding:4px 8px 4px 8px;";
+        /* the style String will be used for all Popups. */
+        final String style = "-fx-border-color:#a9a9a9; -fx-border-radius:4px; -fx-border-width:3px; -fx-background-color:#f0f0ea; -fx-padding:4px 8px 4px 8px;";
 
         /* dupWarning is shown when attempting to add a name/alias/ipcname that already exists */
-        dupWarning = new DuplicateWarning();
-        final VBox dupWaBranch = new VBox(5);
-        dupWaBranch.setAlignment(Pos.CENTER);
-        dupWaBranch.setStyle(style);
-        final Label warn = new Label("The name already exists as a\npackage name, alias or variant.");
-        warn.setPadding(new Insets(0, 0, fieldSpacing, 0)); // add spacing below text (above buttons)
-
-        final HBox btnBox = new HBox(3);
-        final Button goLook = new Button("View");
-        goLook.setOnAction((ActionEvent arg0) -> {
-            navigate(dupWarning.index());
-            dupWarning.hide();
-        });
-        final Button okButt = new Button("Close");
-        okButt.setOnAction((ActionEvent arg0) -> {
-            dupWarning.hide();
-        });
-        btnBox.getChildren().addAll(goLook, okButt);
-        dupWaBranch.getChildren().addAll(warn, btnBox);
-        dupWarning.getContent().add(dupWaBranch);
+        dupWarning = initDupWarning(style);
+        dupSoftWarning = new BasicPopup(style, "Cannot enter duplicate name", "close");
 
         /* delWarning is shown when clicking the delete button. It's a confirmation window */
-        delWarning = new Popup();
-        final VBox delWaBranch = new VBox(5);
-        delWaBranch.setAlignment(Pos.CENTER);
-        delWaBranch.setStyle(style);
-        final Label notice = new Label("Delete package:\nthis operation cannot be undone.\n\nAre you sure?");
-
-        final HBox btnBox2 = new HBox(3);
-        final Button confirm = new Button(" Yes ");
-        confirm.setOnAction((ActionEvent arg0) -> {
-            if(viewedPackages.size() < 2){             //never delete final Package, just reset it //TODO: fix for final Package if viewing selection
-                crntPkg.reset();
-                navigate(crntIndex);
-                delWarning.hide();
-            } else if(crntIndex == (viewedPackages.size() - 1)){
-                viewedPackages.remove(crntPkg);
-                allPackages.remove(crntPkg);
-                if(!results.isEmpty()){
-                    rectifySearchResults(crntIndex);
-                }
-                navigate(crntIndex - 1);
-                delWarning.hide();
-            } else{
-                viewedPackages.remove(crntPkg);
-                allPackages.remove(crntPkg);
-                if(!results.isEmpty()){
-                    rectifySearchResults(crntIndex);
-                }
-                navigate(crntIndex);
-                delWarning.hide();
-            }
-
-        });
-        final Button cancel = new Button(" No ");
-        cancel.setOnAction((ActionEvent arg0) -> {
-            delWarning.hide();
-        });
-        btnBox2.getChildren().addAll(confirm, cancel);
-        delWaBranch.getChildren().addAll(notice, btnBox2);
-        delWarning.getContent().add(delWaBranch);
+        delWarning = initDelWarning(style);
+        fpDelWarning = initfpDelWarning(style);
 
         /* aboutPopup shows some typical 'about' info*/
         aboutPopup = new AboutPopup(style);
 
-        /* exportPopup provides info on how to export - though that feature has not yet been implemented*/
-        String exportText = "Make a selection through the search function in order to export packages.";
-        exportPopup = new BasicPopup(style, exportText, "Close");
+        /* importPopups let the user know the result of the attempted import and bring them to the import scene if neccesary */
+        impSuccess = initImpSucc(style);
+        impConflicted = new ImportConflictPopup(style);
+        impFailed = new BasicPopup(style, "Import failed.", "Close");
 
         /* warning popup that the selection has been canceled */
         String selectionCanceledText = "The package that you double-clicked on did not appear in the active selection.\n" +
@@ -2031,8 +2639,194 @@ public class App extends Application{
         String incompleteDataText = "The information could not be added, because one or more mandatory fields were left empty or undefined.\n" +
                                     "Please complete the data.";
         incompleteDataWarning = new BasicPopup(style, incompleteDataText, "Close");
+
+        /* Notice that the name of the related package was not found */
+        packageNotFound = new BasicPopup(style, "No package matched the entered name." , "Close");
+
+        polyBuilder = new PolygonBuilder(style);
+        vertexIdWarning = new BasicPopup(style, "Vertex ID must be unique", "Close");
+        //notPolyWarn = new BasicPopup(style, "Selected pad shape is not a polygon.", "Close");
+
+        previewPopup = new ImagePopup(style);
     }
 
+    private DuplicateWarning initDupWarning(String style){
+        DuplicateWarning dup = new DuplicateWarning();
+        final VBox dupWaBranch = new VBox(SPACING_VBOX);
+        dupWaBranch.setAlignment(Pos.CENTER);
+        dupWaBranch.setStyle(style);
+        final Label warn = new Label("The name already exists as a\npackage name, alias or variant.");
+        warn.setPadding(new Insets(0, 0, fieldSpacing, 0)); // add spacing below text (above buttons)
+
+        final HBox btnBox = new HBox(SPACING_HBOX);
+        final Button goLook = new Button("View");
+        goLook.setOnAction((ActionEvent arg0) -> {
+            navigate(dup.index());
+            dup.hide();
+        });
+        final Button okButt = new Button("Close");
+        okButt.setOnAction((ActionEvent arg0) -> {
+            dup.hide();
+        });
+        btnBox.getChildren().addAll(goLook, okButt);
+        dupWaBranch.getChildren().addAll(warn, btnBox);
+        dup.getContent().add(dupWaBranch);
+        return dup;
+    }
+
+    private Popup initDelWarning(String style){
+        Popup del = new Popup();
+        final VBox delWaBranch = new VBox(SPACING_VBOX);
+        delWaBranch.setAlignment(Pos.CENTER);
+        delWaBranch.setStyle(style);
+        final Label notice = new Label("Delete package:\nthis operation cannot be undone.\n\nAre you sure?");
+
+        final HBox btnBox = new HBox(SPACING_HBOX);
+        final Button confirm = new Button(" Yes ");
+        confirm.setOnAction((ActionEvent arg0) -> {
+            if(viewedPackages.size() == 1){             //never delete final Package, just reset it unless viewing selection
+                if(!viewingSelection){
+                    crntPkg.reset();
+                    navigate(crntIndex);
+                    del.hide();
+                } else if(viewingSelection && allPackages.size() > 1){
+                    viewedPackages.remove(crntPkg);
+                    allPackages.remove(crntPkg);
+                    setPackageSelection(false, 0);
+                    del.hide();
+                }
+            } else if(crntIndex == (viewedPackages.size() - 1)){    //if it's the last one than navigate one slot back
+                viewedPackages.remove(crntPkg);
+                allPackages.remove(crntPkg);
+                if(!results.isEmpty()){
+                    rectifySearchResults(crntIndex);
+                }
+                navigate(crntIndex - 1);
+                del.hide();
+            } else{
+                viewedPackages.remove(crntPkg);
+                allPackages.remove(crntPkg);
+                if(!results.isEmpty()){
+                    rectifySearchResults(crntIndex);
+                }
+                navigate(crntIndex);
+                del.hide();
+            }
+            change("deleted package");
+        });
+        final Button cancel = new Button(" No ");
+        cancel.setOnAction((ActionEvent arg0) -> {
+            del.hide();
+        });
+        btnBox.getChildren().addAll(confirm, cancel);
+        delWaBranch.getChildren().addAll(notice, btnBox);
+        del.getContent().add(delWaBranch);
+        return del;
+    }
+
+    private Popup initfpDelWarning(String style){
+        Popup del = new Popup();
+        final VBox delWaBranch = new VBox(SPACING_VBOX);
+        delWaBranch.setAlignment(Pos.CENTER);
+        delWaBranch.setStyle(style);
+        final Label notice = new Label("Delete footprint:\nthis operation cannot be undone.\n\nAre you sure?");
+
+        final HBox btnBox = new HBox(SPACING_HBOX);
+        final Button confirm = new Button(" Yes ");
+        confirm.setOnAction((ActionEvent arg0) -> {
+            if(crntPkg.footPrints.size() == 1){             //never delete final Footprint, just reset it
+                crntPkg.footPrints.get(fpIndex).reset();
+                loadFootPrintInclusive();
+                del.hide();
+            } else if(fpIndex == (crntPkg.footPrints.size() - 1)){
+                crntPkg.removeFootprint(crntPkg.footPrints.get(fpIndex));
+                fpIndex -= 1;
+                loadFootPrintInclusive();
+                del.hide();
+            } else{
+                crntPkg.removeFootprint(crntPkg.footPrints.get(fpIndex));
+                loadFootPrintInclusive();
+                del.hide();
+            }
+            change("deleted footprint");
+        });
+        final Button cancel = new Button(" No ");
+        cancel.setOnAction((ActionEvent arg0) -> {
+            del.hide();
+        });
+        btnBox.getChildren().addAll(confirm, cancel);
+        delWaBranch.getChildren().addAll(notice, btnBox);
+        del.getContent().add(delWaBranch);
+        return del;
+    }
+
+    private Popup initImpSucc(String style){
+        Popup suc = new Popup();
+        final VBox impSucBranch = new VBox(SPACING_VBOX);
+        impSucBranch.setAlignment(Pos.CENTER);
+        impSucBranch.setStyle(style);
+        final Label sucMsg = new Label("Packages imported. No conflicts found.");
+        final HBox btnBox = new HBox(SPACING_HBOX);
+        final Button inspect = new Button("Inspect");
+        inspect.setOnAction((ActionEvent arg0) -> {
+            changeScene(importScene);
+            suc.hide();
+        });
+        final Button addAll = new Button("Add all");
+        addAll.setOnAction((ActionEvent arg0) -> {
+            allPackages.addAll(loadedPackages);
+            selectedPackages.clear();
+            selectedPackages.addAll(loadedPackages);
+            setPackageSelection(true, 0);
+            suc.hide();
+        });
+        btnBox.getChildren().addAll(inspect, addAll);
+        impSucBranch.getChildren().addAll(sucMsg, btnBox);
+        suc.getContent().add(impSucBranch);
+        return suc;
+    }
+
+    private class ImportConflictPopup extends Popup{
+        Label confMsg;
+
+        ImportConflictPopup(String style){
+            super();
+            final VBox impConfBranch;
+            impConfBranch = new VBox(SPACING_VBOX);
+            impConfBranch.setAlignment(Pos.CENTER);
+            impConfBranch.setStyle(style);
+            confMsg = new Label("--");
+
+            final HBox btnBox = new HBox(SPACING_HBOX);
+            final Button resolve = new Button("Resolve");
+            resolve.setOnAction((ActionEvent arg0) -> {
+                changeScene(importScene);
+                this.hide();
+            });
+            final Button cancelImp = new Button("Cancel");
+            cancelImp.setOnAction((ActionEvent arg0) -> {
+                loadedPackages.clear();
+                this.hide();
+            });
+            btnBox.getChildren().addAll(resolve, cancelImp);
+            impConfBranch.getChildren().addAll(confMsg, btnBox);
+            this.getContent().add(impConfBranch);
+        }
+
+        void update(int conflict_count){
+            assert(conflict_count > 0);
+            String message;
+            if (conflict_count > 1)
+                message = String.format("%d packages conflict with packages\n" +
+                                        "that already exist in the file.",
+                                        conflict_count);
+            else
+                message = "1 package conflicts with a package\n" +
+                          "that already exists in the file.";
+            message += "\n\nHow would you like to proceed?";
+            confMsg.setText(message);
+        }
+    }
 
     /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! IO methods & main() !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2045,31 +2839,24 @@ public class App extends Application{
     public static void main(String[] args) {
         /* Start the actual program*/
         launch(args);
+
         //System.exit(0);       //for debugging
     }
 
     /* This is run whenever the program exits normally. */
     private void saveAndQuit(){
-        if(fileIsSet){
+        if(fileIsSet && changesWereMade){
             try{
-                if(save(loadedFile)){
-                    //System.out.println("file saved");
-                }
+                save(loadedFile);
             } catch (IOException ex) {
                 System.out.println(ex);
             }
         }
-
-        try {
-            /* get current size of the scene, and save this */
-            double sceneWidth = mainScene.getWidth();
-            double sceneHeight = mainScene.getHeight();
-            Config.setWindowSize((int)sceneWidth, (int)sceneHeight);
-            saveConfig(config);
-        } catch (IOException e){
-            /* ignore exception */
-        }
-
+        /* get current size of the stage, and save this */
+        double stageWidth = stage.getWidth();
+        double stageHeight = stage.getHeight();
+        Config.setWindowSize((int)stageWidth, (int)stageHeight);
+        saveConfig(config);
         System.exit(0);
     }
 
@@ -2130,24 +2917,22 @@ public class App extends Application{
 
         // true if the directory was created, false otherwise
         if (directory.mkdirs()) {
-
             /* create a config.json*/
-            try{
-                saveConfig(new Config(false, ""));
-            } catch(IOException e){}
+            saveConfig(new Config(false, ""));
         } else {
             //Do nothing.
         }
     }
-    private static boolean saveConfig(Config con) throws IOException{
+    private static boolean saveConfig(Config con){
         String configpath = usingWindows() ? windowsConfigPath() : linuxConfigPath();
         String json = Jsoner.serialize(con);
+        ioTryCounter = 0;
         try{
             if(write(json, configpath)){
                 return true;
             }
         } catch(IOException e){
-            System.out.println("failed to create config.json!");
+            System.out.println("Failed to create config.json!");
             return false;
         }
         return false;
@@ -2169,7 +2954,8 @@ public class App extends Application{
                 prevHeight = h;
             }
         } catch(Exception e){
-            System.out.println("failed to load config.json!");
+            e.printStackTrace();
+            System.out.println("Failed to load config.json!");
         }
         config = new Config(pathisset, tmpPath);
         Config.setWindowSize((int)prevWidth, (int)prevHeight);
@@ -2180,11 +2966,22 @@ public class App extends Application{
         if(file == null){//prevents errors when user hits cancel on 'save as' window
             return false;
         }
-        return save(file, allPackages);
+        return save(file, allPackages, false);
     }
-    private boolean save(File file, ArrayList<Package> list) throws IOException{
+    private boolean save(File file, ArrayList<Package> list, boolean exportFlag) throws IOException{
         if(file == null){//prevents errors when user hits cancel on 'save as' window
             return false;
+        }
+        /* Auto-update if neccesary */
+        if(!exportFlag && file.exists()){
+            //print("known modify: " + lastModified);
+            //print("file modify:  " + file.lastModified());
+            if(lastModified < file.lastModified()){
+                //auto-update
+                if(!update()){
+                    print("auto update failed");
+                }
+            }
         }
         /* check path */
         String path = file.getPath();
@@ -2196,34 +2993,138 @@ public class App extends Application{
         json = Jsoner.prettyPrint(json);
 
         /* JSON String to JSON file */
-        return write(json, path);
+        ioTryCounter = 0;
+        boolean success = write(json, path);
+        if(!success){
+            return false;
+        } else{
+            if(!exportFlag){
+                lastModified = file.lastModified();
+                changesWereMade = false;
+            }
+            return true;
+        }
     }
 
+    private boolean loadedFileChanged(){
+        return lastModified < loadedFile.lastModified();
+    }
 
     private static boolean write(String content, String path) throws IOException{
-        try {
-            FileWriter fileWriter = new FileWriter(path, StandardCharsets.UTF_8);
-            fileWriter.write(content);
-            fileWriter.close();
-        }
-        catch(IOException e){
+        try (RandomAccessFile writer = new RandomAccessFile(path, "rw")) {
+            byte[] bytes = content.getBytes("UTF-8");
+            FileLock lock = writer.getChannel().lock();
+            writer.write(bytes);
+            writer.setLength(bytes.length);
+            lock.release();
+        } catch(IOException e){
+            if(ioTryCounter <= IO_RETRIES){   //retry
+                ++ioTryCounter;
+                try {
+                    Thread.sleep(100 + ioRandomDelay.nextInt(100));
+                    return write(content, path);
+                } catch (InterruptedException ex) {
+                    return write(content, path);
+                }
+            }
             System.out.println("Failed to write file");
             return false;
         }
         return true;
     }
 
-    private boolean load(File file) throws IOException, JsonException {
+    /* Fill loadedPackages and replace allPackages with it */
+    private boolean loadMainList(File file){
+        ioTryCounter = 0;
+        if(loadPackages(file)){
+            allPackages.clear();
+            allPackages.addAll(loadedPackages);
+            setPackageSelection(false, 0);
+            changesWereMade = false;
+            return true;
+        } else{
+            return false;
+        }
+    }
+
+    /* Fill loadedPackages, and fill observablelists with ImportedPackages */
+    private int importPackages(File file){
+        ioTryCounter = 0;
+        if(loadPackages(file)){
+            cleanImportPacks.clear();
+            conflictedImportPacks.clear();
+            boolean conflictFlag = false;
+            for(Package p: loadedPackages){
+                ImportedPackage imp = new ImportedPackage(p);
+                if(imp.checkConflicted()){
+                    conflictFlag = true;
+                } else{
+                    imp.setSelected(true);
+                    cleanImportPacks.add(imp);
+                }
+            }
+            if(conflictFlag){
+                return 1;   //if Packages are loaded but there are duplicate conflicts
+            } else{
+                return 0;   //if all Packages are loaded without conflicts
+            }
+        } else{
+            return -1;      //if loading is not successful
+        }
+    }
+
+    /* Import new Packages and replace Packages that have newer versions */
+    private boolean update(){
+        if(loadPackages(loadedFile)){
+            for(Package p: loadedPackages){
+                Package localPack = retrieveByName(p.names);
+                if(localPack == null){  //if there is no local version of a Package in the file, just add it
+                    allPackages.add(p);
+                } else{
+                    //print("local timestamp: " + localPack.dateModified);
+                    //print("file timestamp : " + p.dateModified);
+                    if(localPack.dateModified < p.dateModified){
+                        allPackages.set(allPackages.indexOf(localPack), p);
+                        print(localPack.names[0] + " was replaced with a newer version.");
+                    }
+                }
+            }
+            loadAll();
+            return true;
+        } else{
+            return false;
+        }
+    }
+
+    /* Deserialize JSON to fill loadedPackages */
+    private boolean loadPackages(File file){
         if(file == null){          //prevents errors when user hits cancel on 'open file' window
             return false;
         }
-        String path = file.getPath();
-        try (FileReader fileReader = new FileReader(path, StandardCharsets.UTF_8)) {
+        try{
+            RandomAccessFile raFile = new RandomAccessFile(file, "r");
+            //lock
+            FileLock lock = raFile.getChannel().lock(0, Long.MAX_VALUE, true);
+            // read all bytes
+            int length = (int)raFile.length();
+            byte[] bytes = new byte[length];
+            raFile.read(bytes, 0, length);
 
-            JsonArray deserialize = (JsonArray) Jsoner.deserialize(fileReader);
+            //unlock & close
+            lock.release();
+            raFile.close();
+
+            // convert bytes to string
+            String content = new String(bytes, "UTF-8");
+
+            JsonArray deserialize = (JsonArray) Jsoner.deserialize(content);
             ArrayList<JsonObject> jsonList = new ArrayList<>();
-            ArrayList<Package> loadedPackages = new ArrayList<>();
+            loadedPackages.clear();
             deserialize.asCollection(jsonList);
+            if(jsonList.isEmpty()){
+                //System.out.println("json objects not loaded");
+                return false;
+            }
 
             for(JsonObject obj : jsonList){
                 Package newpac = new Package();
@@ -2295,80 +3196,81 @@ public class App extends Application{
                         );
                         loadedSpepas.add(spep);
                     }
-                    newpac.specPacks = new Package.SpecificPackage[loadedSpepas.size()];
+                    newpac.specPacks = new ArrayList<>();
                     for(SpepaMirror spep : loadedSpepas){
-                        newpac.specPacks[loadedSpepas.indexOf(spep)] = newpac.new SpecificPackage(
-                            spep.spepaName,
-                            spep.standard,
-                            spep.minHeight,
-                            spep.maxHeight,
-                            spep.padExposed,
-                            spep.spepaNotes
-                        );
+                        newpac.specPacks.add(newpac.new Variant(spep));
                     }
                 }
 
-                /* footprints[]        currently only 1 footprint supported */
+                /* footprints[] */
                 ArrayList<JsonObject> jsnFootprints = obj.getCollection(new SimpleKey("footprints"));
-                //ArrayList<FootprintMirror> loadedFootprints = new ArrayList<>();    //eventual support for multiple footprints
+                newpac.footPrints = new ArrayList<>();
                 for(JsonObject jsnFootprint : jsnFootprints){
-                    newpac.footPrints[firstid].ftprntType = Package.footprintTypefromString(jsnFootprint.getStringOrDefault(new StringKey("type")));
+                    int index = jsnFootprints.indexOf(jsnFootprint);
+
+                    newpac.footPrints.add(newpac.new Footprint());
+                    newpac.footPrints.get(index).ftprntType = Package.footprintTypefromString(jsnFootprint.getStringOrDefault(new StringKey("type")));
 
                     /* Span span */
                     JsonObject jsnspan = (JsonObject)jsnFootprint.getMapOrDefault(new SimpleKey("span"));
                     if(jsnspan != null){
-                        newpac.footPrints[firstid].span.x = jsnspan.getDoubleOrDefault(new DoubleKey("cx"));
-                        newpac.footPrints[firstid].span.y = jsnspan.getDoubleOrDefault(new DoubleKey("cy"));
+                        newpac.footPrints.get(index).span.x = jsnspan.getDoubleOrDefault(new DoubleKey("cx"));
+                        newpac.footPrints.get(index).span.y = jsnspan.getDoubleOrDefault(new DoubleKey("cy"));
                     }
 
                     /* Outline / contour */
                     JsonObject jsnotl = (JsonObject)jsnFootprint.getMapOrDefault(new SimpleKey("contour"));
                     if(jsnotl != null){
-                        newpac.footPrints[firstid].outline.length = jsnotl.getDoubleOrDefault(new DoubleKey("cx"));
-                        newpac.footPrints[firstid].outline.width = jsnotl.getDoubleOrDefault(new DoubleKey("cy"));
-                        newpac.footPrints[firstid].outline.orgX = jsnotl.getDoubleOrDefault(new DoubleKey("x"));
-                        newpac.footPrints[firstid].outline.orgY = jsnotl.getDoubleOrDefault(new DoubleKey("y"));
+                        newpac.footPrints.get(index).outline.length = jsnotl.getDoubleOrDefault(new DoubleKey("cx"));
+                        newpac.footPrints.get(index).outline.width = jsnotl.getDoubleOrDefault(new DoubleKey("cy"));
+                        newpac.footPrints.get(index).outline.orgX = jsnotl.getDoubleOrDefault(new DoubleKey("x"));
+                        newpac.footPrints.get(index).outline.orgY = jsnotl.getDoubleOrDefault(new DoubleKey("y"));
                     }
 
 
                     /* padDimensions[] */
                     ArrayList<JsonObject> jsnDimensions = jsnFootprint.getCollectionOrDefault(new SimpleKey("pad-shapes"));
-                    ArrayList<PadDimmirror> loadedDimensions = new ArrayList<>();
+                    ArrayList<PadDimMirror> loadedDimensions = new ArrayList<>();
                     if(jsnDimensions != null){
+                        Polygon tempPoly = null;
                         for(JsonObject jsnDim : jsnDimensions){
-                            PadDimmirror dim = new PadDimmirror(
+                            JsonObject jsnPoly = (JsonObject)jsnDim.getMapOrDefault(new SimpleKey("polygon"));
+                            if(jsnPoly != null){
+                                tempPoly = new Polygon();
+                                ArrayList<JsonObject> jsnVertices = jsnPoly.getCollectionOrDefault(new SimpleKey("vertices"));
+                                for(JsonObject jsnVertix : jsnVertices){
+                                    tempPoly.addVertex(
+                                            jsnVertix.getDoubleOrDefault(new DoubleKey("x")),
+                                            jsnVertix.getDoubleOrDefault(new DoubleKey("y")),
+                                            jsnVertix.getIntegerOrDefault(new IntegerKey("id"))
+                                    );
+                                }
+                            }
+                            PadDimMirror dim = new PadDimMirror(
                                 jsnDim.getIntegerOrDefault(new IntegerKey("pad-id")),
                                 jsnDim.getDoubleOrDefault(new DoubleKey("cx")),
                                 jsnDim.getDoubleOrDefault(new DoubleKey("cy")),
-                                Package.padShapefromString(jsnDim.getStringOrDefault(new DoubleKey("shape"))),
+                                Package.padShapefromString(jsnDim.getStringOrDefault(new StringKey("shape"))),
                                 jsnDim.getDoubleOrDefault(new DoubleKey("hole-diameter")),
                                 jsnDim.getDoubleOrDefault(new DoubleKey("x")),
                                 jsnDim.getDoubleOrDefault(new DoubleKey("y")),
-                                jsnDim.getBooleanOrDefault(new BooleanKey("exposed-pad"))
+                                Package.padTypeFromString(jsnDim.getStringOrDefault(new StringKey("pad-type"))),
+                                tempPoly
                             );
                             loadedDimensions.add(dim);
                         }
-                        newpac.footPrints[firstid].dimensions = new Package.Footprint.PadDimension[loadedDimensions.size()];
-                        for(PadDimmirror dim : loadedDimensions){
-                            newpac.footPrints[firstid].dimensions[loadedDimensions.indexOf(dim)] = newpac.footPrints[firstid].new PadDimension(
-                                dim.padId,
-                                dim.length,
-                                dim.width,
-                                dim.shape,
-                                dim.holeDiam,
-                                dim.originX,
-                                dim.originY,
-                                dim.padExposed
-                            );
+                        newpac.footPrints.get(index).dimensions = new ArrayList<>();
+                        for(PadDimMirror dim : loadedDimensions){
+                            newpac.footPrints.get(index).dimensions.add(newpac.footPrints.get(index).new PadDimension(dim));
                         }
                     }
 
                     /* padPositions[] */
                     ArrayList<JsonObject> jsnPositions = jsnFootprint.getCollectionOrDefault(new SimpleKey("pad-positions"));
-                    ArrayList<PadPosmirror> loadedPositions = new ArrayList<>();
+                    ArrayList<PadPosMirror> loadedPositions = new ArrayList<>();
                     if(jsnPositions != null){
                         for(JsonObject jsnDim : jsnPositions){
-                            PadPosmirror pos = new PadPosmirror(
+                            PadPosMirror pos = new PadPosMirror(
                                 jsnDim.getStringOrDefault(new StringKey("pin-id")),
                                 jsnDim.getDoubleOrDefault(new DoubleKey("x")),
                                 jsnDim.getDoubleOrDefault(new DoubleKey("y")),
@@ -2377,45 +3279,82 @@ public class App extends Application{
                             );
                             loadedPositions.add(pos);
                         }
-                        newpac.footPrints[firstid].padPositions = new Package.Footprint.PadPosition[loadedPositions.size()];
-                        for(PadPosmirror pos : loadedPositions){
-                            newpac.footPrints[firstid].padPositions[loadedPositions.indexOf(pos)] = newpac.footPrints[firstid].new PadPosition(
-                                pos.pinId,
-                                pos.xPos,
-                                pos.yPos,
-                                pos.padId,
-                                pos.rotation
-                            );
+                        newpac.footPrints.get(index).padPositions = new ArrayList<>();
+                        for(PadPosMirror pos : loadedPositions){
+                            newpac.footPrints.get(index).padPositions.add(newpac.footPrints.get(index).new PadPosition(pos));
                         }
                     }
                 }
+                /* references[] */
+                ArrayList<JsonObject> jsnReferences = obj.getCollection(new SimpleKey("references"));
+                if(jsnReferences != null){
+                    newpac.references = new ArrayList<>();
+                    for(JsonObject jsnReference : jsnReferences){
+                        newpac.references.add(newpac.new Reference(
+                                jsnReference.getStringOrDefault(new DoubleKey("standard")),
+                                jsnReference.getStringOrDefault(new DoubleKey("organization"))
+                        ));
+                    }
+                }
+                /* Related Package names */
+                ArrayList<String> jsnRelatedList = obj.getCollectionOrDefault(new SimpleKey("related packages"));
+                if(jsnRelatedList != null){
+                    newpac.relatedPackNames = new ArrayList(jsnRelatedList);
+                }
+
+                /* Date of last modification */
+                String datestr = obj.getStringOrDefault(new DateKey("date-modified"));
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+                sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+                try {
+                    Date datestamp = sdf.parse(datestr);
+                    newpac.dateModified = datestamp.getTime();
+                } catch (Exception e) {
+                    newpac.dateModified = 0;
+                }
+
+                /* After filling all the data fields in newPac, add it to list */
                 loadedPackages.add(newpac);
             }
             Collections.sort(loadedPackages, Package.FirstName);
-            allPackages = loadedPackages;
-            setPackageSelection(false, 0);
-        } catch(Exception e){
+        } catch(JsonException | IOException e){
+            if(ioTryCounter <= IO_RETRIES){   //retry
+                ++ioTryCounter;
+                try {
+                    Thread.sleep(100 + ioRandomDelay.nextInt(100));
+                    return loadPackages(file);
+                } catch (InterruptedException ex) {
+                    return loadPackages(file);
+                }
+            }
+            System.out.println("something went wrong reading json");
+            e.printStackTrace();
             return false;
         }
         return true;
     }
-
     /* 6 */
-    /* This method swaps crntPackage with another Package from viewdPackages*/
+    /* This method swaps crntPackage with another Package from viewedPackages*/
     private void navigate(int newIndex){
+        /* Auto-save if neccesary */
         if(fileIsSet){
-            try{
-                if(save(loadedFile)){
-                    //do nothing
-                } else{
-                    System.out.println("auto-save failed");
+            if(loadedFileChanged()){
+                update();
+            }
+            if(changesWereMade){
+                try{
+                    if(!save(loadedFile)){
+                        System.out.println("auto-save failed");
+                    }
+                } catch (IOException ex) {
+                    System.out.println(ex);
                 }
-            } catch (IOException ex) {
-                System.out.println(ex);
             }
         }
         crntPkg = viewedPackages.get(newIndex);
+        backupPkg.copy(crntPkg);
         crntIndex = newIndex;
+        fpIndex = 0; //just display the first footprint when loading a Package
         loadAll();
     }
 
@@ -2430,70 +3369,74 @@ public class App extends Application{
     }
 
     /* The load[something] methods fill the UI controls with data from crntPkg */
-
     private void loadImage(){
-        setScale();
-        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight()); //wipe canvas
-        gc.setGlobalAlpha(1.0);     //set brush opacity (back) to full
+        loadImage(mainCanvas, mainGc);
+    }
+    private void loadImage(Canvas canvas, GraphicsContext gc){
+        prepImage(canvas, gc); //clears, whitens, draws axes
 
-        /* make background white*/
-        gc.setFill(Color.WHITE);
-        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        double factor = setScale(canvas);
 
-        /* draw Y axis */
-        gc.setStroke(Color.BLACK);
-        gc.setLineWidth(0.2);
-        gc.strokeLine(imgXcenter(), 0, imgXcenter(), canvas.getHeight()); // startX, startY, endX, endY
-        /* draw X axis */
-        gc.strokeLine(0, imgYcenter(), canvas.getWidth(), imgYcenter());
         /* draw scale indicator */
-        gc.setLineWidth(1);
-        double indicWidth = scale(1);
-        double indicXstart = 8;
-        double indicXend = indicXstart + indicWidth;
-        double indicY = canvas.getHeight() - (canvas.getHeight()/40) - 2; //set at XX% of window height
-        gc.strokeLine(indicXstart, indicY, indicXend, indicY); //main line
-        gc.strokeLine(indicXstart, indicY - 4, indicXstart, indicY + 4); //start clarity line
-        gc.strokeLine(indicXend, indicY - 4, indicXend, indicY + 4); //end clarity line
-        gc.setFill(Color.BLACK);
-        gc.fillText("1mm", indicXend + 4.5, indicY + 3.5, 20); //draw "1mm" text
+        drawIndicator(canvas, gc, factor);
 
         /* draw body */
-        double scaledWidth = scale(crntPkg.body.bodyX);
-        double scaledHeight = scale(crntPkg.body.bodyY);
-        double drawOrgX = imgXcenter() + offset(scaledWidth) + scale(crntPkg.body.bodyOrgX);
-        double drawOrgY = imgYcenter() + offset(scaledHeight) - scale(crntPkg.body.bodyOrgY);
+        double scaledWidth = scale(crntPkg.body.bodyX, factor);
+        double scaledHeight = scale(crntPkg.body.bodyY, factor);
+        double drawOrgX = imgXcenter(canvas) + offset(scaledWidth) + scale(crntPkg.body.bodyOrgX, factor);
+        double drawOrgY = imgYcenter(canvas) + offset(scaledHeight) - scale(crntPkg.body.bodyOrgY, factor);
 
         gc.setStroke(Color.color(0, 0.2, 0.4));
         gc.setLineWidth(1.5);
-
         gc.strokeRect(drawOrgX, drawOrgY, scaledWidth, scaledHeight);  //X, Y, W, H
+
+        /* draw lead-to-lead */
+        if(crntPkg.lead2lead.x > crntPkg.body.bodyX + 0.1 || crntPkg.lead2lead.y > crntPkg.body.bodyY + 0.1){
+            scaledWidth = scale(crntPkg.lead2lead.x, factor);
+            scaledHeight = scale(crntPkg.lead2lead.y, factor);
+            drawOrgX = imgXcenter(canvas) + offset(scaledWidth) + scale(crntPkg.lead2lead.orgX, factor);
+            drawOrgY = imgYcenter(canvas) + offset(scaledHeight) - scale(crntPkg.lead2lead.orgY, factor);
+
+            gc.setGlobalAlpha(0.7);
+            gc.setStroke(Color.color(0, 0.2, 0.4));
+            gc.setLineWidth(0.75);
+            gc.setLineDashes(3);
+            gc.strokeRect(drawOrgX, drawOrgY, scaledWidth, scaledHeight);  //X, Y, W, H
+            gc.setLineDashes(null);
+        }
 
         /* draw pads */
         gc.setGlobalAlpha(0.7);
-        for(PadDimmirror dim : pdDimensions){
+        for(PadDimMirror dim : pdDimensions){
 
-            ArrayList<PadPosmirror> drawnPads = new ArrayList();    //fill a list with padpositions that match the pad id
-            for(PadPosmirror pad : pdPositions){
+            ArrayList<PadPosMirror> drawnPads = new ArrayList();    //fill a list with padpositions that match the pad id
+            for(PadPosMirror pad : pdPositions){
                 if(pad.padId == dim.padId){
                     drawnPads.add(pad);
                 }
             }
-            for(PadPosmirror pad : drawnPads){
-                gc.setGlobalAlpha(0.5);
-                if(dim.getPadExposed()){
-                    gc.setFill(Color.color(0.9, 0.4, 0.1));
-                } else{
-                    gc.setFill(Color.color(0.9, 0.1, 0.2));
+            for(PadPosMirror pad : drawnPads){
+                Color padcolor = Color.BLACK;   /* to avoid "might not have been initialized" warning */
+                switch(dim.padType){
+                    case STANDARD: padcolor = Color.color(1.0, 0.1, 0.2);   break;
+                    case EXPOSED: padcolor = Color.color(0.9, 0.3, 0.1);    break;
+                    case MECHANICAL: padcolor = Color.color(0.9, 0.4, 0.0); break;
                 }
+                gc.setGlobalAlpha(0.5);
+                gc.setFill(padcolor);
 
                 Polygon padPoly = Polygon.FromRect(dim.width, dim.length);
-                padPoly.Move(-dim.originX, -dim.originY);               /* apply origin of the pad shape */
-                padPoly.Rotate(Package.orientationAsInt(pad.rotation)); /* apply pad rotation */
-                padPoly.Move(pad.xPos, pad.yPos);                       /* add pad offset from the body */
-                padPoly.Scale(scaleFactor);                             /* scale pad dimensions & position for drawing */
+
+                if(dim.shape == Package.PadShape.POLYGON){
+                    Polygon tmpPol = dim.retrievePolyCopy();
+                    if(tmpPol != null) padPoly = tmpPol;
+                }
+                padPoly.move(-dim.originX, -dim.originY);               /* apply origin of the pad shape */
+                padPoly.rotate(Package.orientationAsInt(pad.rotation)); /* apply pad rotation */
+                padPoly.move(pad.xPos, pad.yPos);                       /* add pad offset from the body */
+                padPoly.Scale(factor);                                  /* scale pad dimensions & position for drawing */
                 padPoly.Flip(Polygon.FlipType.FLIP_Y);                  /* toggle Y-axis */
-                padPoly.Move(imgXcenter(), imgYcenter());               /* reposition relative to centre of drawing */
+                padPoly.move(imgXcenter(canvas), imgYcenter(canvas));               /* reposition relative to centre of drawing */
 
                 double scaledPadWidth = padPoly.Right() - padPoly.Left();
                 double scaledPadHeight = padPoly.Top() - padPoly.Bottom();
@@ -2507,36 +3450,67 @@ public class App extends Application{
                         gc.fillOval(padPoly.Left(), padPoly.Bottom(), scaledPadWidth, scaledPadHeight);
                         break;
                     case ROUNDEDRECT:
-                        arcWidth = scale(smallestDim(dim))*0.67;
-                        arcHeight = scale(smallestDim(dim))*0.67;
+                        arcWidth = scale(smallestDim(dim), factor)*0.67;
+                        arcHeight = scale(smallestDim(dim), factor)*0.67;
                         gc.fillRoundRect(padPoly.Left(), padPoly.Bottom(), scaledPadWidth, scaledPadHeight, arcWidth, arcHeight);
                         break;
                     case OBROUND:
-                        arcWidth = scale(smallestDim(dim));
-                        arcHeight = scale(smallestDim(dim));
+                        arcWidth = scale(smallestDim(dim), factor);
+                        arcHeight = scale(smallestDim(dim), factor);
                         gc.fillRoundRect(padPoly.Left(), padPoly.Bottom(), scaledPadWidth, scaledPadHeight, arcWidth, arcHeight);
+                        break;
+                    case POLYGON:
+                        Polygon.Drawable pd = padPoly.getDrawable();
+                        gc.fillPolygon(pd.xPoints, pd.yPoints, pd.nPoints);
                 }
                 /* Draw pad holes */
                 if(!roughCompare(dim.holeDiam, 0)){
-                    gc.setStroke(Color.color(0.9, 0.1, 0.2));
+                    gc.setStroke(padcolor);
                     gc.setFill(Color.WHITE);
                     gc.setGlobalAlpha(1.0);
-                    double holeX = imgXcenter() + offset(scale(dim.holeDiam)) + scale(pad.xPos);
-                    double holeY = imgYcenter() + offset(scale(dim.holeDiam)) - scale(pad.yPos);
-                    gc.fillOval(holeX, holeY, scale(dim.holeDiam), scale(dim.holeDiam));
-                    gc.strokeOval(holeX, holeY, scale(dim.holeDiam), scale(dim.holeDiam));
+                    double holeX = imgXcenter(canvas) + offset(scale(dim.holeDiam, factor)) + scale(pad.xPos, factor);
+                    double holeY = imgYcenter(canvas) + offset(scale(dim.holeDiam, factor)) - scale(pad.yPos, factor);
+                    gc.fillOval(holeX, holeY, scale(dim.holeDiam, factor), scale(dim.holeDiam, factor));
+                    gc.strokeOval(holeX, holeY, scale(dim.holeDiam, factor), scale(dim.holeDiam, factor));
                 }
             }
         }
     }
     /* image support methods */
-    private double imgXcenter(){
+    private void prepImage(Canvas canvas, GraphicsContext gc){
+        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight()); //wipe canvas
+        gc.setGlobalAlpha(1.0);     //set brush opacity (back) to full
+
+        /* make background white*/
+        gc.setFill(Color.WHITE);
+        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+
+        /* draw Y axis */
+        gc.setStroke(Color.BLACK);
+        gc.setLineWidth(0.2);
+        gc.strokeLine(imgXcenter(canvas), 0, imgXcenter(canvas), canvas.getHeight()); // startX, startY, endX, endY
+        /* draw X axis */
+        gc.strokeLine(0, imgYcenter(canvas), canvas.getWidth(), imgYcenter(canvas));
+    }
+    private void drawIndicator(Canvas canvas, GraphicsContext gc, double factor){
+        gc.setLineWidth(1);
+        double indicWidth = scale(1, factor);
+        double indicXstart = 8;
+        double indicXend = indicXstart + indicWidth;
+        double indicY = canvas.getHeight() - (canvas.getHeight()/40) - 2; //set at XX% of window height
+        gc.strokeLine(indicXstart, indicY, indicXend, indicY); //main line
+        gc.strokeLine(indicXstart, indicY - 4, indicXstart, indicY + 4); //start clarity line
+        gc.strokeLine(indicXend, indicY - 4, indicXend, indicY + 4); //end clarity line
+        gc.setFill(Color.BLACK);
+        gc.fillText("1mm", indicXend + 4.5, indicY + 3.5, 20); //draw "1mm" text
+    }
+    private double imgXcenter(Canvas canvas){
         return canvas.getWidth()/2;
     }
-    private double imgYcenter(){
+    private double imgYcenter(Canvas canvas){
         return canvas.getHeight()/2;
     }
-    private void setScale(){
+    private double setScale(Canvas canvas){
         /* calculate the courtyard, the bounding around body, lead-to-lead and
          * footprint (use the nominal sizes for body & lead-to-lead, so ignore
          * tolerances)
@@ -2550,11 +3524,25 @@ public class App extends Application{
                             crntPkg.lead2lead.y,
                             crntPkg.lead2lead.orgX,
                             crntPkg.lead2lead.orgY);
-        bbox.AddBoundingBox(crntPkg.footPrints[firstid].outline.length,
-                            crntPkg.footPrints[firstid].outline.width,
-                            crntPkg.footPrints[firstid].outline.orgX,
-                            crntPkg.footPrints[firstid].outline.orgY);
+        bbox.AddBoundingBox(crntPkg.footPrints.get(fpIndex).outline.length,
+                            crntPkg.footPrints.get(fpIndex).outline.width,
+                            crntPkg.footPrints.get(fpIndex).outline.orgX,
+                            crntPkg.footPrints.get(fpIndex).outline.orgY);
 
+        return setScale(canvas, bbox);
+    }
+    private double setScale(Canvas canvas, PadDimMirror dim){
+        Polygon source = dim.retrievePolyCopy();
+        Polygon toAppend = dim.retrievePolyCopy();
+        toAppend.move(-dim.originX, -dim.originY);
+        source.AppendPolygon(toAppend);
+        //generate courtyard
+        Courtyard bbox = new Courtyard(source);
+
+        return setScale(canvas, bbox);
+    }
+    private double setScale(Canvas canvas, Courtyard bbox){
+        //TODO: fix for polygons that have an origin offset in pad shape
         /* cx & cy are half of the required courtyard span, in mm */
         double cx = Math.max(-bbox.Left(), bbox.Right());
         double cy = Math.max(-bbox.Bottom(), bbox.Top());
@@ -2563,7 +3551,7 @@ public class App extends Application{
         final int margin = 8;   /* margin on all sides of the footprint */
         double scale_x = (canvas.getWidth() - 2 * margin) / (2 * cx);
         double scale_y = (canvas.getHeight() - 2 * margin) / (2 * cy);
-        scaleFactor = Math.min(scale_x, scale_y);
+        double scaleFactor = Math.min(scale_x, scale_y);
 
         /* tweak the scale factor: clamp it to a maximum, and make it smaller
          * in discrete steps (of roughly 33%), but give up when the scale factor
@@ -2584,16 +3572,18 @@ public class App extends Application{
         } else if(scaleFactor > 5){
             scaleFactor = 5;    /* factors in range 5..8 rounded down to 5 */
         }
+        return scaleFactor;
     }
-    private double smallestDim(PadDimmirror dim){
+    private double smallestDim(PadDimMirror dim){
         return dim.length <= dim.width ? dim.length : dim.width;
     }
-    private double scale(double input){ //TODO set variable scaling
+    private double scale(double input, double scaleFactor){ //TODO set variable scaling
         return input * scaleFactor;
     }
     private double offset(double widthOrHeight){
         return 0.0 - (widthOrHeight/2);
     }
+
 
 
     /* Other loading methods */
@@ -2605,7 +3595,7 @@ public class App extends Application{
         charatypeBox.setValue(Package.charTypeasString(crntPkg.type));
         terminationBox.setValue(Package.termTypeasString(crntPkg.termination));
         polarCheck.setSelected(crntPkg.polarized);
-        pinnumber.setText(Integer.toString(crntPkg.nrOfPins));
+        pinNumber.setText(Integer.toString(crntPkg.nrOfPins));
         pitchField.setText(Double.toString(crntPkg.pitch));
         tapeOrientation.setValue(Integer.toString(Package.orientationAsInt(crntPkg.tapeOrient)));
     }
@@ -2628,34 +3618,46 @@ public class App extends Application{
         ltolOrgY.setText(Double.toString(crntPkg.lead2lead.orgY));
     }
 
-    private void loadFootPrint(){
-        footprinttypeBox.setValue(Package.footprintTypeasString(crntPkg.getfpType(0)));
-        spanXField.setText(Double.toString(crntPkg.footPrints[firstid].span.x));
-        spanYField.setText(Double.toString(crntPkg.footPrints[firstid].span.y));
-        fpolLength.setText(Double.toString(crntPkg.footPrints[firstid].outline.length));
-        fpolWidth.setText(Double.toString(crntPkg.footPrints[firstid].outline.width));
-        fpolOrgX.setText(Double.toString(crntPkg.footPrints[firstid].outline.orgX));
-        fpolOrgY.setText(Double.toString(crntPkg.footPrints[firstid].outline.orgY));
-    }
-
     private void loadSpePacks(){
-        if(!spePacks.isEmpty()){        //if this list is not empty, empty it
-            spePacks.clear();
+        loadSpePacks(crntPkg, spePacks);
+    }
+    private void loadSpePacks(Package source, List<SpepaMirror> dest){
+        if(!dest.isEmpty()){        //if this list is not empty, empty it
+            dest.clear();
         }
-        if(crntPkg.specPacks != null){
-            for(Package.SpecificPackage spepa : crntPkg.specPacks){
-                spePacks.add(new SpepaMirror(spepa));
+        if(source.specPacks != null){
+            for(Package.Variant spepa : source.specPacks){
+                dest.add(new SpepaMirror(spepa));
             }
         }
+    }
+    private void loadImpVariants(Package source, ObservableList<ImportedVariant> dest){
+        dest.clear();
+        ArrayList<SpepaMirror> convert = new ArrayList();
+        loadSpePacks(source, convert);
+        for(SpepaMirror spep : convert){
+            dest.add(new ImportedVariant(spep));
+        }
+    }
+
+    private void loadFootPrint(){
+        fpIndexLabel.setText(Integer.toString(fpIndex + 1) + " of " + Integer.toString(crntPkg.footPrints.size()));
+        footprinttypeBox.setValue(Package.footprintTypeasString(crntPkg.footPrints.get(fpIndex).getType()));
+        spanXField.setText(Double.toString(crntPkg.footPrints.get(fpIndex).span.x));
+        spanYField.setText(Double.toString(crntPkg.footPrints.get(fpIndex).span.y));
+        fpolLength.setText(Double.toString(crntPkg.footPrints.get(fpIndex).outline.length));
+        fpolWidth.setText(Double.toString(crntPkg.footPrints.get(fpIndex).outline.width));
+        fpolOrgX.setText(Double.toString(crntPkg.footPrints.get(fpIndex).outline.orgX));
+        fpolOrgY.setText(Double.toString(crntPkg.footPrints.get(fpIndex).outline.orgY));
     }
 
     private void loadDimensions(){
         if(!pdDimensions.isEmpty()){
             pdDimensions.clear();
         }
-        if(crntPkg.footPrints[0].dimensions != null){
-            for(Package.Footprint.PadDimension dimension : crntPkg.footPrints[0].dimensions){ //only 1 footprint in current version
-                pdDimensions.add(new PadDimmirror(dimension));
+        if(crntPkg.footPrints.get(fpIndex).dimensions != null){
+            for(Package.Footprint.PadDimension dimension : crntPkg.footPrints.get(fpIndex).dimensions){
+                pdDimensions.add(new PadDimMirror(dimension));
             }
         }
         if(padIdInput != null){ //the first time this method is called the UI elements will not have been initialized
@@ -2667,9 +3669,9 @@ public class App extends Application{
         if(!pdPositions.isEmpty()){
             pdPositions.clear();
         }
-        if(crntPkg.footPrints[0].padPositions != null){
-            for(Package.Footprint.PadPosition position : crntPkg.footPrints[0].padPositions){ //only 1 footprint in current version
-                pdPositions.add(new PadPosmirror(position));
+        if(crntPkg.footPrints.get(fpIndex).padPositions != null){
+            for(Package.Footprint.PadPosition position : crntPkg.footPrints.get(fpIndex).padPositions){
+                pdPositions.add(new PadPosMirror(position));
             }
         }
         if(pinIdInput != null){ //the first time this method is called the UI elements will not have been initialized
@@ -2680,48 +3682,65 @@ public class App extends Application{
         }
     }
 
+    private void loadReferences(){
+        if(!referenceList.isEmpty()){
+            referenceList.clear();
+        }
+        if(crntPkg.references != null){
+            for(Package.Reference ref : crntPkg.references){
+                referenceList.add(new ReferenceMirror(ref));
+            }
+        }
+    }
+
+    private void loadRelatedPacks(){
+        if(!relatedList.isEmpty()){
+            relatedList.clear();
+        }
+        if(crntPkg.relatedPackNames != null){
+            for(String s : crntPkg.relatedPackNames){
+                relatedList.add(new RelatedPack(s));
+            }
+        }
+    }
+
+    private void loadFootPrintInclusive(){
+        loadFootPrint();
+        loadDimensions();
+        loadPositions();
+        loadImage();
+        checkSpan();
+    }
 
     private void loadAll(){
         updateIndex();
-        nameBox.load();
+        nameBox.load(crntPkg);
         loadDescription();
         loadCharacteristics();
         loadBodySize();
         loadLeadToLead();
-        loadFootPrint();
         loadSpePacks();
-        loadDimensions();
-        loadPositions();
-        loadImage();
+        loadFootPrintInclusive();
+        loadReferences();
+        loadRelatedPacks();
 
         /* check dimensions are loading everything */
         checkBodySize();
         checkLeadToLead();
-        checkSpan();
         checkContour();
     }
 
-    private void updateVariants(){
-        crntPkg.specPacks = new Package.SpecificPackage[spePacks.size()];
-        for(SpepaMirror spep: spePacks){
-            crntPkg.specPacks[spePacks.indexOf(spep)] = crntPkg.new SpecificPackage(spep.spepaName, spep.standard, spep.minHeight, spep.maxHeight, spep.padExposed, spep.spepaNotes);
+    private void updateVariants(List<SpepaMirror> source, Package dest){
+        dest.specPacks = new ArrayList();
+        for(SpepaMirror spep: source){
+            dest.specPacks.add(dest.new Variant(spep.spepaName, spep.standard, spep.minHeight, spep.maxHeight, spep.padExposed, spep.spepaNotes));
         }
     }
-    private void updateDimensions(){
-        crntPkg.footPrints[firstid].dimensions = new Package.Footprint.PadDimension[pdDimensions.size()];
-        for(PadDimmirror dim: pdDimensions){
-            crntPkg.footPrints[firstid].dimensions[pdDimensions.indexOf(dim)] = crntPkg.footPrints[firstid].new PadDimension(
-                    dim.padId, dim.length, dim.width, dim.shape, dim.holeDiam, dim.originX, dim.originY, dim.padExposed);
-        }
+    private void dimChecks(){
         loadImage();
         checkContour();
     }
-    private void updatePositions(){
-        crntPkg.footPrints[firstid].padPositions = new Package.Footprint.PadPosition[pdPositions.size()];
-        for(PadPosmirror pos: pdPositions){
-            crntPkg.footPrints[firstid].padPositions[pdPositions.indexOf(pos)] = crntPkg.footPrints[firstid].new PadPosition(
-                    pos.pinId, pos.xPos, pos.yPos, pos.padId, pos.rotation);
-        }
+    private void posChecks(){
         loadImage();
         checkSpan();
         checkContour();
@@ -2816,15 +3835,15 @@ public class App extends Application{
 
         int[] padflag = new int[pdPositions.size()];
         for(int idx1 = 0; idx1 < pdPositions.size(); idx1++){
-            PadPosmirror pin1 = pdPositions.get(idx1);
+            PadPosMirror pin1 = pdPositions.get(idx1);
             for(int idx2 = idx1 + 1; idx2 < pdPositions.size(); idx2++){
-                PadPosmirror pin2 = pdPositions.get(idx2);
+                PadPosMirror pin2 = pdPositions.get(idx2);
                 if(pin1.padId != pin2.padId)
                     continue;   /* only consider pads with the same pad-id */
                 if (roughCompare(pin1.yPos, pin2.yPos)){
                     /* pins are horizontally aligned, check span between them */
                     double span = Math.abs(pin1.xPos - pin2.xPos);
-                    if(roughCompare(span, crntPkg.footPrints[firstid].span.x)){
+                    if(roughCompare(span, crntPkg.footPrints.get(fpIndex).span.x)){
                         padflag[idx1] |= matchSpanX;
                         padflag[idx2] |= matchSpanX;
                     } else {
@@ -2839,7 +3858,7 @@ public class App extends Application{
                 if (roughCompare(pin1.xPos, pin2.xPos)){
                     /* pins are vertically aligned, check span between them */
                     double span = Math.abs(pin1.yPos - pin2.yPos);
-                    if(roughCompare(span, crntPkg.footPrints[firstid].span.y)){
+                    if(roughCompare(span, crntPkg.footPrints.get(fpIndex).span.y)){
                         padflag[idx1] |= matchSpanY;
                         padflag[idx2] |= matchSpanY;
                     } else {
@@ -2867,7 +3886,7 @@ public class App extends Application{
         /* TODO: SOT23 span cannot be detected with this algorithm */
 
         boolean warn_span_x = false;
-        if(!roughCompare(crntPkg.footPrints[firstid].span.x, 0)){
+        if(!roughCompare(crntPkg.footPrints.get(fpIndex).span.x, 0)){
             for(int idx = 0; idx < padflag.length; idx++){
                 if((padflag[idx] & mismatchSpanX) != 0){
                     warn_span_x = true;
@@ -2876,7 +3895,7 @@ public class App extends Application{
         }
 
         boolean warn_span_y = false;
-        if(!roughCompare(crntPkg.footPrints[firstid].span.y, 0)){
+        if(!roughCompare(crntPkg.footPrints.get(fpIndex).span.y, 0)){
             for(int idx = 0; idx < padflag.length; idx++){
                 if((padflag[idx] & mismatchSpanY) != 0){
                     warn_span_y = true;
@@ -2905,14 +3924,22 @@ public class App extends Application{
         double contourLeft = 0.0, contourRight = 0.0, contourTop = 0.0, contourBottom = 0.0;
 
         /* run over all pads */
-        for(PadPosmirror pin: pdPositions){
+        for(PadPosMirror pin: pdPositions){
             /* find pad definition (ignore any pin for which no pad definition cannot be found) */
-            for(PadDimmirror pad: pdDimensions){
+            for(PadDimMirror pad: pdDimensions){
                 if(pad.padId == pin.getPadIdppt()){
-                    Polygon padPoly = Polygon.FromRect(pad.width, pad.length);
-                    padPoly.Move(-pad.originX, -pad.originY);               /* apply origin */
-                    padPoly.Rotate(Package.orientationAsInt(pin.rotation)); /* apply pad rotation */
-                    padPoly.Move(pin.xPos, pin.yPos);                       /* add pin offset */
+                    Polygon padPoly;
+                    if(pad.shape == Package.PadShape.POLYGON && pad.verMirList != null){
+                        padPoly = new Polygon();
+                        pad.verMirList.forEach(vm -> {
+                            padPoly.addVertex(vm.x.get(), vm.y.get());
+                        });
+                    } else {
+                        padPoly = Polygon.FromRect(pad.width, pad.length);
+                    }
+                    padPoly.move(-pad.originX, -pad.originY);               /* apply origin */
+                    padPoly.rotate(Package.orientationAsInt(pin.rotation)); /* apply pad rotation */
+                    padPoly.move(pin.xPos, pin.yPos);                       /* add pin offset */
                     /* update calculated contour */
                     double padLeft = padPoly.Left();
                     double padRight = padPoly.Right();
@@ -2939,7 +3966,7 @@ public class App extends Application{
         assert contourBottom <= contourTop;
         double cy = contourTop - contourBottom;
 
-        warn = !roughCompare(crntPkg.footPrints[firstid].outline.length, cx);
+        warn = !roughCompare(crntPkg.footPrints.get(fpIndex).outline.length, cx);
         fpolLength.setStyle("-fx-control-inner-background:" + (warn ? "#fff0a0;" : "white;"));
         ttipText = "Horizontal dimension of the contour of the footprint.";
         if(warn){
@@ -2948,7 +3975,7 @@ public class App extends Application{
         final Tooltip fpolLengthTip = new Tooltip(ttipText);
         fpolLength.setTooltip(fpolLengthTip);
 
-        warn = !roughCompare(crntPkg.footPrints[firstid].outline.width, cy);
+        warn = !roughCompare(crntPkg.footPrints.get(fpIndex).outline.width, cy);
         fpolWidth.setStyle("-fx-control-inner-background:" + (warn ? "#fff0a0;" : "white;"));
         ttipText = "Vertical dimension of the contour of the footprint.";
         if(warn){
@@ -2960,7 +3987,7 @@ public class App extends Application{
         double ox = (contourLeft + contourRight) / 2;
         double oy = (contourBottom + contourTop) / 2;
 
-        warn = !roughCompare(crntPkg.footPrints[firstid].outline.orgX, ox);
+        warn = !roughCompare(crntPkg.footPrints.get(fpIndex).outline.orgX, ox);
         fpolOrgX.setStyle("-fx-control-inner-background:" + (warn ? "#fff0a0;" : "white;"));
         ttipText = "Horizontal offset of the origin from the geometric centre the footprint.";
         if(warn){
@@ -2969,7 +3996,7 @@ public class App extends Application{
         final Tooltip fpolOrgXTip = new Tooltip(ttipText);
         fpolOrgX.setTooltip(fpolOrgXTip);
 
-        warn = !roughCompare(crntPkg.footPrints[firstid].outline.orgY, oy);
+        warn = !roughCompare(crntPkg.footPrints.get(fpIndex).outline.orgY, oy);
         fpolOrgY.setStyle("-fx-control-inner-background:" + (warn ? "#fff0a0;" : "white;"));
         ttipText = "Vertical offset of the origin from the geometric centre the footprint.";
         if(warn){
@@ -2979,36 +4006,296 @@ public class App extends Application{
         fpolOrgY.setTooltip(fpolOrgYTip);
     }
 
+
+    /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Import functionality methods !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     */
+
+    private Scene initImportScene(){
+        final ScrollPane root = new ScrollPane();
+        root.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+
+        final ObservableList<ImportedVariant> importVariants = FXCollections.observableArrayList();
+
+        final VBox importBranch = new VBox(SPACING_VBOX);
+        importBranch.setPadding(new Insets(fieldSpacing, fieldSpacing, fieldSpacing, fieldSpacing));
+        importBranch.setFillWidth(true);
+        importBranch.prefWidthProperty().bind(root.widthProperty());
+        final HBox buttonBox = new HBox(SPACING_HBOX);
+        buttonBox.setPadding(new Insets(fieldSpacing, 0, 0, fieldSpacing));
+        final Button cancelBut = new Button("Cancel");
+        cancelBut.setOnAction((ActionEvent arg0) -> {
+            loadedPackages.clear();
+            importVariants.clear();
+            changeScene(mainScene);
+        });
+        buttonBox.getChildren().addAll(createHSpacer(), cancelBut);
+
+        final HBox tableBox = new HBox(SPACING_HBOX);
+
+        //tableview for clean (no conflict) ImportedPackages, with checkbox to mark whether to add to main list
+        final VBox cleanBox = new VBox(SPACING_VBOX);
+        final TableView<ImportedPackage> cleanImportsTable = new TableView<>();
+        cleanImportsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        cleanImportsTable.setMinWidth(150);
+        cleanImportsTable.setPrefHeight(prevHeight * 0.75);
+        cleanImportsTable.setEditable(true);
+
+        TableColumn nameCol = new TableColumn("Non-conflicting\nor Resolved");
+        nameCol.setEditable(false);
+        nameCol.setMinWidth(100);
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("firstName"));
+
+        TableColumn selectCol = new TableColumn();
+        selectCol.setMinWidth(25);
+        selectCol.setEditable(true);
+        selectCol.setCellValueFactory(new PropertyValueFactory<>("selected"));
+        selectCol.setCellFactory(new Callback<TableColumn<ImportedPackage,Boolean>,TableCell<ImportedPackage,Boolean>>(){
+            @Override public TableCell<ImportedPackage,Boolean> call( TableColumn<ImportedPackage,Boolean> p ){
+                CheckBoxTableCell<ImportedPackage, Boolean> cbt = new CheckBoxTableCell<>();
+                cbt.setSelectedStateCallback(new Callback<Integer, ObservableValue<Boolean>>() {
+                    @Override
+                    public ObservableValue<Boolean> call(Integer index) {
+                        return cleanImportsTable.getItems().get(index).selectedProperty();
+                    }
+                });
+                return cbt;
+            }
+        });
+        CheckBox selectAll = new CheckBox("all");
+        selectCol.setGraphic(selectAll);
+        selectAll.setOnAction(e -> {
+            for (ImportedPackage imp : cleanImportPacks) {
+                imp.setSelected(((CheckBox) e.getSource()).isSelected());
+            }
+        });
+
+        cleanImportsTable.setItems(cleanImportPacks);
+        cleanImportsTable.getColumns().addAll(nameCol, selectCol);
+        final Button confirmButton = new Button("Confirm imports");
+        confirmButton.setOnAction((ActionEvent arg0) -> {
+            selectedPackages.clear();
+            for(ImportedPackage p : cleanImportPacks){
+                if(p.selectedProperty().get()){
+                    allPackages.add(p.pack);
+                    selectedPackages.add(p.pack);
+                }
+            }
+            if(!selectedPackages.isEmpty()){
+                setPackageSelection(true, 0);
+            }
+            changeScene(mainScene);
+            loadedPackages.clear();
+            importVariants.clear();
+        });
+        cleanBox.getChildren().addAll(cleanImportsTable, confirmButton);
+
+        /* tableview for conflicted ImportedPackages */
+        final VBox conflictedBox = new VBox(SPACING_VBOX);
+        final TableView<ImportedPackage> conflictedImportsTable = new TableView<>();
+        conflictedImportsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        conflictedImportsTable.setMinWidth(150);
+        conflictedImportsTable.setMaxWidth(250);
+        conflictedImportsTable.setPrefHeight(prevHeight * 0.75);
+        conflictedImportsTable.setEditable(false);
+
+        TableColumn confNameCol = new TableColumn("Conflicting\n");
+        confNameCol.setEditable(false);
+        confNameCol.setMinWidth(150);
+        confNameCol.setCellValueFactory(new PropertyValueFactory<>("firstName"));
+        conflictedImportsTable.setItems(conflictedImportPacks);
+        conflictedImportsTable.getColumns().addAll(confNameCol);
+        final Label inspectLabel = new Label("Select a Package\nto inspect it");
+        conflictedBox.getChildren().addAll(conflictedImportsTable, inspectLabel);
+
+        final VBox inspectionBox = new VBox(SPACING_VBOX);
+        final dtfManagerImports inspectionManager = new dtfManagerImports(4);   //not as much space for it so 4 fields per row
+
+        conflictedImportsTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                inspectedImport = conflictedImportsTable.getSelectionModel().getSelectedItem();
+                inspectionManager.load(inspectedImport);
+                inspectedPackage = inspectedImport.pack;
+                loadImpVariants(inspectedPackage, importVariants);
+            }
+        });
+
+        /* tableview for selected Package variants */
+        TableView<ImportedVariant> spepaTable = new TableView<>();
+        spepaTable.setMinWidth(360);
+        spepaTable.setPrefHeight(prevHeight * 0.75 - 30);
+        spepaTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        spepaTable.setEditable(true);
+        spepaTable.getSelectionModel().setCellSelectionEnabled(true);
+
+        Callback<TableColumn, TableCell> cellFactory = (TableColumn p) -> new CustomCell();
+        Callback<TableColumn, TableCell> cellDoubleFactory = (TableColumn p) -> new EditingDoubleCell();
+
+        final int IMP_THIN_COLUMN = 50;
+
+        TableColumn ipcNameCol = new TableColumn("name");
+        ipcNameCol.setMinWidth(IMP_THIN_COLUMN);
+        ipcNameCol.setCellValueFactory(new PropertyValueFactory<>("spepaNameppt"));
+        ipcNameCol.setCellFactory(cellFactory);
+        ipcNameCol.setOnEditCommit(
+            new EventHandler<CellEditEvent<ImportedVariant, String>>() {
+                @Override
+                public void handle(CellEditEvent<ImportedVariant, String> t) {
+                    ImportedVariant imp = (t.getTableView().getItems().get(t.getTablePosition().getRow()));
+                    imp.spep.getVariant(inspectedPackage).variantName = t.getNewValue();
+                    imp.setIpcName(t.getNewValue());
+                    imp.checkConflict();
+                    boolean nameConflict = inspectedImport.checkConflicted();
+                    if(!nameConflict && noConflicts(importVariants)){
+                        importVariants.clear();
+                        /* remove selected item from the "conflicting" table */
+                        inspectedImport = conflictedImportsTable.getSelectionModel().getSelectedItem();
+                        conflictedImportPacks.remove(inspectedImport);
+                        /* add it to the "resolved" table */
+                        inspectedImport.setSelected(true);
+                        cleanImportPacks.add(inspectedImport);
+                    }
+                }
+            }
+        );
+
+        TableColumn minHeightCol = new TableColumn("min\nheight");
+        minHeightCol.setEditable(false);
+        minHeightCol.setMinWidth(IMP_THIN_COLUMN);
+        minHeightCol.setMaxWidth(IMP_THIN_COLUMN);
+        minHeightCol.setCellValueFactory(new PropertyValueFactory<>("minHeightppt"));
+        minHeightCol.setCellFactory(cellDoubleFactory);
+
+        TableColumn maxHeightCol = new TableColumn("max\nheight");
+        maxHeightCol.setEditable(false);
+        maxHeightCol.setMinWidth(IMP_THIN_COLUMN);
+        maxHeightCol.setMaxWidth(IMP_THIN_COLUMN);
+        maxHeightCol.setCellValueFactory(new PropertyValueFactory<>("maxHeightppt"));
+        maxHeightCol.setCellFactory(cellDoubleFactory);
+
+        TableColumn standardCol = new TableColumn("std");
+        standardCol.setEditable(false);
+        standardCol.setMinWidth(IMP_THIN_COLUMN);
+        standardCol.setCellValueFactory(new PropertyValueFactory<>("standardppt"));
+
+        TableColumn xposedCol = new TableColumn("exp.\npad");
+        xposedCol.setEditable(false);
+        xposedCol.setMinWidth(IMP_THIN_COLUMN);
+        xposedCol.setMaxWidth(IMP_THIN_COLUMN);
+        xposedCol.setCellValueFactory(new PropertyValueFactory<>("padExposedppt"));
+        xposedCol.setCellFactory(CheckBoxTableCell.forTableColumn(xposedCol));
+
+        TableColumn notesCol = new TableColumn("notes");
+        notesCol.setEditable(false);
+        notesCol.setMinWidth(IMP_THIN_COLUMN);
+        notesCol.setCellValueFactory(new PropertyValueFactory<>("spepaNotesppt"));
+
+        TableColumn confCol = new TableColumn("conflict");
+        confCol.setEditable(false);
+        confCol.setMinWidth(IMP_THIN_COLUMN);
+        confCol.setMaxWidth(IMP_THIN_COLUMN);
+        confCol.setCellValueFactory(new PropertyValueFactory<>("conflicted"));
+        confCol.setCellFactory(CheckBoxTableCell.forTableColumn(confCol));
+
+        TableColumn selectVarCol = new TableColumn();
+        selectVarCol.setMinWidth(IMP_THIN_COLUMN/2);
+        selectVarCol.setMaxWidth(IMP_THIN_COLUMN/2);
+        selectVarCol.setEditable(true);
+        selectVarCol.setCellValueFactory(new PropertyValueFactory<>("selected"));
+        selectVarCol.setCellFactory(new Callback<TableColumn<ImportedVariant,Boolean>,TableCell<ImportedVariant,Boolean>>(){
+            @Override public TableCell<ImportedVariant,Boolean> call( TableColumn<ImportedVariant,Boolean> p ){
+                CheckBoxTableCell<ImportedVariant, Boolean> cbt = new CheckBoxTableCell<>();
+                cbt.setSelectedStateCallback(new Callback<Integer, ObservableValue<Boolean>>() {
+                    @Override
+                    public ObservableValue<Boolean> call(Integer index) {
+                        return spepaTable.getItems().get(index).selectedProperty();
+                    }
+                });
+                return cbt;
+            }
+        });
+        CheckBox selectAllVars = new CheckBox();
+        selectVarCol.setGraphic(selectAllVars);
+        selectAllVars.setOnAction(e -> {
+            for (ImportedVariant imp : importVariants) {
+                imp.setSelected(((CheckBox) e.getSource()).isSelected());
+            }
+        });
+
+        spepaTable.setItems(importVariants);
+        spepaTable.getColumns().addAll(ipcNameCol, minHeightCol, maxHeightCol, standardCol, xposedCol, notesCol, confCol, selectVarCol);
+
+        final HBox inspectionBtnBox = new HBox(SPACING_HBOX);   //TODO:reposition button... well... redo entire layout of this scene
+        inspectionBtnBox.setAlignment(Pos.CENTER_RIGHT);
+        final Button mergeVariants = new Button("Merge selected variants");
+        mergeVariants.setTooltip(new Tooltip("Copy the non-conflicting variants to the existing package"));
+        mergeVariants.setOnAction((ActionEvent arg0) -> {
+            /* Add selected variants to a list */
+            ArrayList<ImportedVariant> impSelection = new ArrayList();
+            for(ImportedVariant imp : importVariants){
+                if(imp.selected.get()){
+                    impSelection.add(imp);
+                }
+            }
+            /* Retrieve destination Package */
+            Package dest = retrieveByName(inspectedPackage.names);
+            ArrayList<SpepaMirror> merge = new ArrayList();
+            loadSpePacks(dest, merge);  /* Get its current variants */
+            for(ImportedVariant imp : impSelection){
+                merge.add(imp.spep);    /* Merge lists */
+            }
+            updateVariants(merge, dest);    /* Update Package */
+            for(ImportedVariant imp : impSelection){
+                imp.checkConflict();    /* Update conflicted status of imported variants */
+            }
+            selectAllVars.setSelected(false);
+        });
+        inspectionBtnBox.getChildren().add(mergeVariants);
+
+        inspectionBox.getChildren().addAll(inspectionManager, spepaTable, inspectionBtnBox);
+        tableBox.getChildren().addAll(cleanBox, conflictedBox, inspectionBox);
+        importBranch.getChildren().addAll(buttonBox, tableBox);
+        root.setContent(importBranch);
+        Scene scene = new Scene(root);
+        scene.setUserData(new String("import"));
+        return scene;
+    }
+
+    public boolean noConflicts(List<ImportedVariant> list){
+        for(ImportedVariant imp : list){
+            if(imp.conflicted.get()){
+                return false;
+            }
+        }
+        return true;
+    }
+
     /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Help functionality methods !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      */
-    private Scene initHelpScene(Stage primaryStage) {
-        final FlowPane root = new FlowPane();
-        final VBox helpBranch = new VBox(5);
-        helpBranch.setFillWidth(true);
-        helpBranch.prefWidthProperty().bind(root.widthProperty());
+    private Scene initHelpScene(){
+        final HBox buttonBox = new HBox();
+        buttonBox.setPadding(new Insets(5));
 
         /* go back to main Scene */
         final Button backButton = new Button("back");
         backButton.setCancelButton(true);
         backButton.setOnAction((ActionEvent arg0) -> {
-            prevWidth = stage.stage.getWidth();
-            prevHeight = stage.stage.getHeight();
-            primaryStage.setScene(mainScene);
-            stage.stage.setHeight(prevHeight);
-            stage.stage.setWidth(prevWidth);
+            assert(previousScene != null);
+            changeScene(previousScene);
         });
+        buttonBox.getChildren().addAll(createHSpacer(), backButton);
 
         String url = getResourcePath();
-        url = "file://" + url + "/help.html";
+        url = "file://" + url + "/help-index.html";
 
-        WebView webView = new WebView();
+        webView = new WebView();
         webView.setContextMenuEnabled(false);
         webView.getEngine().load(url);
-        
-        //the css says to disable the horizontal scrollbar. It doesn't work for some reason. The weird part is that if you go to the css file and swap 'x' for 'y' then disabling the vertical scrollbar works just fine.
-        String wvStylePath = getResourcePath() + "/webviewstyle.css";   
+
+        String wvStylePath = getResourcePath() + "/webviewstyle.css";   //stylesheet currently only disables horizontal scrollbar
         File file = new File(wvStylePath);
         if(!file.exists()){
             System.out.println("Can't find webview stylesheet");
@@ -3016,13 +4303,22 @@ public class App extends Application{
             webView.getEngine().setUserStyleSheetLocation("file://" + wvStylePath);
         }
 
-        helpBranch.setPadding(new Insets(fieldSpacing, fieldSpacing, 0, fieldSpacing));
-        helpBranch.getChildren().addAll(backButton, webView);
-        root.getChildren().add(helpBranch);
-        Scene scene = new Scene(root, STARTING_WINDOW_WIDTH, STARTING_WINDOW_HEIGHT); //node, width, minHeight
+        BorderPane root = new BorderPane(webView);
+        root.setTop(buttonBox);
+        Scene scene = new Scene(root);
+        scene.setUserData(new String("help"));
         return scene;
     }
-    private String getResourcePath(){
+    private void updateHelpTopic(){
+        String baseName = "index";
+        if (currentSceneName != null && currentSceneName.length() > 0)
+            baseName = currentSceneName;
+
+        String url = getResourcePath();
+        url = "file://" + url + "/help-" + baseName + ".html";
+        webView.getEngine().load(url);
+    }
+    static String getResourcePath(){
         String url;
         String path = App.class.getProtectionDomain().getCodeSource().getLocation().getPath();
         try {
@@ -3065,14 +4361,17 @@ public class App extends Application{
     /* Initializes GUI for search functions*/
     private Scene initSearchScene(){
         final ScrollPane root = new ScrollPane();
-        final VBox searchBranch = new VBox(5);
+        root.setFitToWidth(true);
+        final VBox searchBranch = new VBox(SPACING_VBOX);
         searchBranch.setFillWidth(true);
         searchBranch.prefWidthProperty().bind(root.widthProperty());
-        final HBox topBox = new HBox(3);
-        final HBox midBox = new HBox(3);
+        final HBox topBox = new HBox(SPACING_HBOX);
+        topBox.setPadding(new Insets(0, 0, 0, fieldSpacing));
+        final HBox midBox = new HBox(SPACING_HBOX);
         midBox.setPadding(new Insets(fieldSpacing, fieldSpacing, 0, fieldSpacing));
         final GridPane searchGrid = new GridPane(); //is in midbox
-        final HBox botBox = new HBox(3);
+        //searchGrid.setStyle("-fx-grid-lines-visible: true");  // to help visualize the layout when debugging
+        final HBox botBox = new HBox(SPACING_HBOX);
 
         final SearchConstraint sc = new SearchConstraint();
 
@@ -3080,11 +4379,7 @@ public class App extends Application{
         final Button backButton = new Button("back");
         backButton.setCancelButton(true);
         backButton.setOnAction((ActionEvent arg0) -> {
-            prevWidth = stage.stage.getWidth();
-            prevHeight = stage.stage.getHeight();
-            stage.stage.setScene(mainScene);
-            stage.stage.setHeight(prevHeight);
-            stage.stage.setWidth(prevWidth);
+            changeScene(mainScene);
         });
 
         /* input for searching */
@@ -3093,9 +4388,10 @@ public class App extends Application{
          * control that is declared below
          */
 
-        topBox.getChildren().addAll(backButton, searchField);
+        topBox.getChildren().addAll(searchField, new Label("press ENTER to search"), createHSpacer(), backButton);
 
 
+        final VBox searchBox = new VBox(SPACING_VBOX);
         /* TableView with SearchResults */
         final TableView<SearchResult> searchTable = new TableView<>();
         searchTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -3119,17 +4415,13 @@ public class App extends Application{
                         }
                         if(selectionIndex < 0){
                             setPackageSelection(false, newIndex);
-                            selectionCanceledWarning.show(stage.stage);
+                            selectionCanceledWarning.show(stage);
                         } else {
                             newIndex = selectionIndex;
                         }
                     }
                     navigate(newIndex);
-                    prevWidth = stage.stage.getWidth();
-                    prevHeight = stage.stage.getHeight();
-                    stage.stage.setScene(mainScene);
-                    stage.stage.setHeight(prevHeight);
-                    stage.stage.setWidth(prevWidth);
+                    changeScene(mainScene);
                 }
             });
             return row ;
@@ -3139,6 +4431,11 @@ public class App extends Application{
         matchCol.setEditable(false);
         matchCol.setMinWidth(200);
         matchCol.setCellValueFactory(new PropertyValueFactory<>("match"));
+
+        TableColumn nameCol = new TableColumn("Package name");
+        nameCol.setEditable(false);
+        nameCol.setMinWidth(100);
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
 
         TableColumn selectCol = new TableColumn();
         selectCol.setMinWidth(25);
@@ -3165,7 +4462,7 @@ public class App extends Application{
         });
 
         searchTable.setItems(results);
-        searchTable.getColumns().addAll(matchCol, selectCol);
+        searchTable.getColumns().addAll(matchCol, nameCol, selectCol);
 
         searchField.setOnKeyPressed( event -> {
             if( event.getCode() == KeyCode.ENTER ) {
@@ -3174,6 +4471,8 @@ public class App extends Application{
             }
         });
 
+        final Label instruction = new Label("Double-click to view package");
+        searchBox.getChildren().addAll(searchTable, instruction);
 
         /* defining content voor searchGrid */
         final int labelRow = 0;
@@ -3184,6 +4483,7 @@ public class App extends Application{
         final int termRow = heightRow + 1;
         final int selTableRow = termRow + 1;
         final int selContRow = selTableRow + 1;
+        final int buttonRow = selContRow + 1;
 
         final Label advancedSearch = new Label("additional constraints");
         GridPane.setConstraints(advancedSearch, 0, labelRow);
@@ -3378,8 +4678,27 @@ public class App extends Application{
             }
         });
 
+        final Button searchButton = new Button("Search");
+        searchButton.setOnAction((ActionEvent arg0) -> {
+            fullSearch(allPackages, searchField.getText(), results, sc);
+            selectAll.setSelected(false);
+        });
+        searchButton.setDefaultButton(true);
+        GridPane.setConstraints(searchButton, 0, buttonRow);
 
-        /* selectionTable displays selected SearchResults, which can be viewed separately from other Packages. TODO: make selection exportable */
+        searchGrid.getChildren().addAll(
+                advancedSearch,
+                pinCountCheck, pinConstraint,
+                pitchCheck, pitchConstraint,
+                spanCheck, spanConstraint,
+                heightCheck, heightConstraint,
+                termCheck, termConstraint,
+                searchButton
+        );
+
+
+        final VBox selectionBox = new VBox(SPACING_VBOX);
+        /* selectionTable displays selected SearchResults, which can be viewed separately from other Packages. */
         final TableView<SearchResult> selectionTable = new TableView<>();
         selectionTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         GridPane.setConstraints(selectionTable, 0, selTableRow);
@@ -3395,11 +4714,7 @@ public class App extends Application{
                     SearchResult res = row.getItem();
                     int newIndex = selection.indexOf(res);
                     setPackageSelection(true, newIndex);
-                    prevWidth = stage.stage.getWidth();
-                    prevHeight = stage.stage.getHeight();
-                    stage.stage.setScene(mainScene);
-                    stage.stage.setHeight(prevHeight);
-                    stage.stage.setWidth(prevWidth);
+                    changeScene(mainScene);
                 }
             });
             return row ;
@@ -3412,7 +4727,7 @@ public class App extends Application{
         selectionTable.setItems(selection);
         selectionTable.getColumns().addAll(selectedCol);
 
-        final HBox selControlBox = new HBox(3);
+        final HBox selControlBox = new HBox(SPACING_HBOX);
         GridPane.setConstraints(selControlBox, 0, selContRow);
         GridPane.setColumnSpan(selControlBox, 2);
         final Label selectInstructions = new Label("Double-click to view selection");
@@ -3428,29 +4743,20 @@ public class App extends Application{
         selWipe.setAlignment(Pos.CENTER_RIGHT);
 
         selControlBox.getChildren().addAll(selectInstructions, selWipe);
+        selectionBox.getChildren().addAll(selectionTable, selControlBox);
 
 
-        searchGrid.getChildren().addAll(
-                advancedSearch,
-                pinCountCheck, pinConstraint,
-                pitchCheck, pitchConstraint,
-                spanCheck, spanConstraint,
-                heightCheck, heightConstraint,
-                termCheck, termConstraint,
-                selectionTable,
-                selControlBox
-        );
-
-        midBox.getChildren().addAll(searchTable, createHSpacer(), searchGrid, createHSpacer());
+        midBox.getChildren().addAll(searchGrid, createHSpacer(), searchBox, createHSpacer(), selectionBox);
 
 
-        final Label instruction = new Label("Double-click to view package");
-        botBox.getChildren().addAll(instruction);
+
+        //botBox.getChildren().addAll(instruction);
 
         searchBranch.setPadding(new Insets(fieldSpacing, fieldSpacing, 0, fieldSpacing));
         searchBranch.getChildren().addAll(topBox, midBox, botBox);
         root.setContent(searchBranch);
-        Scene scene = new Scene(root, STARTING_WINDOW_WIDTH, STARTING_WINDOW_HEIGHT); //node, width, minHeight
+        Scene scene = new Scene(root); //node, width, minHeight
+        scene.setUserData(new String("search"));
         return scene;
     }
 
@@ -3468,6 +4774,7 @@ public class App extends Application{
         }
         newPack.setDisable(filtered);
         backToFull.setVisible(filtered);
+        exportItem.setDisable(!filtered);
         viewingSelection = filtered;
 
         navigate(newIndex);
@@ -3484,6 +4791,7 @@ public class App extends Application{
             if(matchedIndex >= 0){
                 res = new SearchResult(searchList.indexOf(p));
                 res.match = new SimpleStringProperty(p.names[matchedIndex]);
+                res.setName(p.names[0]);
                 resultList.add(res);
                 gotOne = true;
             }
@@ -3491,20 +4799,46 @@ public class App extends Application{
                (sc.exactMatch ? p.description.toLowerCase().equals(s.toLowerCase()) : p.description.toLowerCase().contains(s.toLowerCase()))){ //search description
                 res = new SearchResult(searchList.indexOf(p));
                 res.match = new SimpleStringProperty(p.description);
+                res.setName(p.names[0]);
                 if(!gotOne){
                     resultList.add(res);
                     gotOne = true;
                 }
             }
+            if(sc.searchReferences && p.references != null){
+                for(Package.Reference ref: p.references){
+                    if(sc.exactMatch ? ref.standard.equalsIgnoreCase(s) : ref.standard.toLowerCase().contains(s.toLowerCase())){
+                        res = new SearchResult(searchList.indexOf(p));
+                        matchedIndex = searchList.indexOf(p);
+                        res.match = new SimpleStringProperty(ref.standard);
+                        res.setName(p.names[0]);
+                        if(!gotOne){
+                            resultList.add(res);
+                            gotOne = true;
+                        }
+                    }
+                    if(sc.exactMatch ? ref.company.equalsIgnoreCase(s) : ref.company.toLowerCase().contains(s.toLowerCase())){
+                        res = new SearchResult(searchList.indexOf(p));
+                        matchedIndex = searchList.indexOf(p);
+                        res.match = new SimpleStringProperty(ref.company);
+                        res.setName(p.names[0]);
+                        if(!gotOne){
+                            resultList.add(res);
+                            gotOne = true;
+                        }
+                    }
+                }
+            }
             if(p.specPacks != null){                            //search SpecificPackages/Variants
-                for(Package.SpecificPackage sp: p.specPacks){
+                for(Package.Variant sp: p.specPacks){
                     if(sc.exactMatch ? sp.variantName.equalsIgnoreCase(s) : sp.variantName.toLowerCase().contains(s.toLowerCase())){
                         res = new SearchResult(searchList.indexOf(p));
                         matchedIndex = searchList.indexOf(p);
                         res.match = new SimpleStringProperty(sp.variantName);
+                        res.setName(p.names[0]);
                         if(!gotOne){
                             resultList.add(res);
-                        gotOne = true;
+                            gotOne = true;
                         }
                     }
                     if(sc.searchDescription &&
@@ -3512,8 +4846,10 @@ public class App extends Application{
                         res = new SearchResult(searchList.indexOf(p));
                         matchedIndex = searchList.indexOf(p);
                         res.match = new SimpleStringProperty(sp.variantNotes);
+                        res.setName(p.names[0]);
                         if(!gotOne){
                             resultList.add(res);
+                            gotOne = true;
                         }
                     }
                 }
@@ -3541,10 +4877,16 @@ public class App extends Application{
                     }
                 }
                 if(sc.hasSpanConstraint && (!gotOne)){
-                    if(!(roughCompare(sc.spanConstraint, searchList.get(sr.getOrgIndex()).footPrints[firstid].span.x, 0.1))){
+                    boolean constraintMetFlag = false;
+                    for(Package.Footprint fp : searchList.get(sr.getOrgIndex()).footPrints){
+                        if(roughCompare(sc.spanConstraint, fp.span.x, 0.1)){
+                            constraintMetFlag = true;
+                            //TODO: Also compare to span-Y
+                        }
+                    }
+                    if(!constraintMetFlag){
                         toRemove.add(sr);
                         gotOne = true;
-                        //TODO: Also compare to span-Y
                     }
                 }
                 if(sc.hasHeightConstraint && (!gotOne)){
@@ -3566,7 +4908,7 @@ public class App extends Application{
 
     /*returns false if the height constraint does not fall within the boundries of any of the variants being searched */
     private boolean checkHeight(SearchResult sr, double hConstraint){
-        for(Package.SpecificPackage spep: viewedPackages.get(sr.getOrgIndex()).specPacks){
+        for(Package.Variant spep: viewedPackages.get(sr.getOrgIndex()).specPacks){
             if(hConstraint <= spep.heightRange.maxHeight && hConstraint >= spep.heightRange.minHeight){
                 return true;
             }
@@ -3601,6 +4943,7 @@ public class App extends Application{
         SearchConstraint sc = new SearchConstraint();
         sc.exactMatch = true;
         sc.searchDescription = false;
+        sc.searchReferences = false;
         fullSearch(allPackages, s, otherSearchList, sc);
 
         if(!otherSearchList.isEmpty()){
@@ -3608,6 +4951,20 @@ public class App extends Application{
             return false;
         }
         return true;
+    }
+
+    private Package retrieveByName(String name){
+        String[] arr = new String[1];
+        arr[0] = name;
+        return retrieveByName(arr);
+    }
+    private Package retrieveByName(String[] names){
+        for(String s : names){
+            if(!notDuplicate(s)){
+                return allPackages.get(dupWarning.index());
+            }
+        }
+        return null;    //should never happen, unless user attempts to merge after resolving a name conflict, which would be dumb
     }
 
     /* "...close enough..." */
@@ -3662,6 +5019,11 @@ public class App extends Application{
         for(SearchResult res: results){
             res.rectifyOrgIndex(deletedIndex);
         }
+    }
+
+    /* for convenience */
+    private void print(String s){
+        System.out.println(s);
     }
 
     /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -3725,26 +5087,32 @@ public class App extends Application{
 
     /* A dynamic textfield manager is a VBox that containts a dynamic number of HBoxes that each contain textfields. */
     private class dtfManager extends VBox{
-        final int FIELDS_PER_ROW = 5;
+        int fieldsPerRow;
+        Package pack;   //source and destination package. Is set in the load method.
         Stack<Row> rowBin;
         Row supplyRow;
         Stack<Row.DTF> dtfSupply;
 
         /* add all names from current Package plus an empty field */
-        public void load(){
+        public void load(Package newSource){
+            pack = newSource;
             this.getChildren().clear();
             rowBin.clear();
             dtfSupply.clear();
             supplyRow.fillSupply(50); //Max number of TextFields that I think will be in use at any give time.
-            for(String s: crntPkg.names){
+            for(String s: pack.names){
                 if(s.length() > 0){
                     baseAdd(s);
                 }
             }
-            baseAdd("");
+            if (appendEmptyField())
+                baseAdd("");
+        }
+        protected boolean appendEmptyField(){
+            return true;    // can be overridden in derived classes
         }
 
-        private void baseAdd(String s){
+        protected void baseAdd(String s){
             if(this.getChildren().isEmpty()){
                 addRow(); //add a new row if there are none
             }
@@ -3757,16 +5125,20 @@ public class App extends Application{
         }
 
         /* If there are Rows in the bin, take one from there, otherwise make a new one */
-        private void addRow(){
+        protected void addRow(){
             if(!rowBin.empty()){
                 this.getChildren().add(rowBin.pop());
             } else{
-                this.getChildren().add(new Row(3));
+                this.getChildren().add(createRow());
             }
         }
 
+        protected Row createRow(){
+            return new Row();
+        }
+
         /*Take the first entry from the next row and put it in the current one, then repeat for next row if there is one */
-        private void takeFromNext(Row crntRow){
+        protected void takeFromNext(Row crntRow){
             int nextIndex = (this.getChildren().indexOf(crntRow) + 1);
             Row nextRow = (Row) this.getChildren().get(nextIndex);
             Row.DTF shiftIt = (Row.DTF) nextRow.getChildren().get(0);
@@ -3780,7 +5152,7 @@ public class App extends Application{
             }
         }
 
-        private Row dtfBelongsTo(Row.DTF d){
+        protected Row dtfBelongsTo(Row.DTF d){
             for(Node n: this.getChildren()){
                 Row r = (Row) n;
                 if(r.getChildren().contains(d)){
@@ -3802,25 +5174,30 @@ public class App extends Application{
                 }
             }
             String[] tmpNameArray = tmpNames.toArray(new String[tmpNames.size()]);
-            crntPkg.names = tmpNameArray; //replace Package.names
+            pack.names = tmpNameArray; //replace Package.names
+            storeDoMore();
         }
+        protected void storeDoMore(){}  //empty in parent class but can be overridden for extra functionality in children
 
-        private class Row extends HBox{
-            private String identifier;
-            private void add(String s){
+        protected class Row extends HBox{
+            protected String identifier;
+
+            protected void add(String s){
                 if(!this.isFull()){
                     DTF dtf = dtfSupply.pop();
                     dtf.setText(s);
                     dtf.check = s;
                     dtf.setPromptText("name");
                     this.getChildren().add(dtf);
+                    addDoMore(dtf);
                 } else{
                     dtfManager.this.baseAdd(s);
                 }
 
             }
+            protected void addDoMore(DTF dtf){}    //empty in parent class but can be overridden for extra functionality in children
 
-            private void remove(DTF dtf){
+            protected void remove(DTF dtf){
                 if(lastRow(this)){
                     this.getChildren().remove(dtf); //if it's in the last row just remove it
                 } else{
@@ -3829,48 +5206,54 @@ public class App extends Application{
                 }
             }
 
-            private boolean lastRow(Row r){
+            protected boolean lastRow(Row r){
                 dtfManager dtf = dtfManager.this;
                 int index = dtf.getChildren().indexOf(r);
                 int maxIndex = dtf.getChildren().size() - 1;
                 return index == maxIndex;
             }
 
-            private boolean isFull(){
-                boolean full = this.getChildren().size() == FIELDS_PER_ROW;
+            protected boolean isFull(){
+                boolean full = this.getChildren().size() == fieldsPerRow;
                 return(full);
             }
-            private boolean isEmpty(){
+            protected boolean isEmpty(){
                 return(this.getChildren().isEmpty());
             }
 
             private void fillSupply(int supply){
+                assert(dtfSupply.size() == 0);
                 for(int i = 0; i < supply; i++){
-                    dtfSupply.push(new DTF(""));
+                    dtfSupply.push(createDTF());
                 }
             }
 
-            private class DTF extends TextField{
+            protected DTF createDTF(){
+                return new DTF("");
+            }
+
+            protected class DTF extends TextField{
                 String check;
 
-                private boolean lastInRow(){
+                protected boolean lastInRow(){
                     Row r = dtfBelongsTo(this);
                     int index = r.getChildren().indexOf(this);
                     int maxIndex = r.getChildren().size() - 1;
                     return index == maxIndex;
                 }
 
-                private boolean finalOne(){
+                protected boolean finalOne(){
                     Row r = dtfBelongsTo(this);
                     return this.lastInRow() && r.lastRow(r);
                 }
 
-                private void handle(String s){
+                protected void handle(String s){
+                    s = s.trim();
                     if(!s.equals(check)){
                         if(notDuplicate(s)){
                             if(s.equals("")){
                                 if(this.finalOne()){
-                                    //do nothing
+                                    //do nothing - not sure if this ever runs, after all, check should also reference an emty string
                                 } else{
                                     // delete entry & shift remaining entries back to fall into place
                                     dtfBelongsTo(this).remove(this);
@@ -3879,18 +5262,31 @@ public class App extends Application{
                                 }
                             } else{
                                 if(this.finalOne()){
-                                    baseAdd("");
+                                    if (appendEmptyField())
+                                        baseAdd("");
                                     check = s;
                                     store();
+                                    flagDuplicate(false); //to undo yellowing potentially done during loading in 'imports' child class
                                 } else{
                                     check = s;
                                     store();
+                                    flagDuplicate(false);
                                 }
                             }
+                            change("names changed");
                         } else{
-                            this.clear();
-                            dupWarning.show(stage.stage);
+                            flagDuplicate(true);
                         }
+                    }
+                }
+
+                protected void flagDuplicate(boolean dup){
+                    if (dup){
+                        this.clear();
+                        dupWarning.show(stage);
+                    } else {
+                        // make sure to undo yellowing
+                        this.setStyle("-fx-control-inner-background: white;");
                     }
                 }
 
@@ -3935,8 +5331,8 @@ public class App extends Application{
                 }
 
             }
-            Row(double spacing){
-                super(spacing);
+            Row(){
+                super(SPACING_HBOX);
                 identifier = Objects.toString(this); //hax
             }
 
@@ -3962,17 +5358,87 @@ public class App extends Application{
                 return eq;
             }
         }
-        dtfManager(double spacing){
-            super(spacing);
+        dtfManager(){
+            this(5);
+        }
+        dtfManager(int nrOfFields){
+            super(SPACING_VBOX);
+            fieldsPerRow = nrOfFields;
             rowBin = new Stack();
-            supplyRow = new Row(3);
+            supplyRow = createRow();
             dtfSupply = new Stack();
         }
     }
 
+    private class dtfManagerImports extends dtfManager{
+        ImportedPackage importPack;
+
+        //override methods and create constructors
+        public void load(ImportedPackage importPack){
+            this.importPack = importPack;
+            super.load(importPack.pack);
+        }
+
+        @Override
+        protected boolean appendEmptyField(){
+            return false;
+        }
+
+        @Override
+        protected Row createRow(){
+            return new RowImports();
+        }
+
+        @Override
+        protected void storeDoMore(){
+            importPack.checkConflicted();
+        }
+
+        protected class RowImports extends dtfManager.Row{
+            //override methods and create constructors
+            @Override
+            protected void addDoMore(DTF dtf){
+                //if it's a duplicate, mark it with a yellow background
+                if(!notDuplicate(dtf.getText())){
+                    dtf.setStyle("-fx-control-inner-background: #fff0a0;");
+                }
+            }
+
+            @Override
+            protected DTF createDTF(){
+                return new DTFImports("");
+            }
+
+            protected class DTFImports extends dtfManager.Row.DTF{
+                //override methods and create constructors
+                protected void flagDuplicate(boolean dup){
+                    if (dup){
+                        this.setStyle("-fx-control-inner-background: #fff0a0;");
+                        dupSoftWarning.show(stage);
+                    } else {
+                        this.setStyle("-fx-control-inner-background: white;");
+                    }
+                }
+                DTFImports(String s){
+                    super(s);
+                }
+            }
+
+            RowImports(){
+                super();
+            }
+        }
+
+        dtfManagerImports(){
+            this(5);
+        }
+        dtfManagerImports(int fields){
+            super(fields);
+        }
+    }
 
     /* Mirror class for SpecificPackage/Variant */
-    public class SpepaMirror{
+    public class SpepaMirror implements Removable{
         String spepaName;
         SimpleStringProperty spepaNameppt;
         public SimpleStringProperty spepaNamepptProperty(){
@@ -3990,9 +5456,6 @@ public class App extends Application{
         }
         public void setStandard(String s){
             this.standard = Package.nameStandardFromString(s);
-            setStandardppt(s);
-        }
-        public void setStandardppt(String s){
             standardppt.set(s);
         }
         public String getStandardppt(){
@@ -4039,6 +5502,25 @@ public class App extends Application{
             spepaNotesppt.set(note);
         }
 
+        /* Support methods */
+        public Package.Variant getVariant(){
+            return getVariant(crntPkg);
+        }
+        public Package.Variant getVariant(Package source){
+            for(Package.Variant v : source.specPacks){
+                if(spepaName.equals(v.variantName)){
+                    return v;
+                }
+            }
+            return null;
+        }
+        /* Interface implementation */
+        @Override
+        public void remove(){
+            crntPkg.specPacks.remove(getVariant());
+            change("deleted variant");
+        }
+
         /* Constructors */
         SpepaMirror(String ipcName, Package.NameStandard standard, double height, double hTol, boolean padExposed, String notes){
             this.spepaName = ipcName;
@@ -4059,7 +5541,7 @@ public class App extends Application{
             this.padExposed = padExposed;
             padExposedppt = new SimpleBooleanProperty(padExposed);
         }
-        SpepaMirror(Package.SpecificPackage spepa){
+        SpepaMirror(Package.Variant spepa){
             this(spepa.variantName,
                  spepa.standard,
                  spepa.heightRange.minHeight,
@@ -4069,8 +5551,79 @@ public class App extends Application{
         }
     }
 
+    /* This is a wrapper for spepamirror that provides additional functionality needed for imports */
+    public class ImportedVariant{
+        SpepaMirror spep;
+        /* reference spepamirror properties */
+        public SimpleStringProperty spepaNamepptProperty(){
+            return spep.spepaNameppt;
+        }
+        public void setIpcName(String name){
+            spep.spepaName = name;
+            spep.spepaNameppt.set(name);
+            checkConflict();
+        }
 
-    public class PadDimmirror{
+        public SimpleStringProperty standardpptProperty(){
+            return spep.standardppt;
+        }
+
+        public SimpleDoubleProperty minHeightpptProperty(){
+            return spep.minHeightppt;
+        }
+
+        public SimpleDoubleProperty maxHeightpptProperty(){
+            return spep.maxHeightppt;
+        }
+
+        public SimpleBooleanProperty padExposedpptProperty(){
+            return spep.padExposedppt;
+        }
+
+        public SimpleStringProperty spepaNotespptProperty(){
+            return spep.spepaNotesppt;
+        }
+
+        /* Properties/methods for import */
+        SimpleBooleanProperty conflicted;
+        public SimpleBooleanProperty conflictedProperty(){
+            return conflicted;
+        }
+
+        SimpleBooleanProperty selected;
+        public SimpleBooleanProperty selectedProperty(){
+            return selected;
+        }
+        public void setSelected(boolean b){
+            selected.set(b);
+        }
+
+        private void checkConflict(){
+            if(notDuplicate(spep.spepaName)){
+                conflicted.set(false);
+            } else{
+                conflicted.set(true);
+                setSelected(false);
+            }
+        }
+
+
+        ImportedVariant(SpepaMirror spep){
+            this.spep = spep;
+            selected = new SimpleBooleanProperty(false);
+            conflicted = new SimpleBooleanProperty(!notDuplicate(spep.spepaName));
+            selected.addListener((ObservableValue<? extends Boolean> obs, Boolean wasSelected, Boolean isSelected) -> {
+                /* Undo selection if conflicted */
+                if(isSelected){
+                    if(conflicted.get()){
+                        setSelected(false);
+                    }
+                }
+            });
+        }
+    }
+
+    public class PadDimMirror implements Removable, Editable{
         int padId;
         SimpleIntegerProperty padIdppt;
         public SimpleIntegerProperty padIdpptProperty(){
@@ -4087,7 +5640,7 @@ public class App extends Application{
             return padIdppt.get();
         }
 
-        double length;
+        double length;                      //cy
         SimpleDoubleProperty lengthppt;
         public SimpleDoubleProperty lengthpptProperty(){
             return lengthppt;
@@ -4103,7 +5656,7 @@ public class App extends Application{
             return lengthppt.get();
         }
 
-        double width;
+        double width;                       //cx
         SimpleDoubleProperty widthppt;
         public SimpleDoubleProperty widthpptProperty(){
             return widthppt;
@@ -4183,23 +5736,150 @@ public class App extends Application{
             return originYppt.get();
         }
 
-        boolean padExposed;
-        SimpleBooleanProperty padExposedppt;
-        public SimpleBooleanProperty padExposedpptProperty(){
-            return padExposedppt;
+        Package.PadType padType;
+        SimpleStringProperty padTypeppt;
+        public SimpleStringProperty padTypepptProperty(){
+            return padTypeppt;
         }
-        public void setPadExposed(boolean b){
-            this.padExposed = b;
-            setPadExposedppt(b);
+        public void setPadExposed(Package.PadType pt){
+            this.padType = pt;
+            setPadExposedppt(Package.padTypeAsString(pt));
         }
-        public void setPadExposedppt(boolean b){
-            padExposedppt.set(b);
-        }
-        public boolean getPadExposed(){
-            return padExposedppt.get();
+        public void setPadExposedppt(String s){
+            padTypeppt.set(s);
         }
 
-        PadDimmirror(int padId, double width, double length, Package.PadShape shape, double holeDiam, double originX, double originY, boolean padExposed){
+        SimpleBooleanProperty isPoly;
+        public SimpleBooleanProperty isPolyProperty(){
+            return isPoly;
+        }
+        public void setIsPoly(boolean b){
+            isPoly.set(b);
+        }
+
+        public class VertexMirror implements Comparable<VertexMirror> {
+            SimpleIntegerProperty id;
+            public SimpleIntegerProperty idProperty(){
+                return id;
+            }
+            public void setId(int i){
+                id.set(i);
+            }
+            public int id(){
+                return id.get();
+            }
+
+            SimpleDoubleProperty x;
+            public SimpleDoubleProperty xProperty(){
+                return x;
+            }
+            public void setX(double d){
+                x.set(d);
+            }
+
+            SimpleDoubleProperty y;
+            public SimpleDoubleProperty yProperty(){
+                return y;
+            }
+            public void setY(double d){
+                y.set(d);
+            }
+
+            VertexMirror(int id, double x, double y) {
+                this.id = new SimpleIntegerProperty(id);
+                this.x = new SimpleDoubleProperty(x);
+                this.y = new SimpleDoubleProperty(y);
+            }
+            VertexMirror(Polygon.Vertex v){
+                this(v.id, v.x, v.y);
+            }
+
+            @Override
+            public int compareTo(VertexMirror v) {
+                if(id() == v.id()){
+                    return 0;
+                } else if(id() > v.id()){
+                    return 1;
+                } else{
+                    return -1;
+                }
+            }
+        }
+        final ObservableList<VertexMirror> verMirList;
+
+        public Polygon getPolyFromList(){
+            if(verMirList.isEmpty()) return null;
+            Polygon pol = new Polygon();
+            this.verMirList.forEach(vm -> {
+                pol.addVertex(vm.x.get(), vm.y.get());
+            });
+            return pol;
+        }
+        public void storePoly(){
+            /* retrieve reference to PadDimension */
+            Package.Footprint.PadDimension dest = getDimension();
+            if(dest == null){
+                System.out.println("Something went wrong retrieving destination PadDimension.");
+            } else{
+                /* create a Polygon and store it */
+                dest.polygon = getPolyFromList();
+            }
+        }
+        /* Returns a copy of a Polygon because we don't want the transformations that happen for drawing it to be stored */
+        public Polygon retrievePolyCopy(){
+            Package.Footprint.PadDimension dest = getDimension();
+            if(dest == null){
+                System.out.println("Something went wrong retrieving source PadDimension.");
+                return null;
+            } else{
+                if(dest.polygon == null){
+                    System.out.println("Polygon not stored in package.");
+                    return null;
+                }
+                return new Polygon(dest.polygon);
+            }
+        }
+        /* retrieve the PadDimension that this is a mirror of */
+        public Package.Footprint.PadDimension getDimension(){
+            return getDimension(crntPkg);
+        }
+        public Package.Footprint.PadDimension getDimension(Package p){
+            for(Package.Footprint.PadDimension dim : p.footPrints.get(fpIndex).dimensions){
+                if(dim.padId == this.padId) return dim;
+            }
+            return null;
+        }
+
+        public void updateValues(){
+            Polygon poly = retrievePolyCopy();
+            /* Get new values */
+            double newX = poly.getWidth();
+            double newY = poly.getLength();
+
+            /* Store in mirror object */
+            this.setWidth(newX);
+            this.setLength(newY);
+
+            /* Store in Package */
+            Package.Footprint.PadDimension pd = getDimension();
+            pd.setWidth(newX);
+            pd.setLength(newY);
+        }
+
+        /* Implement interface */
+        @Override
+        public void remove(){
+            crntPkg.footPrints.get(fpIndex).dimensions.remove(getDimension());
+            change("deleted pad dimension");
+        }
+
+        @Override
+        public void edit() {
+            polyBuilder.setSource(this);
+            polyBuilder.show(stage);
+        }
+
+        PadDimMirror(int padId, double width, double length, Package.PadShape shape, double holeDiam, double originX, double originY, Package.PadType pt, Polygon pol){
             this.padId = padId;
             padIdppt = new SimpleIntegerProperty(padId);
 
@@ -4221,10 +5901,24 @@ public class App extends Application{
             this.originY = originY;
             originYppt = new SimpleDoubleProperty(originY);
 
-            this.padExposed = padExposed;
-            padExposedppt = new SimpleBooleanProperty(padExposed);
+            this.padType = pt;
+            padTypeppt = new SimpleStringProperty(Package.padTypeAsString(pt));
+
+            this.isPoly = new SimpleBooleanProperty();
+            if(shape == Package.PadShape.POLYGON){
+                this.isPoly.set(true);
+            } else{
+                this.isPoly.set(false);
+            }
+
+            verMirList = FXCollections.observableArrayList();
+            if(pol != null){
+                pol.vertices.forEach(v -> {
+                    verMirList.add(new VertexMirror(v));
+                });
+            }
         }
-        PadDimmirror(Package.Footprint.PadDimension dim){
+        PadDimMirror(Package.Footprint.PadDimension dim){
             this(dim.padId,
                  dim.width,
                  dim.length,
@@ -4232,12 +5926,13 @@ public class App extends Application{
                  dim.holeDiam,
                  dim.originX,
                  dim.originY,
-                 dim.padExposed);
+                 dim.padType,
+                 dim.polygon);
         }
     }
 
 
-    public class PadPosmirror{
+    public class PadPosMirror implements Removable{
         String pinId;
         SimpleStringProperty pinIdppt;
         public SimpleStringProperty pinIdpptProperty(){
@@ -4318,7 +6013,25 @@ public class App extends Application{
             return rotationppt.get();
         }
 
-        PadPosmirror(String pinId, double xPos, double yPos, int padId, Package.Orientation rotation){
+        /* retrieve the PadPosition that this is a mirror of */
+        public Package.Footprint.PadPosition getPosition(){
+            return getPosition(crntPkg);
+        }
+        public Package.Footprint.PadPosition getPosition(Package p){
+            for(Package.Footprint.PadPosition pos : p.footPrints.get(fpIndex).padPositions){
+                if(pos.pinId.equals(this.pinId)) return pos;
+            }
+            return null;
+        }
+
+        /* Implement interface */
+        @Override
+        public void remove(){
+            crntPkg.footPrints.get(fpIndex).padPositions.remove(getPosition());
+            change("deleted pad position");
+        }
+
+        PadPosMirror(String pinId, double xPos, double yPos, int padId, Package.Orientation rotation){
             this.pinId = pinId;
             pinIdppt = new SimpleStringProperty(pinId);
 
@@ -4334,12 +6047,172 @@ public class App extends Application{
             this.rotation = rotation;
             rotationppt = new SimpleIntegerProperty(Package.orientationAsInt(rotation));
         }
-        PadPosmirror(Package.Footprint.PadPosition pos){
+        PadPosMirror(Package.Footprint.PadPosition pos){
             this(pos.pinId,
                  pos.xPos,
                  pos.yPos,
                  pos.padId,
                  pos.rotation);
+        }
+    }
+
+
+    public class ReferenceMirror implements Removable{
+        SimpleStringProperty standard;
+        public SimpleStringProperty standardProperty(){
+            return standard;
+        }
+
+        SimpleStringProperty company;
+        public SimpleStringProperty companyProperty(){
+            return company;
+        }
+
+        Package.Reference getReference() {
+            return getReference(crntPkg);
+        }
+        Package.Reference getReference(Package p) {
+            for(Package.Reference r : p.references){
+                if(r.standard.equals(standard.get())) return r;
+            }
+            return null;
+        }
+
+        /* Interface implementation */
+        @Override
+        public void remove(){
+            crntPkg.references.remove(getReference());
+            change("deleted reference");
+        }
+
+        /* Constructors */
+        ReferenceMirror(){
+            this("", "");
+        }
+        ReferenceMirror(String standard, String company){
+            this.standard = new SimpleStringProperty(standard);
+            this.company = new SimpleStringProperty(company);
+        }
+        ReferenceMirror(Package.Reference ref){
+            this(ref.standard, ref.company);
+        }
+    }
+
+
+    public class RelatedPack implements Removable{
+        Package pack;
+
+        SimpleStringProperty name;
+        public SimpleStringProperty nameProperty(){
+            return name;
+        }
+
+        SimpleStringProperty description;
+        public SimpleStringProperty descriptionProperty(){
+            return description;
+        }
+
+        public int getIndex(List<Package> list){
+            return list.indexOf(pack);
+        }
+
+        /* Implementation interface */
+        @Override
+        public void remove() {
+            crntPkg.relatedPackNames.remove(name.get());
+            change("deleted related package");
+        }
+
+        RelatedPack(String name){
+            this.name = new SimpleStringProperty(name);
+            pack = retrieveByName(name);
+            if (pack != null)
+                description = new SimpleStringProperty(pack.description);
+        }
+    }
+
+    /* ImportedPackage is a wrapper for the Package class that to allows it to be used in TableViews */
+    public class ImportedPackage{
+        Package pack;
+
+        SimpleStringProperty firstName;
+        public StringProperty firstNameProperty(){
+            return firstName;
+        }
+        public void setFirstName(String s){
+            firstName.set(s);
+        }
+        public String getFirstName(){
+            return firstName.get();
+        }
+
+        SimpleBooleanProperty conflicted;
+        public SimpleBooleanProperty conflictedProperty(){
+            return conflicted;
+        }
+        public void setConflicted(boolean b){
+            conflicted.set(b);
+        }
+        public boolean getConflicted(){
+            return conflicted.get();
+        }
+
+        SimpleBooleanProperty selected;
+        public SimpleBooleanProperty selectedProperty(){
+            return selected;
+        }
+        public void setSelected(boolean b){
+            selected.set(b);
+        }
+
+        public boolean checkConflicted(){
+            // check package names and variant names for conflicts and set booleanproperty 'conflicted' accordingly
+            for(String s: pack.names){
+                if(!notDuplicate(s)){
+                    setConflicted(true);
+                    return true;
+                }
+            }
+            if(pack.specPacks != null){
+                for(Package.Variant spep: pack.specPacks){
+                    if(!notDuplicate(spep.variantName)){
+                        setConflicted(true);
+                        return true;
+                    }
+                }
+            }
+            setConflicted(false);
+            setFirstName(pack.names[0]);    //in case this method is called from dtfmanagerImports, because first name may have changed.
+            return false;
+        }
+
+        /* Constructor */
+        ImportedPackage(Package pack){
+            this.pack = pack;
+            firstName = new SimpleStringProperty(pack.names[0]);
+            conflicted = new SimpleBooleanProperty(false);
+            conflicted.addListener((ObservableValue<? extends Boolean> obs, Boolean wasConflicted, Boolean isConflicted) -> {
+                /* Move to approriate importlist depending on conflicted status
+                 * It technically shoudn't be possible for an ImportedPackage to go from a clean state to a conflicted state, but who knows
+                 * Also, the safeguarding against duplicates on the list should be redundant, but why not be safe */
+                if(isConflicted){
+                    if(cleanImportPacks.contains(this)){
+                        cleanImportPacks.remove(this);
+                    }
+                    if(!conflictedImportPacks.contains(this)){
+                        conflictedImportPacks.add(this);
+                    }
+                }
+                if(!isConflicted){
+                    if(conflictedImportPacks.contains(this)){
+                        conflictedImportPacks.remove(this);
+                    }
+                    if(!cleanImportPacks.contains(this)){
+                        cleanImportPacks.add(this);
+                    }
+                }
+            });
+            selected = new SimpleBooleanProperty(false);
         }
     }
 
@@ -4365,6 +6238,17 @@ public class App extends Application{
             return match.get();
         }
 
+        public SimpleStringProperty name;
+        public SimpleStringProperty nameProperty(){
+            return name;
+        }
+        public void setName(String s){
+            name.set(s);
+        }
+        public String getName(){
+            return name.get();
+        }
+
         public SimpleBooleanProperty selected;
         public SimpleBooleanProperty selectedProperty(){
             return selected;
@@ -4387,6 +6271,7 @@ public class App extends Application{
         SearchResult(int orgIndex){
             this.orgIndex = orgIndex;
             this.match = new SimpleStringProperty("");
+            this.name = new SimpleStringProperty("");
             this.selected = new SimpleBooleanProperty(false);
             this.selected.addListener((ObservableValue<? extends Boolean> obs, Boolean wasSelected, Boolean isSelected) -> {
                 /* Add it to the list if there isn't anything already on the list pointing at same Package. Otherwise, undo selection */
@@ -4420,6 +6305,7 @@ public class App extends Application{
         Package.TermType termConstraint;
         boolean exactMatch;
         boolean searchDescription;
+        boolean searchReferences;
 
         void clear(){
             isActive = false;
@@ -4449,6 +6335,7 @@ public class App extends Application{
             hasTermConstraint = false;
             exactMatch = false;
             searchDescription = true;
+            searchReferences = true;
         }
     }
 
@@ -4466,9 +6353,6 @@ public class App extends Application{
             return key;
         }
 
-        SimpleKey(){
-
-        }
         SimpleKey(String key){
             this.key = key;
         }
@@ -4477,6 +6361,18 @@ public class App extends Application{
         IntegerKey(String key){
             super(key);
             this.value =  0;
+        }
+    }
+    private class LongKey extends SimpleKey{
+        LongKey(String key){
+            super(key);
+            this.value = 0L;
+        }
+    }
+    private class DateKey extends LongKey{
+        DateKey(String key){
+            super(key);
+            this.value = new Date().getTime();
         }
     }
     private class DoubleKey extends SimpleKey{
@@ -4498,15 +6394,6 @@ public class App extends Application{
         }
     }
 
-    /* StageHolder is a wrapper for the Stage that Start() receives as an argument from somewhere(?)
-     * Doing this makes it so I can swap Scenes from anywhere without passing along the stage */
-    private class StageHolder{
-        Stage stage;
-
-        StageHolder(Stage stage){
-            this.stage = stage;
-        }
-    }
 
     private class BasicPopup extends Popup{
         VBox branch;
@@ -4515,7 +6402,7 @@ public class App extends Application{
 
         BasicPopup(String style, String message, String btnText){
             super();
-            branch = new VBox(5);
+            branch = new VBox(SPACING_VBOX);
             branch.setAlignment(Pos.CENTER);
             branch.setStyle(style);
             messageLbl = new Label(message);
@@ -4544,37 +6431,33 @@ public class App extends Application{
     }
 
     private class AboutPopup extends Popup{
-        VBox branch;
-        Label Caption;
-        Label Copyright;
-        Label SystemInfo;
         Label FileInfo;
-        Button close;
 
         AboutPopup(String style){
             super();
-            branch = new VBox(5);
+            final VBox branch;
+            branch = new VBox(SPACING_VBOX);
             branch.setAlignment(Pos.CENTER_LEFT);
             branch.setStyle(style);
 
-            Caption = new Label("PACKAGES " + programVersion);
+            final Label Caption = new Label("PACKAGES " + programVersion);
             Caption.setStyle("-fx-font-size:14; -fx-font-weight:bold");
-            Copyright = new Label("Copyright 2021, 2022 CompuPhase\n" +
-                                  "Developed by Guido Wolff & Thiadmer Riemersma");
+            final Label Copyright = new Label("Copyright 2021, 2022 CompuPhase\n" +
+                                              "Developed by Guido Wolff & Thiadmer Riemersma");
 
             String version = System.getProperty("java.version");
             String fxversion = System.getProperty("javafx.version");
             String jre_path = System.getProperty("java.home");
             String sysmsg = "JDK:\t\t" + version + " (" + jre_path + ")\n"
                             + "JavaFx:\t" + fxversion;
-            SystemInfo = new Label(sysmsg);
+            final Label SystemInfo = new Label(sysmsg);
 
             FileInfo = new Label("Data file:\t(none)");
             FileInfo.setPadding(new Insets(0, 0, fieldSpacing, 0)); // add spacing below text (above button)
 
-            final HBox buttonBox = new HBox(3);
+            final HBox buttonBox = new HBox(SPACING_HBOX);
             buttonBox.setAlignment(Pos.CENTER);
-            close = new Button("Close");
+            final Button close = new Button("Close");
             close.setAlignment(Pos.CENTER);
             close.setOnAction((ActionEvent arg0) -> {
                 this.hide();
@@ -4586,7 +6469,7 @@ public class App extends Application{
             this.setAutoHide(true);
         }
 
-        void Update(){
+        void update(){
             /* update statistics on the JSON file */
             String pkginfo;
             if(fileIsSet){
@@ -4598,7 +6481,7 @@ public class App extends Application{
                         count_names += p.names.length;
                     }
                     if(p.specPacks != null){
-                        count_variants += p.specPacks.length;
+                        count_variants += p.specPacks.size();
                     }
                 }
                 pkginfo += String.format("\t\t%d packages, %d names, %d variants",
@@ -4610,18 +6493,245 @@ public class App extends Application{
         }
     }
 
+    private class PolygonBuilder extends Popup{
+        PadDimMirror dim;
+
+        TableView<PadDimMirror.VertexMirror> polyTable;
+
+        TextField idInput;
+
+        public void setSource(PadDimMirror dim){
+            this.dim = dim;
+            polyTable.setItems(dim.verMirList);
+            idInput.setText(Integer.toString(nextVertexId()));
+        }
+
+        PolygonBuilder(String style){
+            super();
+            final VBox branch = new VBox(SPACING_VBOX);
+            branch.setAlignment(Pos.CENTER_LEFT);
+            branch.setStyle(style);
+
+            final Label instruction = new Label("Add vertices to construct a polygon");
+
+            final VBox tableBox = new VBox(SPACING_VBOX);
+            //table
+            polyTable = new TableView<>();
+            polyTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+            polyTable.setEditable(true);
+            polyTable.getSelectionModel().setCellSelectionEnabled(true);
+
+            Callback<TableColumn, TableCell> cellIntFactory = (TableColumn p) -> new EditingIntCell();
+            Callback<TableColumn, TableCell> cellDoubleFactory = (TableColumn p) -> new EditingDoubleCell();
+
+            TableColumn idCol = new TableColumn("ID");
+            idCol.setMinWidth(60);
+            idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
+            idCol.setCellFactory(cellIntFactory);
+            idCol.setOnEditCommit(
+                new EventHandler<CellEditEvent<PadDimMirror.VertexMirror, Integer>>() {
+                    @Override
+                    public void handle(CellEditEvent<PadDimMirror.VertexMirror, Integer> t) {
+                        ((PadDimMirror.VertexMirror) t.getTableView().getItems().get(
+                            t.getTablePosition().getRow())).setId(t.getNewValue());
+                    }
+                }
+            );
+
+            final TableColumn xCol = new TableColumn("X");
+            xCol.setMinWidth(50);
+            xCol.setCellValueFactory(new PropertyValueFactory<>("x"));
+            xCol.setCellFactory(cellDoubleFactory);
+            xCol.setOnEditCommit(
+                new EventHandler<CellEditEvent<PadDimMirror.VertexMirror, Double>>() {
+                    @Override
+                    public void handle(CellEditEvent<PadDimMirror.VertexMirror, Double> t) {
+                        ((PadDimMirror.VertexMirror) t.getTableView().getItems().get(
+                                t.getTablePosition().getRow())
+                                ).setX(t.getNewValue());
+                    }
+                }
+            );
+
+            final TableColumn yCol = new TableColumn("Y");
+            yCol.setMinWidth(50);
+            yCol.setCellValueFactory(new PropertyValueFactory<>("y"));
+            yCol.setCellFactory(cellDoubleFactory);
+            yCol.setOnEditCommit(
+                new EventHandler<CellEditEvent<PadDimMirror.VertexMirror, Double>>() {
+                    @Override
+                    public void handle(CellEditEvent<PadDimMirror.VertexMirror, Double> t) {
+                        ((PadDimMirror.VertexMirror) t.getTableView().getItems().get(
+                                t.getTablePosition().getRow())
+                                ).setY(t.getNewValue());
+                    }
+                }
+            );
+
+            polyTable.getColumns().addAll(idCol, xCol, yCol);
+
+            final HBox tableInputBox = new HBox(SPACING_HBOX);
+            idInput = new TextField();
+            idInput.setMaxWidth(dimInputPrefWidth);
+            idInput.setPromptText("vertex-id");
+            idInput.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
+                if (!newPropertyValue){
+                    if(verifyId(Integer.parseInt(idInput.getText()))){
+                        vertexIdWarning.show(stage);
+                        idInput.clear();
+                    }
+                }
+            });
+            final TextField xInput = new TextField();
+            xInput.setMaxWidth(dimInputPrefWidth);
+            xInput.setPromptText("x");
+            final TextField yInput = new TextField();
+            yInput.setMaxWidth(dimInputPrefWidth);
+            yInput.setPromptText("y");
+
+            final Button addButton = new Button("Add");
+            addButton.setOnAction((ActionEvent e) -> {
+                /* Ensure fields are filled */
+                if(idInput.getText().length() == 0 || xInput.getText().length() == 0 || yInput.getText().length() == 0){
+                        incompleteDataWarning.show(stage);
+                } else {
+                    //add VertexMirror to list
+                    dim.verMirList.add(dim.new VertexMirror(Integer.parseInt(idInput.getText()),
+                                                        Double.parseDouble(xInput.getText()),
+                                                        Double.parseDouble(yInput.getText())));
+                }
+                idInput.setText(Integer.toString(nextVertexId()));
+                xInput.clear();
+                yInput.clear();
+            });
+            tableInputBox.getChildren().addAll(idInput, xInput, yInput, addButton);
+
+            final HBox tableButtonBox = new HBox(SPACING_HBOX);
+            final Button delButton = new Button("Delete selected");
+            delButton.setOnAction((ActionEvent e) -> {
+                PadDimMirror.VertexMirror selectedItem = polyTable.getSelectionModel().getSelectedItem();
+                polyTable.getItems().remove(selectedItem);
+            });
+            final Button previewButton = new Button("Preview");
+            previewButton.setOnAction((ActionEvent e) -> {
+                //store it first
+                Collections.sort(dim.verMirList);
+                dim.storePoly();
+
+                previewPopup.load(dim);
+                previewPopup.show(stage);
+                change("edited polygon");
+            });
+            tableButtonBox.getChildren().addAll(delButton, createHSpacer(), previewButton);
+
+            tableBox.getChildren().addAll(polyTable, tableInputBox, tableButtonBox);
+
+            final HBox mainButtonBox = new HBox(SPACING_HBOX);
+            //acceptbutton, cancelbutton
+            final Button acceptButton = new Button("Accept");
+            acceptButton.setOnAction((ActionEvent e) -> {
+                //turn list of vertexmirrors into actual polygon object in crentpkg.dimensions[*]
+                Collections.sort(dim.verMirList);
+                dim.storePoly();
+                dim.updateValues();
+                checkContour();
+                loadImage();
+                this.hide();
+                change("edited polygon");
+            });
+            final Button cancelButton = new Button("Cancel");
+            cancelButton.setOnAction((ActionEvent e) -> {
+                this.hide();    //note that cancel won't undo changes if preview has been used, as it stores the polygon
+            });
+
+            mainButtonBox.getChildren().addAll(acceptButton, cancelButton);
+
+            branch.getChildren().addAll(instruction, tableBox, mainButtonBox);
+            this.getContent().add(branch);
+        }
+
+        private int nextVertexId() {
+            if(dim.verMirList.isEmpty()){
+                return 0;
+            } else{
+                int highest = 0;
+                for(PadDimMirror.VertexMirror v : dim.verMirList){
+                    if(v.id.get() > highest){
+                        highest = v.id.get();
+                    }
+                }
+                return highest + 1;
+            }
+        }
+
+        /* This method checks if id is unique and returns true if it is not */
+        private boolean verifyId(int id) {
+            return dim.verMirList.stream().anyMatch(v -> (v.id.get() == id));
+        }
+    }
+
+    private class ImagePopup extends Popup{
+        private final int POP_IMG_WIDTH = 400;
+        private final int POP_IMG_HEIGHT = 340;
+        Canvas canvas;
+        GraphicsContext popGC;
+
+        public void load(PadDimMirror dim){
+            prepImage(canvas, popGC);
+            Polygon poly = dim.retrievePolyCopy();
+            double factor = setScale(canvas, dim);
+
+            drawIndicator(canvas, popGC, factor);
+
+            Color color = Color.color(1.0, 0.1, 0.2);
+            popGC.setFill(color);
+            popGC.setGlobalAlpha(0.5);
+
+            //scale & move polygon
+            poly.move(-dim.originX, -dim.originY);               /* apply origin of the pad shape */
+            poly.Scale(factor);                                  /* scale pad dimensions & position for drawing */
+            poly.Flip(Polygon.FlipType.FLIP_Y);                  /* toggle Y-axis */
+            poly.move(imgXcenter(canvas), imgYcenter(canvas));   /* reposition relative to centre of drawing */
+
+            //draw polygon
+            Polygon.Drawable pd = poly.getDrawable();
+            popGC.fillPolygon(pd.xPoints, pd.yPoints, pd.nPoints);
+        }
+
+        ImagePopup(String style){
+            super();
+            final VBox branch = new VBox(SPACING_VBOX);
+            branch.setAlignment(Pos.CENTER_LEFT);
+            branch.setStyle(style);
+
+            canvas = new Canvas(POP_IMG_WIDTH, POP_IMG_HEIGHT);
+            popGC = canvas.getGraphicsContext2D();
+
+            final Button close = new Button("close");
+            close.setOnAction((ActionEvent arg0) -> {
+                this.hide();
+            });
+            branch.getChildren().addAll(canvas, close);
+            this.getContent().add(branch);
+            this.setAutoHide(true);
+        }
+    }
+
     private class Courtyard{
         Polygon boundbox;
 
         Courtyard(){
             boundbox = new Polygon();
         }
+        Courtyard(Polygon poly){
+            boundbox = new Polygon(poly);
+        }
 
         public void AddBoundingBox(double cx, double cy, double orgx, double orgy){
             /* don't do anything when the bounding box has zero width or length */
             if(!roughCompare(cx, 0.0) && !roughCompare(cy, 0.0)){
                 Polygon box = Polygon.FromRect(cx, cy);
-                box.Move(-orgx, -orgy);
+                box.move(-orgx, -orgy);
                 boundbox.AppendPolygon(box);
             }
         }
@@ -4653,17 +6763,13 @@ Main-Class: packagemanager.App
 
 -------------
 
-https://docs.oracle.com/javase/8/javafx/layout-tutorial/size_align.htm
+qol: remember file location: http://javatutorialsx.blogspot.com/2012/03/javafx-20-filechooser-set-initial.html
 
-https://stackoverflow.com/questions/33414194/fill-width-in-a-pane
-----------------
+-------------
 
+qol: change config to not store as json
 
-Other info:
-https://blog.idrsolutions.com/2012/11/adding-a-window-resize-listener-to-javafx-scene/
-https://geektortoise.wordpress.com/2014/02/07/how-to-programmatically-resize-the-stage-in-a-javafx-app/
-
-
-
+https://www.amitph.com/introduction-to-java-preferences-api/
+https://www.vogella.com/tutorials/JavaPreferences/article.html
 
 */

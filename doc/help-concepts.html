@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html style="direction: ltr;" lang="en">
+<head>
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>Partbase</title>
+  <link rel="stylesheet" href="webviewstyle.css" type="text/css">
+</head>
+<body style="margin-right:1em">
+
+<!-- help menu button & drop-down menu -->
+<div class="dropdown-menu">
+  <input type="image" src="b_menu.png" onclick="DropDownMenu()" class="dropbtn"/>
+  <div id="DropDownHelp" class="dropdown-content">
+    <a href="help-index.html#Overview">Overview</a>
+    <a href="help-main.html">Editing Packages</a>
+    <a href="help-search.html">Search &amp; Selections</a>
+    <a href="help-export.html">Exporting packages</a>
+    <a href="help-import.html">Importing packages</a>
+    <a href="help-concepts.html#Package_concepts">Package concepts</a>
+    <a href="help-fileformat.html#File_format">File format</a>
+    <a href="help-packages.html#SMT_terminal_types">SMT terminal types</a>
+    <a href="help-packages.html#Normal_orientations">Normal orientations</a>
+    <a href="help-standards.html#Package_naming_standards">Package naming standards</a>
+  </div>
+</div>
+<script src="help-menu.js"></script>
+
+<a name="Package_concepts"></a>
+<h1>Package concepts</h1>
+<div class="midsection">
+<p>
+It is obvious that a specification for a component package needs to record the
+size, number of pins, pitch, and a few other characteristics. And it needs to
+have a kind of label that uniquely identifies it. Yet, as you look at the
+user-interface of <span class="smallcaps">Packages</span>, you will spot right-away
+that there are multiple, different, fields for the size of the package, as well
+as multiple &ldquo;labels&rdquo; that all uniquely point to the same package.
+</p>
+</div>
+
+<a name="Common_names_variants"></a>
+<h2>Common names &amp; variants</h2>
+<div class="midsection">
+<p>
+The QFP group of packages comprises ranges of with pin counts from 16 to 256 and
+pitches from 0.4&nbsp;mm to 1.0&nbsp;mm. With a chosen pin count and pitch, for example
+QFP32 with pith 0.5, the name still refers to a group of packages that all share
+the essential dimensions in the flat plane. There are variants, like LQFP which
+is about 1.5&nbsp;mm thick as opposed to 2.8&nbsp;mm nominally for the plain QFP
+(the &ldquo;L&rdquo; in LQFP stands for <em>low-profile</em>), or TQFP with a
+nominal height of 1.0&nbsp;mm (&ldquo;T&rdquo; stands for <em>thin</em>). There
+are also variants with <em>bumpers</em> in the corners to protect the leads, but
+these bumpers are not included in the body size &mdash;so the core dimensions
+are still the same as for QFP.
+</p>
+<p>
+All these variants (with the same pin count & pitch) share the same footprint,
+and have the same pitch and body &amp; lead-to-lead sizes.
+<span class="smallcaps">Packages</span> therefore groups them together in a
+single specification. The variants, are listed in that specification with their
+distinguishing attributes.
+</p>
+<p>
+Regardless, even a package <em>group</em> may be known under different names. As
+already noted earlier, in part this is due to different standardization organizations
+writing their own standard for one and the same package; see chapter
+<a href="help-standards.html#Package_naming_standards">Package naming standards</a> for more
+information. Also note that standardization organizations tend to follow
+industry practice &mdash;the package exists before the standard gets written.
+Therefore, <span class="smallcaps">Packages</span> allows you to add aliases for
+each common name (as well as adding variants).
+</p>
+<p>
+See also the topic <a href="help-standards.html#Metric_versus_Imperial">Metric versus Imperial</a>
+for another reason why a class is known under different names: sometimes a
+standardization organization cannot decide what is (or should be) the <em>standard</em>.
+</p>
+</div>
+
+<a name="Package_dimensions_and_outlines"></a>
+<h2>Package dimensions and outlines</h2>
+<div class="midsection">
+<p>
+The size or <em>bounding box</em> of a package may refer to one of <em>four</em>
+dimensions, and each has its purpose.
+</p>
+<div align="center">
+  <a name="Figure_courtyard"></a>
+  <img src="courtyard.png" class="center" style="max-width:80%; width:720px;">
+  Figure 2: Package sizes
+</div>
+<p>
+The <em>body size</em> is, indeed, the size of the bounding box around the body
+excluding the pins. The <em>lead-to-lead size</em> is the bounding box <em>including</em>
+the pins. For packages that have no pins extruding from the sides of body (like
+QFN or BGA), the body and lead-to-lead sizes are the same. In the package data
+file (see the <a href="help-fileformat.html#File_format_specification">File format specification</a>),
+the lead-to-lead size may be omitted in case it is equal to the body size.
+</p>
+<p>
+The <em>footprint contour</em> (also called the footprint <em>outline</em>) is
+the bounding box around the footprint. With the SOT23-5 example in the picture
+above, the contour is wider than the lead-to-lead size, but not as high. The
+<em>courtyard</em> goes around the package, the leads and the footprint; this is
+always the biggest size.
+</p>
+<p>
+<span class="smallcaps">Packages</span> stores the body size, lead-to-lead size
+and footprint contour. The courtyard is not stored, because it is the envelope
+around the lead-to-lead size and the footprint contour (and it can therefore be
+derived from these dimensions).
+</p>
+<p>
+The horizontal and vertical dimensions for body, lead-to-lead, spans and others
+depend on how the how the package is oriented: turn it by 90 degrees and the
+x&nbsp;&amp;&nbsp;y swap places. Therefore, to properly specify the any dimensions of a
+package, we must first establish the <em>normal orientation</em> (or zero-orientation)
+of that package. See chapter <a href="help-packages.html#Normal_orientations">Normal orientations</a>
+for the standardized normal orientations of packages.
+</p>
+<p>
+The courtyard is not stored in the package file (and it cannot be entered in the
+application), because it is easily computed from the other sizes. See the manual
+for the equations for calculating the courtyard.
+</p>
+</div>
+
+<a name="Origin_offsets"></a>
+<h2>Origin offsets</h2>
+<div class="midsection">
+<p>
+An essential concept for machine assembly of a PCB (with a pick-&-place machine)
+is the centroid: the centre of mass. A pick-&-place machine picks up the component
+at its centroid. The rationale is that pick-&-place machines use suction to hold
+the component &ldquo;glued&rdquo; to its nozzle, and the amount of suction is
+calibrated to the weight of the component. However, if a component is not in
+balance beneath the nozzle, it may &ldquo;float&rdquo; on the nozzle as the
+nozzle accelerates and decelerates in its movements from the feeder to the
+placement position. In other words, placement may then be less accurate.
+</p>
+<p>
+For symmetric packages (the grand majority of packages), the centroid coincides
+with the geometric centre. For these, the origin offsets are zero, for the body,
+the lead-to-lead envelope and for the footprint contour. Otherwise, you need to
+specify the appropriate offsets of the geometric centre relative to the centroid.
+</p>
+<div align="center">
+  <a name="Figure_centroidoffset"></a>
+  <img src="centroidoffset.png" class="center" style="max-width:80%; width:640px;">
+  Figure 3: Centroid and geometric offset
+</div>
+<p>
+In the above figure of a TO-252 package (also known as DPAK), the centroid is
+marked with the blue &#x2295; symbol. When looking at the body of the TO-252 package,
+the centroid still falls on the geometric centre of the body &mdash;which is by
+design. For the lead-to-lead envelope, this is not the case: the geometric
+centre is offset to the left of the centroid. In the concrete case of the
+TO-252 package, the origin offset of the lead-to-lead envelope is
+X:&nbsp;-0.9&nbsp;mm, Y:&nbsp;0&nbsp;mm.
+</p>
+<p>
+The figure omits a drawing of the footprint for this package, but an origin
+offset applies to the footprint contour as well (and, consequently, to the
+courtyard too).
+</p>
+</div>
+
+<a name="Pitch_and_spans"></a>
+<h2>Pitch and spans</h2>
+<div class="midsection">
+<p>
+The pitch is the distance between two pins or pads on the same row. The span is
+the distance between pads of opposing rows. It is illustrated in <a href="#Figure_pitch_span">Figure 4</a>
+with a footprint for the SOT23-5 package.
+<p>
+<div align="center">
+  <a name="Figure_pitch_span"></a>
+  <img src="footprint-pitch-span.png" class="center" style="max-width:80%; width:226px;">
+  Figure 4: Pitch and span (on a footprint)
+</div>
+</p>
+The pitch is an attribute of the package (the pitch of a footprint is
+necessarily the same as the spacing of the pins of the package), but the span
+depends on the footprint. Typically, the span (horizontal and/or vertical) is
+slightly smaller than the lead-to-lead size in the same direction, but there is
+no hard rule &mdash;it depends on the termination type amongst others. A quad-row
+package has both a horizontal and a vertical span; these are the same for square
+packages, but different for a quad-row rectangular package.
+<p>
+</p>
+A 2-pin surface-mount component typically has a span, but not a pitch.
+Through-hole 2-pin connectors form an exception, their pin distance is often
+specified as their &ldquo;pin pitch&rdquo;.
+<p>
+</div>
+
+</body>
+</html>

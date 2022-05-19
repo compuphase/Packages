@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html style="direction: ltr;" lang="en">
+<head>
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>Partbase</title>
+  <link rel="stylesheet" href="webviewstyle.css" type="text/css">
+</head>
+<body style="margin-right:1em">
+
+<!-- help menu button & drop-down menu -->
+<div class="dropdown-menu">
+  <input type="image" src="b_menu.png" onclick="DropDownMenu()" class="dropbtn"/>
+  <div id="DropDownHelp" class="dropdown-content">
+    <a href="help-index.html#Overview">Overview</a>
+    <a href="help-main.html">Editing Packages</a>
+    <a href="help-search.html">Search &amp; Selections</a>
+    <a href="help-export.html">Exporting packages</a>
+    <a href="help-import.html">Importing packages</a>
+    <a href="help-concepts.html#Package_concepts">Package concepts</a>
+    <a href="help-fileformat.html#File_format">File format</a>
+    <a href="help-packages.html#SMT_terminal_types">SMT terminal types</a>
+    <a href="help-packages.html#Normal_orientations">Normal orientations</a>
+    <a href="help-standards.html#Package_naming_standards">Package naming standards</a>
+  </div>
+</div>
+<script src="help-menu.js"></script>
+
+<a name="Exporting_packages"></a>
+<h2>Exporting packages</h2>
+<div class="midsection">
+<p>
+A selection of packages can be exported to a new file.  The first step in exporting
+packages, is to <a href="help-search.html#Searching_and_filtering_packages">create a selection</a>.
+After that, open the &ldquo;File&rdquo; menu and select &ldquo;Export&rdquo;
+</p>
+<p>
+The export file is in the format of a repository, as described in the
+<a href="help-fileformat.html#File_format">File format specification</a>.
+It can be opened and edited in the Packages application, like any other repository.
+</p>
+<p>
+Packages exported from one repository can subse­quently be
+<a href="help-import.html#Importing_packages">imported into another repository</a>.
+</p>
+</div>
+
+</body>
+</html>

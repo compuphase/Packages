@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html style="direction: ltr;" lang="en">
+<head>
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>Partbase</title>
+  <link rel="stylesheet" href="webviewstyle.css" type="text/css">
+</head>
+<body style="margin-right:1em">
+
+<!-- help menu button & drop-down menu -->
+<div class="dropdown-menu">
+  <input type="image" src="b_menu.png" onclick="DropDownMenu()" class="dropbtn"/>
+  <div id="DropDownHelp" class="dropdown-content">
+    <a href="help-index.html#Overview">Overview</a>
+    <a href="help-main.html">Editing Packages</a>
+    <a href="help-search.html">Search &amp; Selections</a>
+    <a href="help-export.html">Exporting packages</a>
+    <a href="help-import.html">Importing packages</a>
+    <a href="help-concepts.html#Package_concepts">Package concepts</a>
+    <a href="help-fileformat.html#File_format">File format</a>
+    <a href="help-packages.html#SMT_terminal_types">SMT terminal types</a>
+    <a href="help-packages.html#Normal_orientations">Normal orientations</a>
+    <a href="help-standards.html#Package_naming_standards">Package naming standards</a>
+  </div>
+</div>
+<script src="help-menu.js"></script>
+
+<a name="Package_naming_standards"></a>
+<h1>Package naming standards</h1>
+<div class="midsection">
+<p>
+There have been several attempts to come to a generic naming convention that
+describes standard packages in a more precise and less ad-hoc way. The one that
+has gained widest acceptance, is IPC-7351B &ldquo;<em>Naming Conventions for
+Standard SMT Land Patterns</em>&rdquo;. This standard is not without its flaws,
+though: internal inconsistencies and ambiguous descriptions make the standard
+open to interpretation. These were set out to be fixed in the updated IPC-7351C
+standard, but the work on this update stalled, the IPC workgroup disbanded and
+the new workgroup has not held a meeting for the past four years.
+</p>
+<p>
+A draft for the proposed updates for the chapter on the package naming
+convention, though, was published by the author of that chapter &mdash;the
+&ldquo;<em>Library Expert Footprint Naming Convention</em>&rdquo;. It is available
+from <a href="https://www.pcblibraries.com/">https://www.pcblibraries.com/</a>,
+requiring a free registration. Despite being an unofficial standard, this draft
+document is considered the <em>current</em> IPC naming convention. For a
+summary, see topic <a href="#IPC7351_summary">IPC-7351 summary</a>, and also see
+the <a href="#Package_naming_examples">examples</a>.
+</p>
+<p>
+A contender is JEITA standard ED-7303C &ldquo;<em>Name and code for integrated
+circuits package</em>&rdquo; (originally an EIAJ standard; JEITA is the successor
+of EIAJ). ED-7303 is more limited than IPC-7351, because it only deals with
+packages for integrated circuits. The advantage, however, is that the naming
+convention stays closer to the industry-standard names like TSSOP and LQFP.
+Codes for pitch, span, or body sizes are affixed at the end as needed. See
+topic <a href="#ED7303_summary">ED-7303 summary</a> for an overview,and also see
+the <a href="#Package_naming_examples">examples</a>.
+</p>
+<p>
+Of mention is furthermore the JEDEC standard JESD30 &ldquo;<em>Descriptive
+Designation System for Electronic-device Packages</em>&rdquo;. This is an
+elaborate standard that tries to describe every feature of a package. The
+resulting package names are cryptic, though, and it does not appear that this
+standard is active use. Curious, in this respect, is that JEDEC also maintains
+a large collection of design drawings for electronic packages, categorized as a
+two-letter prefix plus a sequence number (plus an optional suffix), where the
+prefix is &ldquo;DO&rdquo; for diodes, &ldquo;TO&rdquo; for transistors, and
+&ldquo;MO&rdquo; or &ldquo;MS&rdquo; for integrated circuits. These drawings
+&ldquo;reference labels&rdquo; are actually in common use (e.g. DO-219AA as
+an alias for SOD123, or TO-252 as an alias for DPAK). Yet, JESD30 ignores these
+reference drawings and restarts from scratch.
+</p>
+<p>
+Lastly, none of the above standards covers manufacturer-specific packages (and
+footprints), such as those for connectors, submodules and special components. As
+a result, there are no standard names for these packages either. The common
+convention is that these packages are named:
+</p>
+<blockquote>
+  <em>Manufacturer Name</em> + &ldquo;_&rdquo; + <em>Product Number</em>
+</blockquote>
+<p>
+An example of the above convention is CUI_PJ-001AH-67. &mdash;a SMT mounted DC
+power connector manufactured by CUI.
+</p>
+<p>
+The product number may contain wild-card characters (typically an &ldquo;x&rdquo;),
+in case there is a range of components that all use the same package.
+</p>
+</div>
+
+<a name="Metric_versus_Imperial"></a>
+<h2>Metric versus Imperial</h2>
+<div class="midsection">
+<p>
+In the 1980s, the various standardization organizations for the electronics
+industry came to an agreement to move to metric and specify the dimensions in
+all future standards in millimetres. However, when the (USA-based) EIA published
+the PDP-100 standard on the &ldquo;chip&rdquo; packages (for surface mount
+resistors, capacitors, ferrite beads and other 2-pin parts) in 1987, the
+backlash from the USA industry was such that the EIA back-pedalled on its
+decision and republished the standard a year later with dimensions in both
+imperial and metric.
+</p>
+<p>
+The trouble is: the EIA also chose to identify the packages by their size. For
+example, the 0805 package is a chip with a length of 8/100<sup>th</sup>&nbsp;inch
+and a width of 5/100<sup>th</sup>&nbsp;inch. In other words, the package&rsquo;s
+<em>label</em> is simply its dimensions in the 2D plane in increments of
+0.01&nbsp;inch. In metric, this size is roughly 2.0&nbsp;&times;&nbsp;1.25&nbsp;mm.
+That same 0805 package can also be labelled 2012 &mdash;again the length and
+width of the package, but now in increments of 0.1&nbsp;mm. Both 0805 and 2012
+refer to the same package; both are valid, standardized names for one and the
+same package; both are in active use, although imperial is more common
+than metric (especially in the USA).
+</p>
+<p>
+A complication is that you cannot tell from looking at the package name alone,
+whether it should be interpreted as imperial or metric. At this time, there does
+not exist a package with the imperial size of 2012, so in this case you can make
+an educated guess that 2012 must be interpreted as metric. However, conflicts do
+exist: 0603, 0402 and 0201 are valid imperial sizes for a package as well as a
+valid metric sizes &mdash;but the metric packages being more than twice as small
+as their imperial counterparts with the same moniker.
+</p>
+<div align="center">
+<table>
+<thead>
+<tr><th>Imperial</th><th>Metric</th><th>Body size</th></tr>
+<tr><td>008004</td><td>0201</td><td>0.25&times;0.125&nbsp;mm</td></tr>
+<tr><td>01005</td><td>0402</td><td>0.4&times;0.2&nbsp;mm</td></tr>
+<tr><td>0201</td><td>0603</td><td>0.6&times;0.3&nbsp;mm</td></tr>
+<tr><td>0402</td><td>1005</td><td>1.0&times;0.5&nbsp;mm</td></tr>
+<tr><td>0603</td><td>1608</td><td>1.6&times;0.8&nbsp;mm</td></tr>
+<tr><td>0805</td><td>2012</td><td>2.0&times;1.25&nbsp;mm</td></tr>
+<tr><td>1008</td><td>2520</td><td>2.5&times;2.0&nbsp;mm</td></tr>
+<tr><td>1206</td><td>3216</td><td>3.2&times;1.6&nbsp;mm</td></tr>
+<tr><td>1210</td><td>3225</td><td>3.2&times;2.5&nbsp;mm</td></tr>
+<tr><td>1808</td><td>4520</td><td>4.5&times;2.0&nbsp;mm</td></tr>
+<tr><td>1812</td><td>4532</td><td>4.5&times;3.2&nbsp;mm</td></tr>
+<tr><td>2010</td><td>5025</td><td>5.0&times;2.5&nbsp;mm</td></tr>
+<tr><td>2012</td><td>5032</td><td>5.0x3.2&nbsp;mm</td></tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+Common &ldquo;chip package&rdquo; sizes, in imperial and metric
+</div>
+<p>
+There was some hope, roughly twenty years ago, that the schism between metric
+and imperial would be resolved, because the EIA suspended its yearly updates to
+the PDP-100 standard in 1995, due to it being &ldquo;in revision&rdquo;. It
+never materialized, though (and neither were the updates resumed). The EIA
+ceased its operations in 2011.
+</p>
+<p>
+A convention that is increasingly applied (but not yet universal) is to add an
+&ldquo;M&rdquo; suffix to the metric specifications of the packages. Thus, we
+speak of 0805 and 2012M.
+</p>
+</div>
+
+<a name="IPC7351_summary"></a>
+<h2>IPC-7351 summary</h2>
+<div class="midsection">
+<p>
+IPC-7351 touts itself as a standard for &ldquo;land patterns&rdquo; (footprints),
+and it adds a suffix at the end of every footprint name to indicate the desired
+<em>density</em> of the assembly. A high density imposes a smaller footprint,
+and thus IPC-7351 identifies each package with three different labels for
+three standardized densities: <em>Nominal</em>, <em>Least</em> and <em>Most</em>
+&mdash;where &ldquo;least&rdquo; is for the footprint with the least spacing and
+the smallest pads, so for the <em>highest</em> density. In its label, the last
+letter (&ldquo;N&rdquo;, &ldquo;L&rdquo; or &ldquo;M&rdquo;) indicates the
+density. The density is not relevant for a package description, therefore this
+letter may be dropped on the package name or variant name.
+</p>
+<p>
+Dimensions are in 1/100<sup>th</sup> of a millimetre. The X, Y and Z dimensions
+are separated with an &ldquo;X&rdquo;, and the &ldquo;X&rdquo; and &ldquo;Y&rdquo;
+dimensions refer to the lead-to-lead size. For the X and Y dimensions, the value
+is the nominal size; for the X dimension, the value is the maximum size. For
+example, a 20-pin TSSOP package (with standard 0.65&nbsp;mm pitch) is named as
+SOP20P65_650X640X110. You can dissect this name as:
+</p>
+<ul>
+<li>package style = small outline with pins (&ldquo;SOP&rdquo;)
+<li>20 pins, pitch = 0.65&nbsp;mm (65/100&nbsp;mm)
+<li>lead-to-lead size = 6.5&times;6.4&nbsp;mm, max. height = 1.1&nbsp;mm
+</ul>
+<p>
+However, for packages for discrete components, IPC-7351 switches to the (metric)
+convention of PDP-100, which is 1/10th of a millimetre, and drops the
+&ldquo;X&rdquo; between the X and Y dimensions. For example, a common
+&ldquo;chip&rdquo; style resistor is RESC2012X50N, which we can dissect as:
+</p>
+<ul>
+<li>component type = resistor (&ldquo;RES&rdquo;)
+<li>package style = chip (&ldquo;C&rdquo;)
+<li>lead-to-lead size (same as the body size) = 2.0&times1.2&nbsp;mm, max. height = 0.5&nbsp;mm
+</ul>
+<p>
+The inclusion of the component type in the package name leads to a proliferation
+of package/footprint specifications that all are essentially identical &mdash;the
+type of a component is neither relevant for the package, nor for the footprint.
+</p>
+</div>
+
+<a name="ED7303_summary"></a>
+<h2>ED-7303 summary</h2>
+<div class="midsection">
+<p>
+ED-7303 limits itself to packages for integrated circuits. For discrete
+semiconductors, JEITA suggests using the &ldquo;SC&rdquo; codes (separate JEITA
+standards). No guideline is given for discrete passive components, but EIA
+PDP-100 is the obvious choice. However, that still does not solve the issue of
+metric versus imperial.
+</p>
+<p>
+The recent ED-7303 standard specifies the package sizes in millimetres. These
+are plain millimetres, not scaled millimetres like in IPC-7351. Also in contrast
+to IPC-7351 is that ED-7303 specifies the dimensions of the <em>body</em> of the
+package, rather than the lead-to-lead size. However, ED-7303 comes of age: the
+original specification is from June 1998, and it carries that history in the form
+of legacy notations that are now redundant and no longer recommended &mdash;yet
+still valid. This manual restricts itself to summarizing the recommended
+standard.
+</p>
+<p>
+The height of the package is encoded in a prefix to the general package name.
+For example, VQFP is a QFP with a height between 0.8&nbsp;mm and 1.0&nbsp;mm;
+see the table below.
+</p>
+<div align="center">
+<table>
+<thead>
+<tr><th>Code</th><th>Description</th><th>Seated height</th></tr>
+<tr><td>L</td><td>Low profile</td><td>1.2 mm  &lt;  L &le; 1.7 mm</td></tr>
+<tr><td>T</td><td>Thin</td><td>1.0 mm  &lt;  T &le; 1.2 mm</td></tr>
+<tr><td>V</td><td>Very thin</td><td>0.8 mm  &lt;  V &le; 1.0 mm</td></tr>
+<tr><td>W</td><td>Very very thin</td><td>0.65 mm &lt;  W &le; 0.8 mm</td></tr>
+<tr><td>U</td><td>Ultra thin</td><td>0.5 mm  &lt;  U &le; 0.65 mm</td></tr>
+<tr><td>X</td><td>Extremely thin</td><td>X &le; 0.5 mm</td></tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+</div>
+<p>
+Other prefixes flag features like the presence of an exposed-pad (&ldquo;H&rdquo;),
+or bumpered corners (&ldquo;B&rdquo;). Multiple prefixes can be chained.
+</p>
+<p>
+An example for a package code according to ED-7303 is P-HTSSOP24-7.8x4.4-0.65,
+which means:
+</p>
+<li>plastic body (&ldquo;P-&rdquo;)
+<li>exposed-pad (&ldquo;H&rdquo;)
+<li>thin (&ldquo;T&rdquo;), height between 1.0&nbsp;mm and 1.2&nbsp;mm
+<li>package style = shrink small outline with pins (&ldquo;SSOP&rdquo;)
+<li>24 pins
+<li>body size = 7.8&times;4.4&nbsp;mm
+<li>pitch 0.65&nbsp;mm
+<p>
+The material code (&ldquo;P-&rdquo; in the above example) is required according
+to the standard, but actually superfluous &mdash;so it is, in fact, often omitted.
+</p>
+</div>
+
+<a name="Package_naming_examples"></a>
+<h2>Examples of package names</h2>
+<div class="midsection">
+<div align="center">
+<table>
+<thead>
+<tr><th>IPC-7351C (draft) &#x2460;</th><th>ED-7303C / JEITA</th><th>Description</th></tr>
+<tr><td>RESC2012X50 &#x2461;</td><td>&nbsp;</td><td>0805 imperial, resistor, 2.0&times;1.25&nbsp;mm, 0.5&nbsp;mm high (max.)</td></tr>
+<tr><td>CAPC1608X80 &#x2461;</td><td>&nbsp;</td><td>0603 imperial, capacitor 1.6&times;0.8&nbsp;mm, 0.8&nbsp;mm high (max.)</td></tr>
+<tr><td>CAPMP3216X120 &#x2461;</td><td>&nbsp;</td><td>polarized capacitor in molded package (e.g. tantalum capacitor), 2.0&times;1.25&nbsp;mm, 1.2&nbsp;mm high (max.)</td></tr>
+<tr><td>CAPAE660X610 &#x2461;</td><td>&nbsp;</td><td>aluminium electrolytic capacitor, case D, lead span 6.6&nbsp;mm (body 6.3&nbsp;mm), 6.1&nbsp;mm high</td></tr>
+<tr><td>BEADC2012X60 &#x2461;</td><td>&nbsp;</td><td>0805 imperial, ferrite bead, 2.0&times;1.25&nbsp;mm, 0.6&nbsp;mm high (max.)</td></tr>
+<tr><td>INDM4240X350 &#x2461;</td><td>&nbsp;</td><td>power inductor in molded package, 4.2&times;4.0&nbsp;mm lead-to-lead size, 3.5&nbsp;mm high (max.)</td></tr>
+<tr><td>RESCAV10P65_3216X50 &#x2461;</td><td>&nbsp;</td><td>0612-10 imperial, resistor array, 10 pins, 1.6&times;3.2&nbsp;mm, 0.5&nbsp;mm high</td></tr>
+<tr><td>CFP6P65_2012X70</td><td>&nbsp;</td><td>0508-6 imperial, ceramic flat package (6 pins), 1.25&times;2.0&nbsp;mm, 0.7&nbsp;mm high</td></tr>
+<tr><td>DIOM5538X262 &#x2461;</td><td>&nbsp;</td><td>SOD132, DO-214AA</td></tr>
+<tr><td>DIOMELF5025 &#x2461;</td><td>&nbsp;</td><td>SOD87, DO-213AB, MELF package</td></tr>
+<tr><td>LEDC3216X110 &#x2461;</td><td>&nbsp;</td><td>LED in chip package (1206 imperial), may have a dome</td></tr>
+<tr><td>SOD3816X110</td><td>SC-109D &#x2462;</td><td>SOD123, DO-219AA</td></tr>
+<tr><td>SOT6P65_210X110</td><td>SC-70-6 &#x2462;</td><td>SOT363, MO-203AB</td></tr>
+<tr><td>DPAK3P230_1000X230</td><td>SC-63 &#x2462;</td><td>DPAK, TO-252</td></tr>
+<tr><td>XTALDFN2520X50 &#x2461;</td><td>&nbsp;</td><td>4-pin crystal, no-lead, body 2.0&times;2.5&nbsp;mm</td></tr>
+<tr><td>SOP20P65_650X640X110 &#x2464;</td><td>P-TSSOP20-6.5x4.4-0.65 &#x2463;</td><td>TSSOP 20-pin, 0.65&nbsp;mm pitch, 6.5&times;4.4&nbsp;mm body size, 6.5&times;6.4&nbsp;mm lead-to-lead, 1.1&nbsp;mm height</td></tr>
+<tr><td>SOIC8P127_495X600X175T330X240 &#x2464;</td><td>P-HSOIC8-3.8x4.95 &#x2463;</td><td>SOIC 8-pin with exposed-pad, 1.27&nbsp;mm pitch, 3.8&times;4.95&nbsp;mm body size, 6.0&times;4.95&nbsp;mm lead-to-lead, 1.75&nbsp;mm height</td></tr>
+<tr><td>QFP48P50_900X900X110 &#x2464;</td><td>P-TQFP48-7x7-0.50 &#x2463;</td><td>QFP 48-pin, 0.5&nbsp;mm pitch, 7&times;7&nbsp;mm body size, 9&times;9&nbsp;mm lead-to-lead size, 1.1&nbsp;mm height</td></tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+</div>
+<h3>Notes</h3>
+<p>&#x2460; The last letter in an IPC-7351 &ldquo;land pattern&rdquo; name is a
+   code for the footprint density. It is usually &ldquo;N&rdquo;, which stands
+   for nominal, but may also be &ldquo;L&rdquo; (least) or &ldquo;M&rdquo; (most).
+   It is not relevant for package names, and therefore has been omitted in these
+   examples.
+<p>&#x2461; IPC-7351 includes the component category in the name (CAP for
+   capacitor, RES for resistor, etc), even though this is irrelevant for both the
+   package and the footprint.
+<p>&#x2462; JEITA ED-7303 standardizes only package codes for integrated circuits. For discrete
+   components, the standard refers to separate JEITA standards, notably ED-7500B.
+<p>&#x2463; The first letter of a package name in ED-7303 indicates the material
+   for the body, like &ldquo;P&rdquo; for plastic or &ldquo;C&rdquo; for ceramic.
+   The standard asserts this prefix is mandatory; it is irrelevant for the package
+   dimensions, however, and is frequently omitted.
+<p>&#x2464; IPC-7351 uses the lead-to-lead size of a package, whereas ED-7303 uses
+   the body size. Furthermore, for these packages, IPC-7351 changes its notation
+   for the size.
+</div>
+</div>
+
+</body>
+</html>

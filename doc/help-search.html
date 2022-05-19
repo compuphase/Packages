@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html style="direction: ltr;" lang="en">
+<head>
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>Partbase</title>
+  <link rel="stylesheet" href="webviewstyle.css" type="text/css">
+</head>
+<body style="margin-right:1em">
+
+<!-- help menu button & drop-down menu -->
+<div class="dropdown-menu">
+  <input type="image" src="b_menu.png" onclick="DropDownMenu()" class="dropbtn"/>
+  <div id="DropDownHelp" class="dropdown-content">
+    <a href="help-index.html#Overview">Overview</a>
+    <a href="help-main.html">Editing Packages</a>
+    <a href="help-search.html">Search &amp; Selections</a>
+    <a href="help-export.html">Exporting packages</a>
+    <a href="help-import.html">Importing packages</a>
+    <a href="help-concepts.html#Package_concepts">Package concepts</a>
+    <a href="help-fileformat.html#File_format">File format</a>
+    <a href="help-packages.html#SMT_terminal_types">SMT terminal types</a>
+    <a href="help-packages.html#Normal_orientations">Normal orientations</a>
+    <a href="help-standards.html#Package_naming_standards">Package naming standards</a>
+  </div>
+</div>
+<script src="help-menu.js"></script>
+
+<a name="Searching_and_filtering_packages"></a>
+<h1>Searching and filtering packages</h1>
+<div class="midsection">
+<p>
+You can open the search view by clicking the button &ldquo;Search&rdquo; (top right
+in <a href="help-main.html#Figure_user_interface">main view of the user interface</a>,
+or with the key combination Ctrl+F.
+</p>
+<div align="center">
+  <a name="Figure_search"></a>
+  <img src="searchview.png" class="center" style="max-width:90%; width:800px;">
+</div>
+<p>
+The search is on keywords &#x2460; and/or specific package parameters &#x2461;.
+Only exact matches are found for the pin count and the pitch, if these are set
+as search parameters. However, for the span, a 10% margin applies.
+</p>
+<p>
+Next to jumping to a match (by double-clicking on the row in the &ldquo;matches&rdquo;
+list &#x2462;), you can add one or more matches to a selection &#x2463;. When a
+selection is active, the range of packages in the
+<a href="help-main.html#Figure_user_interface">main view</a> is restricted to
+the selection. Multiple disjoint searches can be added to a selection.
+</p>
+</div>
+
+</body>
+</html>

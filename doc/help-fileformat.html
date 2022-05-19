@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html style="direction: ltr;" lang="en">
+<head>
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>Partbase</title>
+  <link rel="stylesheet" href="webviewstyle.css" type="text/css">
+</head>
+<body style="margin-right:1em">
+
+<!-- help menu button & drop-down menu -->
+<div class="dropdown-menu">
+  <input type="image" src="b_menu.png" onclick="DropDownMenu()" class="dropbtn"/>
+  <div id="DropDownHelp" class="dropdown-content">
+    <a href="help-index.html#Overview">Overview</a>
+    <a href="help-main.html">Editing Packages</a>
+    <a href="help-search.html">Search &amp; Selections</a>
+    <a href="help-export.html">Exporting packages</a>
+    <a href="help-import.html">Importing packages</a>
+    <a href="help-concepts.html#Package_concepts">Package concepts</a>
+    <a href="help-fileformat.html#File_format">File format</a>
+    <a href="help-packages.html#SMT_terminal_types">SMT terminal types</a>
+    <a href="help-packages.html#Normal_orientations">Normal orientations</a>
+    <a href="help-standards.html#Package_naming_standards">Package naming standards</a>
+  </div>
+</div>
+<script src="help-menu.js"></script>
+
+<a name="File_format"></a>
+<h1>File format</h1>
+<div class="midsection">
+<p>
+The package file is a JSON file with an array of &ldquo;objects&rdquo;, each object
+representing a package. The table below describes the fields for a single
+package. The file uses the UTF-8 character set.
+</p>
+<p>
+Fields that are not relevant for a particular package may be omitted. For example,
+the &ldquo;exposed-pad&rdquo; field is irrelevant for a 2-pin
+&ldquo;chip&rdquo; package, and it is usually not recorded. Likewise, for packages
+with &ldquo;endcap&rdquo; or &ldquo;no-lead&rdquo; terminations, the lead-to-lead
+size is identical to the body size, and it is then sufficient to record the body
+size.
+</p>
+<p>
+For fields that have an array type, if that array has no elements, the field
+may also be set to null. For example, when a package has no variants, the
+&ldquo;variants&rdquo; field may be set to null, rather than an empty array.
+Still, the preferred way to handle this case is to not include the &ldquo;variants&rdquo;
+field at all.
+</p>
+
+<div align="center">
+<table>
+<thead>
+<tr><th style="width:20%;">Field</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>date-modified</td><td>string</td><td>date and time stamp of the last update to the package, in the form <em>YYYY-MM-DD</em>T<em>HH:MM:SS</em> (the letter ?T? is a literal; it is the separator between the date and the time).</td></tr>
+<tr><td>names</td><td>array of strings</td><td>common names</td></tr>
+<tr><td>description</td><td>string</td><td>optional brief description</td></tr>
+<tr><td>type</td><td>string</td><td>&ldquo;SMD&rdquo; or &ldquo;Through-hole&rdquo;</td></tr>
+<tr><td>pin-count</td><td>integer</td><td>number of pins or leads of the package</td></tr>
+<tr><td>pitch</td><td>number</td><td>pin pitch in mm, if applicable</td></tr>
+<tr><td>polarized</td><td>boolean</td><td>true or false (may be absent if irrelevant)</td></tr>
+<tr><td>terminal</td><td>string</td><td>one of the following: &ldquo;endcap&rdquo;, &ldquo;gull-wing&rdquo;, &ldquo;inward-L&rdquo;, &ldquo;lug-lead&rdquo;, &ldquo;J-lead&rdquo;, &ldquo;no-lead&rdquo;, &ldquo;ball&rdquo;, &ldquo;castellated&rdquo; or &ldquo;through-hole&rdquo;</td></tr>
+<tr><td>tape-orientation</td><td>integer</td><td>angle between packaging orientation (EIA-481D) and normative zero-orientation (IPC-7351), in degrees</td></tr>
+<tr><td>body</td><td>object</td><td>body size (excluding pins) and centroid</td></tr>
+<tr><td>&middot;&emsp;cx,&nbsp;cy</td><td>number</td><td>nominal horizontal and vertical dimensions in mm</td></tr>
+<tr><td>&middot;&emsp;tol.x,&nbsp;tol.y</td><td>number</td><td>optional tolerance for the horizontal and vertical dimensions in mm</td></tr>
+<tr><td>&middot;&emsp;x,&nbsp;y</td><td>number</td><td>offset of the body centre from the centroid</td></tr>
+<tr><td>lead&#8209;to&#8209;lead</td><td>object</td><td>lead-to-lead&rdquo; size and centroid (see <a href="help-concepts.html#Figure_courtyard">Figure 2</a>)</td></tr>
+<tr><td>&middot;&emsp;cx,&nbsp;cy</td><td>number</td><td>lead-to-lead nominal horizontal and vertical dimensions in mm</td></tr>
+<tr><td>&middot;&emsp;tol.x,&nbsp;tol.y</td><td>number</td><td>optional tolerance for the horizontal and vertical dimensions in mm</td></tr>
+<tr><td>&middot;&emsp;x,&nbsp;y</td><td>number</td><td>offset of the shape centre from the centroid</td></tr>
+<tr><td>references</td><td>array of objects</td><td>body size (excluding pins) and centroid</td></tr>
+<tr><td>&middot;&emsp;standard</td><td>string</td><td>name or identification of the reference</td></tr>
+<tr><td>&middot;&emsp;organization</td><td>string</td><td>organization that established the reference</td></tr>
+<tr><td>related&#8209;packages</td><td>array of strings</td><td>names of other packages in the package file to which this package is related</td></tr>
+<tr><td>variants</td><td>array of objects</td><td>list of specific variants of the common name</td></tr>
+<tr><td>&middot;&emsp;name</td><td>string</td><td>the (normative) name of the variant</td></tr>
+<tr><td>&middot;&emsp;standard</td><td>string</td><td>name of the standard or convention (if any)</td></tr>
+<tr><td>&middot;&emsp;height</td><td>object</td><td>the height range of the variant in mm</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;low</td><td>number</td><td>minimum height in mm</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;high</td><td>number</td><td>maximum height in mm</td></tr>
+<tr><td>&middot;&emsp;exposed&#8209;pad</td><td>boolean</td><td>whether this variant has an exposed-pad</td></tr>
+<tr><td>&middot;&emsp;notes</td><td>string</td><td>optional comment or notes</td></tr>
+<tr><td>footprints</td><td>array of objects</td><td>list van footprints</td></tr>
+<tr><td>&middot;&emsp;type</td><td>string</td><td>one of &ldquo;nominal&rdquo;, &ldquo;least&rdquo; or &ldquo;most&rdquo;, according to the specification in IPC-7351</td></tr>
+<tr><td>&middot;&emsp;span</td><td>object</td><td>distance between pads in opposing rows (see <a href="help-concepts.html#Figure_pitch_span">Figure 4</a>)</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;cx,&nbsp;cy</td><td>number</td><td>distance in mm</td></tr>
+<tr><td>&middot;&emsp;contour</td><td>object</td><td>footprint contour and centroid (see <a href="help-concepts.html#Figure_courtyard">Figure 2</a>)</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;cx,&nbsp;cy</td><td>number</td><td>contour horizontal and vertical dimensions in mm</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;x,&nbsp;y</td><td>number</td><td>offset of the contour centre from the centroid</td></tr>
+<tr><td>&middot;&emsp;pad&#8209;shapes</td><td>array of objects</td><td>list of unique pad shapes and sizes used in the footprint</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;pad-id</td><td>integer</td><td>sequence number of the pad shape definition</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;cx,&nbsp;cy</td><td>number</td><td>horizontal and vertical dimensions of the pad in mm</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;shape</td><td>string</td><td>one of &ldquo;rectangle&rdquo;, &ldquo;round&rdquo;, &ldquo;roundedrect&rdquo;, &ldquo;obround&rdquo;, &ldquo;polygon&rdquo; or &ldquo;special&rdquo;</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;exposed&#8209;pad</td><td>boolean</td><td>whether this pad represents an exposed centre pad (for variants that have an exposed-pad)</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;hole</td><td>number</td><td>diameter of the hole in the pad (applicable for through-hole packages)</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;x,&nbsp;y</td><td>number</td><td>offset of the pad origin relative to the pad&rsquo;s geometric centre</td></tr>
+<tr><td>&middot;&emsp;pad&#8209;positions</td><td>array of object</td><td>list of the pad positions</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;pin-id</td><td>integer</td><td>pin number</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;pad-id</td><td>integer</td><td>reference to the pad shape for this pin</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;x,&nbsp;y</td><td>number</td><td>position of the pad origin, relative to the centroid position of the footprint</td></tr>
+<tr><td>&middot;&emsp;&middot;&emsp;rotation</td><td>number</td><td>rotation of the pad shape, relative to the definition in the pad-shapes array</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<a name="File_format_notes"></a>
+<h2>Notes</h2>
+<div class="midsection">
+<p>
+For the pad shape, a square pad is stored as a &ldquo;rectangle&rdquo; shape;
+the cx and cy parameters will establish that it is square. The radius for the
+rounded corners of a &ldquo;roundedrect&rdquo; shape is not specified; in the
+scope of  <span class="smallcaps">Packages</span>, the intent is to flag the pad
+shape as an intermediate form  between rectangle and obround.
+</p>
+<p>
+All coordinates assume that in the 2D projection, the Y-axis points upwards.
+This is in conformance with the Gerber standard. Some design programs use a
+downward Y-axis &mdash;a common convention in the early days of computing. Such
+programs should flip the sign on Y coordinates on reading the data from the
+JSON file.
+</p>
+<div align="center">
+  <a name="Figure_axis_orientation"></a>
+  <img src="SOIC16_0.png" class="center" style="max-width:80%; width:226px;">
+  Figure 5: X &amp; Y axis orientation
+</div>
+</div>
+
+</body>
+</html>

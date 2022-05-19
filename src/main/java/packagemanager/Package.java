@@ -24,6 +24,11 @@ import java.io.Writer;
 
 import javafx.collections.*;
 import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.TimeZone;
+import java.text.SimpleDateFormat;
+
 
 /**
  *
@@ -139,6 +144,9 @@ public class Package implements Jsonable{
             this.bodyOrgX = orgX;
             this.bodyOrgY = orgY;
         }
+        private Body(Body body) {   //for copying
+            this(body.bodyX, body.bodyY, body.bodyXtol, body.bodyYtol, body.bodyOrgX, body.bodyOrgY);
+        }
 
         /*implementation for interface Jsonable*/
         @Override
@@ -179,13 +187,22 @@ public class Package implements Jsonable{
 
         /*constructors*/
         Lead2Lead(){
-            this(0, 0, 0, 0);
+            this(0, 0, 0, 0, 0, 0);
         }
         Lead2Lead(double x, double xTol, double y, double yTol){
+            this(x, xTol, y, yTol, 0, 0);
+
+        }
+        Lead2Lead(double x, double xTol, double y, double yTol, double orgX, double orgY){
             this.x = x;
             this.y = y;
             this.xTol = xTol;
             this.yTol = yTol;
+            this.orgX = orgX;
+            this.orgY = orgY;
+        }
+        Lead2Lead(Lead2Lead l){ //it's a lowercase L
+            this(l.x, l.xTol, l.y, l.yTol, l.orgX, l.orgY);
         }
 
         /*implementation for interface Jsonable*/
@@ -298,7 +315,7 @@ public class Package implements Jsonable{
         return values;
     }
 
-    class SpecificPackage implements Jsonable{    //renamed to "variants" in Json. Keeps old name in code
+    public class Variant implements Jsonable{    //renamed to "variants" in Json. Keeps old name in code
         /* fields and getter/setters */
         String variantName;
         NameStandard standard;  //TODO: implement everywhere else
@@ -348,12 +365,18 @@ public class Package implements Jsonable{
         HeightRange heightRange;
 
         /*constructors*/
-        SpecificPackage(String ipcName, NameStandard standard, double minHeight, double maxHeight, boolean centerPadExposed, String notes){
+        Variant(String ipcName, NameStandard standard, double minHeight, double maxHeight, boolean centerPadExposed, String notes){
             this.variantName = ipcName;
             this.standard =  standard;
             this.centerPadExposed = centerPadExposed;
             this.variantNotes =  notes;
             this.heightRange = new HeightRange(minHeight, maxHeight);
+        }
+        Variant(Variant spep){
+            this(spep.variantName, spep.standard, spep.heightRange.minHeight, spep.heightRange.maxHeight, spep.centerPadExposed, spep.variantNotes);
+        }
+        Variant(App.SpepaMirror spep){
+            this(spep.spepaName, spep.standard, spep.minHeight, spep.maxHeight, spep.padExposed, spep.spepaNotes);
         }
 
         /*implementation for interface Jsonable */
@@ -385,40 +408,7 @@ public class Package implements Jsonable{
         }
 
     }
-    SpecificPackage[] specPacks; //renamed to "variants" in Json. Keeps old name in code
-
-    /* Getters and setters.*/
-    public void setipcName(int index,String name){
-        specPacks[index].variantName = name;
-    }
-    public String getipcName(int index){
-        return specPacks[index].variantName;
-    }
-
-    public void setStandard(int index, NameStandard standard){
-        specPacks[index].standard = standard;
-    }
-    public NameStandard getStandard(int index){
-        return specPacks[index].standard;
-    }
-    public void setNotes(int index, String newNotes, int position){
-        specPacks[index].variantNotes = newNotes;
-    }
-    public String getNotes(int index){
-        return specPacks[index].variantNotes;
-    }
-    void setMinHeight(int index, double height){
-        specPacks[index].heightRange.minHeight = height;
-    }
-    double getMinHeight(int index){
-        return specPacks[index].heightRange.minHeight;
-    }
-    void setMaxHeight(int index, double tolerance){
-        specPacks[index].heightRange.maxHeight = tolerance;
-    }
-    double getMaxHeight(int index){
-        return specPacks[index].heightRange.maxHeight;
-    }
+    ArrayList<Variant> specPacks; //renamed to "variants" in Json. Keeps old name in code
 
     public enum FootprintType{
         NOMINAL,
@@ -484,7 +474,35 @@ public class Package implements Jsonable{
     }
 
 
-    class Footprint implements Jsonable{
+    public enum PadType{
+        STANDARD,
+        EXPOSED,
+        MECHANICAL
+    }
+    static String padTypeAsString(PadType pt){
+        switch(pt){
+            case STANDARD: return "standard";
+            case EXPOSED: return "exposed";
+            case MECHANICAL: return "mechanical";
+            default: return "standard";
+        }
+    }
+    static PadType padTypeFromString(String s){
+        switch(s){
+            case "standard": return PadType.STANDARD;
+            case "exposed": return PadType.EXPOSED;
+            case "mechanical": return PadType.MECHANICAL;
+            default: return PadType.STANDARD;
+        }
+    }
+    static ObservableList<String> padTypeValues(){
+        ObservableList<String> values = FXCollections.observableArrayList();
+        values.addAll("standard", "exposed", "mechanical");
+        return values;
+    }
+
+
+    public class Footprint implements Jsonable{
         /* fields and getter/setters */
         FootprintType ftprntType;
         void setType(FootprintType type){
@@ -505,6 +523,9 @@ public class Package implements Jsonable{
             Span(double x, double y){
                 this.x = x;
                 this.y = y;
+            }
+            Span(Span source){
+                this(source.x, source.y);
             }
 
             /*implementation for interface Jsonable of Span*/
@@ -549,6 +570,9 @@ public class Package implements Jsonable{
                 this.orgX = orgX;
                 this.orgY = orgY;
             }
+            Outline(Outline source){
+                this(source.length, source.width, source.orgX, source.orgY);
+            }
 
             /*implementation for interface Jsonable of Outline*/
             @Override
@@ -576,7 +600,7 @@ public class Package implements Jsonable{
         Outline outline;
 
 
-        class PadDimension implements Jsonable{
+        public class PadDimension implements Jsonable{
             int padId;
             void setPadId(int i){
                 this.padId = i;
@@ -632,16 +656,13 @@ public class Package implements Jsonable{
                 return this.originY;
             }
 
-            boolean padExposed;
-            void setPadExposed(boolean b){
-                this.padExposed = b;
-            }
-            boolean getPadExposed(){
-                return this.padExposed;
-            }
+            PadType padType;
+
+            Polygon polygon;
+
 
             /*constructor*/
-            PadDimension(int padId, double length, double width, PadShape shape, double holeDiam, double originX, double originY, boolean padExposed){
+            PadDimension(int padId, double length, double width, PadShape shape, double holeDiam, double originX, double originY, PadType padType, Polygon polygon){
                 this.padId = padId;
                 this.length = length;
                 this.width = width;
@@ -649,7 +670,16 @@ public class Package implements Jsonable{
                 this.holeDiam = holeDiam;
                 this.originX = originX;
                 this.originY = originY;
-                this.padExposed = padExposed;
+                this.padType = padType;
+                if(polygon != null){
+                    this.polygon = new Polygon(polygon);
+                }
+            }
+            PadDimension(PadDimension source){
+                this(source.padId, source.length, source.width, source.shape, source.holeDiam, source.originX, source.originY, source.padType, source.polygon);
+            }
+            PadDimension(App.PadDimMirror dim){
+                this(dim.padId, dim.length, dim.width, dim.shape, dim.holeDiam, dim.originX, dim.originY, dim.padType, dim.getPolyFromList());
             }
 
             /*implementation for interface Jsonable of PadDimension*/
@@ -677,15 +707,27 @@ public class Package implements Jsonable{
                     json.put("x", this.originX);
                     json.put("y", this.originY);
                 }
-                if(this.padExposed){
-                    json.put("exposed-pad", this.padExposed);
+                json.put("pad-type", padTypeAsString(padType));
+
+                if(polygon != null && this.shape == PadShape.POLYGON){
+                    json.put("polygon", this.polygon);
                 }
+
                 json.toJson(writer);
             }
         }
-        PadDimension[] dimensions;
+        ArrayList<PadDimension> dimensions;
 
-        class PadPosition implements Jsonable{
+        /* PadDimension copy method */
+        private ArrayList<PadDimension> copyDimensions(){
+            ArrayList<PadDimension> dest = new ArrayList<>();
+            for(PadDimension pd : dimensions){
+                dest.add(new PadDimension(pd));
+            }
+            return dest;
+        }
+
+        public class PadPosition implements Jsonable{
             /* fields and getter/setters */
             String pinId; //main pin identifier
             void setPinId(String s){
@@ -735,6 +777,12 @@ public class Package implements Jsonable{
                 this.padId = padId;
                 this.rotation = rotation;
             }
+            PadPosition(PadPosition source){
+                this(source.pinId, source.xPos, source.yPos, source.padId, source.rotation);
+            }
+            PadPosition(App.PadPosMirror pos){
+                this(pos.pinId, pos.xPos, pos.yPos, pos.padId, pos.rotation);
+            }
 
             /*implementatie for interface Jsonable of PadPosition*/
             @Override
@@ -758,7 +806,42 @@ public class Package implements Jsonable{
                 json.toJson(writer);
             }
         }
-        PadPosition[] padPositions;
+        ArrayList<PadPosition> padPositions;
+
+        /* PadPosition copy method */
+        private ArrayList<PadPosition> copyPositions(){
+            ArrayList<PadPosition> dest = new ArrayList<>();
+            for(PadPosition pos : padPositions){
+                dest.add(new PadPosition(pos));
+            }
+            return dest;
+        }
+
+        public void reset(){
+            ftprntType = FootprintType.NOMINAL;
+            span = new Span();
+            outline = new Outline();
+        }
+
+        /* Footprint constructors */
+        Footprint(){
+            ftprntType = FootprintType.NOMINAL;
+            span = new Span();
+            outline = new Outline();
+            dimensions = new ArrayList<>();
+            padPositions = new ArrayList<>();
+        }
+        Footprint(Footprint source){    //for copying
+            ftprntType = source.ftprntType;
+            span = new Span(source.span);
+            outline = new Outline(source.outline);
+            if(source.dimensions != null){
+                dimensions = source.copyDimensions();
+            }
+            if(source.padPositions != null){
+                padPositions = source.copyPositions();
+            }
+        }
 
         /*implementation for interface Jsonable of Footprint*/
         @Override
@@ -775,96 +858,69 @@ public class Package implements Jsonable{
         public void toJson(Writer writer) throws IOException {
             final JsonObject json = new JsonObject();
             json.put("type", footprintTypeasString(this.ftprntType));
-            json.put("span", this.span);
+            if(!checkZero(this.span.x) || !checkZero(this.span.y)){
+                json.put("span", this.span);
+            }
             json.put("contour", this.outline);
-            json.put("pad-shapes", this.dimensions);
-            json.put("pad-positions", this.padPositions);
+            if(dimensions != null && dimensions.size() > 0){
+                json.put("pad-shapes", this.dimensions);
+            }
+            if(padPositions != null && padPositions.size() > 0){
+                json.put("pad-positions", this.padPositions);
+            }
             json.toJson(writer);
         }
     }
-    Footprint[] footPrints; //currently only 1 FootPrint supported
-    /* Public getters & setters for Footprint */
-    public void setfpType(int index, FootprintType t){
-        footPrints[index].setType(t);
+    ArrayList<Footprint> footPrints;
+
+    public void addFootprint(Footprint fp){
+        footPrints.add(fp);
     }
-    public FootprintType getfpType(int index){
-        return footPrints[index].getType();
+    public void removeFootprint(Footprint fp){
+        footPrints.remove(fp);
     }
 
-    /* Public getters & setters for PadDimension */
-    public void setpadDimId(int index, int index2, int id){
-        footPrints[index].dimensions[index2].setPadId(id);
-    }
-    public int getpadDimId(int index, int index2){
-        return footPrints[index].dimensions[index2].getPadId();
-    }
-    public void setpadDimlength(int index, int index2, double d){
-        footPrints[index].dimensions[index2].setLength(d);
-    }
-    public double getpadDimlength(int index, int index2){
-        return footPrints[index].dimensions[index2].getLength();
-    }
-    public void setpadDimwidth(int index, int index2, double d){
-        footPrints[index].dimensions[index2].setWidth(d);
-    }
-    public double getpadDimwidth(int index, int index2){
-        return footPrints[index].dimensions[index2].getWidth();
-    }
-    public void setpadDimshape(int index, int index2, PadShape p){
-        footPrints[index].dimensions[index2].setPadShape(p);
-    }
-    public PadShape getpadDimshape(int index, int index2){
-        return footPrints[index].dimensions[index2].getPadshape();
-    }
-    public void setpadDimholediam(int index, int index2, double d){
-        footPrints[index].dimensions[index2].setHoleDiam(d);
-    }
-    public double getpadDimholediam(int index, int index2){
-        return footPrints[index].dimensions[index2].getHoleDiam();
-    }
-    public void setpadDimOriginX(int index, int index2, double d){
-        footPrints[index].dimensions[index2].setOriginX(d);
-    }
-    public double getpadDimOriginX(int index, int index2){
-        return footPrints[index].dimensions[index2].getOriginX();
-    }
-    public void setpadDimOriginY(int index, int index2, double d){
-        footPrints[index].dimensions[index2].setOriginY(d);
-    }
-    public double getpadDimOriginY(int index, int index2){
-        return footPrints[index].dimensions[index2].getOriginY();
-    }
+    class Reference implements Jsonable{
+        String standard;    /* standard document name or number */
+        String company;     /* organisation that drafted the standard */
+        /* constructor */
+        Reference(){
+            this("", "");
+        }
+        Reference(String standard, String company){
+            this.standard = standard;
+            this.company = company;
+        }
+        Reference(Reference source){
+            this(source.standard, source.company);
+        }
 
-    /* Public getters & setters for PadPosition */
-    public void setpadPospinId(int index, int index2, String s){
-        footPrints[index].padPositions[index2].setPinId(s);
+        /*implementation for interface Jsonable of Reference*/
+        @Override
+        public String toJson() {
+            final StringWriter writable = new StringWriter();
+            try {
+                this.toJson(writable);
+            } catch (final IOException e) {
+            }
+            return writable.toString();
+        }
+
+        @Override
+        public void toJson(Writer writer) throws IOException {
+            final JsonObject json = new JsonObject();
+            json.put("standard", this.standard);
+            json.put("organization", this.company);
+            json.toJson(writer);
+        }
     }
-    public String getpadPospinId(int index, int index2){
-        return footPrints[index].padPositions[index2].getPinId();
-    }
-    public void setpadPosX(int index, int index2, double d){
-        footPrints[index].padPositions[index2].setXPos(d);
-    }
-    public double getpadPosX(int index, int index2){
-        return footPrints[index].padPositions[index2].getXPos();
-    }
-    public void setpadPosY(int index, int index2, double d){
-        footPrints[index].padPositions[index2].setYPos(d);
-    }
-    public double getpadPosY(int index, int index2){
-        return footPrints[index].padPositions[index2].getYPos();
-    }
-    public void setpadPospadId(int index, int index2, int i){
-        footPrints[index].padPositions[index2].setPadId(i);
-    }
-    public int getpadPospadId(int index, int index2){
-        return footPrints[index].padPositions[index2].getPadId();
-    }
-    public void setpadPosrot(int index, int index2, Orientation o){
-        footPrints[index].padPositions[index2].setRotation(o);
-    }
-    public Orientation getpadPosrot(int index, int index2){
-        return footPrints[index].padPositions[index2].getRotation();
+    ArrayList<Reference> references;
+
+    ArrayList<String> relatedPackNames;
+
+    long dateModified;
+    public void dateUpdate(){
+        dateModified = new Date().getTime();
     }
 
     private boolean checkZero(double compare){
@@ -897,19 +953,65 @@ public class Package implements Jsonable{
 
         specPacks = null;
 
-        footPrints[0] = new Footprint();
-        footPrints[0].ftprntType = FootprintType.NOMINAL;
-        footPrints[0].span = footPrints[0].new Span();
-        footPrints[0].outline = footPrints[0].new Outline();
+        footPrints.clear();
+        Footprint f = new Footprint();
+        f.ftprntType = FootprintType.NOMINAL;
+        f.span = f.new Span();
+        f.outline = f.new Outline();
+        footPrints.add(f);
+
+        references = null;
+        relatedPackNames = null;
+
+        dateUpdate();
     }
 
-    public static Package[] addtofullArray(Package[] oldArray, Package entry){
-        int rqsize =  (1 + oldArray.length);
-        Package[] newArray = new Package[rqsize];
-        System.arraycopy(oldArray, 0, newArray, 0, oldArray.length);
-        newArray[oldArray.length] = entry;
-        return newArray;
+    public void copy(Package source){
+        names = new String[source.names.length];
+        System.arraycopy(source.names, 0, names, 0, source.names.length);
+        description = source.description;
+        type = source.type;
+        body = new Body(source.body);
+        lead2lead = new Lead2Lead(source.lead2lead);
+        nrOfPins = source.nrOfPins;
+        pitch = source.pitch;
+        termination = source.termination;
+        polarized = source.polarized;
+        tapeOrient = source.tapeOrient;
+        if(source.specPacks != null){
+            specPacks = copyVariants(source.specPacks);
+        }
+        footPrints = copyFootprints(source.footPrints);
+        if(source.references != null){
+            references = copyReferences(source.references);
+        }
+        if(source.relatedPackNames != null){
+            relatedPackNames = new ArrayList(source.relatedPackNames);
+        }
+        dateModified = source.dateModified;
     }
+    private ArrayList<Variant> copyVariants(ArrayList<Variant> source){
+        ArrayList<Variant> dest = new ArrayList();
+        source.forEach(spep -> {
+            dest.add(new Variant(spep));
+        });
+        return dest;
+    }
+    private ArrayList<Footprint> copyFootprints(ArrayList<Footprint> source){
+        ArrayList<Footprint> dest = new ArrayList<>();
+        source.forEach(f -> {
+            dest.add(new Footprint(f));
+        });
+        return dest;
+    }
+    private ArrayList<Reference> copyReferences(ArrayList<Reference> source){
+        ArrayList<Reference> dest = new ArrayList<>();
+        for(Reference r : source){
+            dest.add(new Reference(r));
+        }
+        return dest;
+    }
+
 
 
     /*implementation for interface Jsonable of Package*/
@@ -938,7 +1040,9 @@ public class Package implements Jsonable{
 
         json.put("body", this.body);
 
-        json.put("lead-to-lead", this.lead2lead);
+        if(!checkZero(this.lead2lead.x) || !checkZero(this.lead2lead.y) || !checkZero(this.lead2lead.orgX) || !checkZero(this.lead2lead.orgY)){
+            json.put("lead-to-lead", this.lead2lead);
+        }
 
         json.put("pin-count", this.nrOfPins);
 
@@ -948,14 +1052,22 @@ public class Package implements Jsonable{
 
         json.put("tape-orientation", orientationAsInt(this.tapeOrient));
 
-        if(this.specPacks != null && this.specPacks.length > 0){
+        if(this.specPacks != null && this.specPacks.size() > 0){
             json.put("variants", specPacks);
         }
-        if(this.footPrints != null && this.footPrints.length > 0){
+        if(this.footPrints != null && this.footPrints.size() > 0){
             json.put("footprints", this.footPrints);
         }
+        if(this.references != null && this.references.size() > 0){
+            json.put("references", this.references);
+        }
+        if(this.relatedPackNames != null && this.relatedPackNames.size() > 0){
+            json.put("related packages", this.relatedPackNames);
+        }
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+	sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        json.put("date-modified", sdf.format(this.dateModified));
         json.toJson(writer);
-
     }
 
     /* comparator for sorting the list on the first name (in the list of names/aliases) */
@@ -1022,10 +1134,10 @@ public class Package implements Jsonable{
             prefix2 = "";
             for (i = 0; i < name2.length() && Character.isDigit(name2.charAt(i)); i++)
                 prefix2 += name2.charAt(i);
-            int number1 = Integer.parseInt(prefix1);
-            int number2 = Integer.parseInt(prefix2);
+            long number1 = Long.parseLong(prefix1);
+            long number2 = Long.parseLong(prefix2);
             if (number1 != number2)
-                return number1 - number2;
+                return (number1 < number2) ? -1 : 1;
 
             /* so the values following the numbers were the same too, end with
                a simple alpha comparison of the remainder */
@@ -1035,9 +1147,8 @@ public class Package implements Jsonable{
         }
     };
 
+    /* constructor */
     Package(){
-        //System.out.println("Constructing Package");
-
         names = new String[1];
         names[0] = "";
 
@@ -1059,10 +1170,17 @@ public class Package implements Jsonable{
 
         tapeOrient = Orientation.ZERO;
 
-        footPrints = new Footprint[1];
-        footPrints[0] = new Footprint();
-        footPrints[0].ftprntType = FootprintType.NOMINAL;
-        footPrints[0].span = footPrints[0].new Span();
-        footPrints[0].outline = footPrints[0].new Outline();
+        specPacks = new ArrayList<>();
+
+        footPrints = new ArrayList<>();
+        footPrints.add(new Footprint());
+        footPrints.get(0).ftprntType = FootprintType.NOMINAL;
+        footPrints.get(0).span = footPrints.get(0).new Span();
+        footPrints.get(0).outline = footPrints.get(0).new Outline();
+
+        references = new ArrayList<>();
+        relatedPackNames = new ArrayList<>();
+
+        dateUpdate();
     }
 }

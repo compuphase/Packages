@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html style="direction: ltr;" lang="en">
+<head>
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>Partbase</title>
+  <link rel="stylesheet" href="webviewstyle.css" type="text/css">
+</head>
+<body style="margin-right:1em">
+
+<!-- help menu button & drop-down menu -->
+<div class="dropdown-menu">
+  <input type="image" src="b_menu.png" onclick="DropDownMenu()" class="dropbtn"/>
+  <div id="DropDownHelp" class="dropdown-content">
+    <a href="help-index.html#Overview">Overview</a>
+    <a href="help-main.html">Editing Packages</a>
+    <a href="help-search.html">Search &amp; Selections</a>
+    <a href="help-export.html">Exporting packages</a>
+    <a href="help-import.html">Importing packages</a>
+    <a href="help-concepts.html#Package_concepts">Package concepts</a>
+    <a href="help-fileformat.html#File_format">File format</a>
+    <a href="help-packages.html#SMT_terminal_types">SMT terminal types</a>
+    <a href="help-packages.html#Normal_orientations">Normal orientations</a>
+    <a href="help-standards.html#Package_naming_standards">Package naming standards</a>
+  </div>
+</div>
+<script src="help-menu.js"></script>
+
+<a name="SMT_terminal_types"></a>
+<h1>SMT terminal types</h1>
+<div class="midsection">
+<div align="center">
+<table>
+<thead>
+<tr><th>&nbsp;</th><th>Name</th><th>Notes</th></tr>
+</thead>
+<tbody>
+<tr><td><img src="term_endcap.png" height="48pt"></td><td>endcap</td><td>used on 2-pin &ldquo;chip&rdquo; packages</td></tr>
+<tr><td><img src="term_gull-wing.png" height="48pt"></td><td>gull-wing</td><td>common on semiconductor packages, especially for components with more than two pins<br/>(this terminal shape is also called L-lead)</td></tr>
+<tr><td><img src="term_lug-lead.png" height="48pt"></td><td>lug-lead</td><td>pins extend flat from the bottom, used on some diode packages<br/>(this terminal shape is also called flat-lead)</td></tr>
+<tr><td><img src="term_inward-L.png" height="48pt"></td><td>inward-L</td><td>used on 2-pin &ldquo;molded&rdquo; packages, such as tantalum capacitors (note how the pin folds underneath the package)</td></tr>
+<tr><td><img src="term_J-lead.png" height="48pt"></td><td>J-lead</td><td>components with J-lead terminals can be soldered on the PCB or be inserted in a socket<br/>PLCC packages use J-lead extending from all four edges</td></tr>
+<tr><td><img src="term_no-lead.png" height="48pt"></td><td>no-lead</td><td>notably QFN and DFN packages<br/>on occasion, pads are &ldquo;pulled back&rdquo; from the edges (PQFN for Pulled-back, Quad Flat No-lead)</td></tr>
+<tr><td><img src="term_ball-grid.png" height="48pt"></td><td>ball-grid</td><td>&nbsp;</td></tr>
+<tr><td><img src="term_land-grid.png" height="48pt"></td><td>land-grid</td><td>similar to ball-grid, but flat contact surfaces instead of solder balls<br/>may be used with a needle-pin connector, or be reflow soldered</td></tr>
+<tr><td><img src="term_castellated.png" height="48pt"></td><td>castellated</td><td>common for modules, occasionally used on resistor arrays<br/>on 2-pin components, this terminal style is also called side-concave</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<a name="Normal_orientations"></a>
+<h1>Normal orientations</h1>
+<div class="midsection">
+<p>
+The normal orientation is the orientation that the component has when its
+rotation is zero degrees. There are two predominant standards for the normal
+orientation of components on a PCB. Fortunately, these two standards, IPC-7351
+and IEC&nbsp;61188-7 &ldquo;Level A&rdquo;, are compatible with each other.
+</p>
+<p>
+In brief, the normal orientation of 2-pin packages is such that pin 1 is on the
+left and pin 2 is on the right. For polarized components, such as electrolytic
+or tantalum capacitors, pin 1 is the &ldquo;plus&rdquo;-pin. For diodes, pin 1 is
+the cathode. For packages with more than 2 pins, the component is oriented as
+such that pin 1 is aligned to the top left corner. If pin 1 is in the middle of
+an edge, instead of near a corner, pin 1 must be aligned to the top. A few
+exceptions to these general rules are noted beneath the table.
+</p>
+<p>
+Most surface mount components come packaged in tape, on reel. A separate
+standard exists for how the components are packaged in carrier tape, EIA-481.
+Manufacturers generally adhere to the EIA-481 standard, but many also specify
+exceptions for specific component packages; for example, many manufactures have
+continued to package QFP and QFN packages according to the rules in EIA-481<b>C</b>
+instead of adopting the changes of EIA-481<b>D</b>.
+</p>
+<p>
+The table below shows the normal orientations according to IPC-7351 and the
+packaging orientation according to the latest EIA-481 standard. The angle by
+which a package must be rotated to go from EIA-481 to IPC-7351 is also given.
+</p>
+<p>
+Note that EIA-481 only applies to packaging in tape; see the notes at the end of
+this section for tube and tray packaging.
+</p>
+<div align="center">
+<table>
+<thead>
+<tr><th style="width:25%;">EIA-481D</th><th style="width:7%;">&nbsp;</th><th style="width:12%;">IPC-7351</th><th>Notes</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td><img src="tape_chip.png" height="48pt"></td>
+  <td style="vertical-align:middle;"><img src="rotate_90.png" height="48pt"></td>
+  <td><img src="zero_chip.png" height="48pt"></td>
+  <td>Non-polarized chip or moulded packages, e.g. resistors, capacitors, inductors, 2-pin crystals.</td>
+</tr><tr>
+  <td><img src="tape_chippol.png" height="48pt"></td>
+  <td style="vertical-align:middle;"><img src="rotate_90.png" height="48pt"></td>
+  <td><img src="zero_chippol.png" height="48pt"></td>
+  <td>Polarized chip or moulded packages  (except capacitors, see below). For diodes, pin 1 is the cathode.</td>
+</tr><tr>
+  <td><img src="tape_tantalum.png" height="48pt"></td>
+  <td style="vertical-align:middle;"><img src="rotate_270.png" height="48pt"></td>
+  <td><img src="zero_tantalum.png" height="48pt"></td>
+  <td>Tantalum capacitors or other capacitors in moulded packages. Pin 1 (with a bar) is the positive pole.</td>
+</tr><tr>
+  <td><img src="tape_elco.png" height="48pt"></td>
+  <td style="vertical-align:middle;"><img src="rotate_270.png" height="48pt"></td>
+  <td><img src="zero_elco.png" height="48pt"></td>
+  <td>Electrolytic capacitors. Pin 1 is the positive pole. (The black bar marks the negative pole.)</td>
+</tr><tr>
+  <td><img src="tape_inductor.png" height="48pt"></td>
+  <td style="vertical-align:middle;"><img src="rotate_90.png" height="48pt"></td>
+  <td><img src="zero_inductor.png" height="48pt"></td>
+  <td>Power inductors (non-polarized).</td>
+</tr><tr>
+  <td><img src="tape_plcc2.png" height="48pt"></td>
+  <td style="vertical-align:middle;"><img src="rotate_90.png" height="48pt"></td>
+  <td><img src="zero_plcc2.png" height="48pt"></td>
+  <td>PLCC2 package (for LEDs). See also the <a href="#Normal_orientations_notes">notes</a> below.</td>
+</tr><tr>
+  <td><img src="tape_plcc6.png" height="48pt"></td>
+  <td style="vertical-align:middle;"><img src="rotate_90.png" height="48pt"></td>
+  <td><img src="zero_plcc6.png" height="48pt"></td>
+  <td>PLCC4 and PLCC6 packages (for multi-colour LEDs). See also the <a href="#Normal_orientations_notes">notes</a> below.</td>
+</tr><tr>
+  <td><img src="tape_chiparray.png" height="48pt"></td>
+  <td style="vertical-align:middle;">&nbsp;</td>
+  <td><img src="zero_chiparray.png" height="48pt"></td>
+  <td>Resistor arrays and capacitor arrays in a chip package.</td>
+</tr><tr>
+  <td><img src="tape_resonator.png" height="48pt"></td>
+  <td style="vertical-align:middle;"><img src="rotate_90.png" height="48pt"></td>
+  <td><img src="zero_resonator.png" height="48pt"></td>
+  <td>Ceramic resonators with 3 pins. See the <a href="#Normal_orientations_notes">notes</a> below for crystals and oscillators with two or four pins.</td>
+</tr><tr>
+  <td><img src="tape_crystal.png" height="48pt"></td>
+  <td style="vertical-align:middle;">&nbsp;</td>
+  <td><img src="zero_crystal.png" height="48pt"></td>
+  <td>Rectangual 4-pin crystals. See the <a href="#Normal_orientations_notes">notes</a> below for crystals with two pins, and oscillators with a square shape.</td>
+</tr><tr>
+  <td><img src="tape_sot23-3.png" height="48pt"></td>
+  <td style="vertical-align:middle;"><img src="rotate_270.png" height="48pt"></td>
+  <td><img src="zero_sot23-3.png" height="48pt"></td>
+  <td>3-pin SOT style transistor, e.g. SOT23, SOT323, SOT523, SC70, TO-236.</td>
+</tr><tr>
+  <td><img src="tape_sot23-5.png" height="48pt"></td>
+  <td style="vertical-align:middle;"><img src="rotate_270.png" height="48pt"></td>
+  <td><img src="zero_sot23-5.png" height="48pt"></td>
+  <td>5-pin SOT style packages, e.g. SOT23-5, SC70-5, SSOP-5.</td>
+</tr><tr>
+  <td><img src="tape_sot23-6.png" height="48pt"></td>
+  <td style="vertical-align:middle;"><img src="rotate_270.png" height="48pt"></td>
+  <td><img src="zero_sot23-6.png" height="48pt"></td>
+  <td>6-pin & 8-pin SOT style packages, e.g. SOT23-6, SC70-6, SSOP-6.</td>
+</tr><tr>
+  <td><img src="tape_sot143.png" height="48pt"></td>
+  <td style="vertical-align:middle;"><img src="rotate_270.png" height="48pt"></td>
+  <td><img src="zero_sot143.png" height="48pt"></td>
+  <td>SOT143 and SOT343.</td>
+</tr><tr>
+  <td><img src="tape_sot223.png" height="60pt"></td>
+  <td style="vertical-align:middle;"><img src="rotate_270.png" height="48pt"></td>
+  <td><img src="zero_sot223.png" height="48pt"></td>
+  <td>SOT223, SC73, TO-89, TO-261. (See below for similar packages.)</td>
+</tr><tr>
+  <td><img src="tape_sot89.png" height="60pt"></td>
+  <td style="vertical-align:middle;"><img src="rotate_180.png" height="48pt"></td>
+  <td><img src="zero_sot89.png" height="48pt"></td>
+  <td>SOT89, TO-293. (See above and below for similar packages.)</td>
+</tr><tr>
+  <td><img src="tape_dpak.png" height="60pt"></td>
+  <td style="vertical-align:middle;"><img src="rotate_90.png" height="48pt"></td>
+  <td><img src="zero_dpak.png" height="48pt"></td>
+  <td>DPAK D2PAK, TO-220, TO-252, TO-263. (See above for similar packages.)</td>
+</tr><tr>
+  <td><img src="tape_soic.png" height="60pt"></td>
+  <td style="vertical-align:middle;">&nbsp;</td>
+  <td><img src="zero_soic.png" height="60pt"></td>
+  <td>Rectangular IC packages: SOIC, SSOP, TSSOP, TSOP type 2 (but see below for TSOP type 1).</td>
+</tr><tr>
+  <td><img src="tape_tsop1.png" height="60pt"></td>
+  <td style="vertical-align:middle;"><img src="rotate_90.png" height="48pt"></td>
+  <td><img src="zero_tsop1.png" height="60pt"></td>
+  <td>TSOP type 1.</td>
+</tr><tr>
+  <td><img src="tape_qfp.png" height="60pt"></td>
+  <td style="vertical-align:middle;"><img src="rotate_90.png" height="48pt"></td>
+  <td><img src="zero_qfp.png" height="60pt"></td>
+  <td>Square IC packages: QFP, QFN, SON, DFN (but not BGA and most PLCC, see below).</td>
+</tr><tr>
+  <td><img src="tape_plcc.png" height="60pt"></td>
+  <td style="vertical-align:middle;">&nbsp;</td>
+  <td><img src="zero_plcc.png" height="60pt"></td>
+  <td>Square IC packages that have pin 1 in the middle of the row, which is common for PLCC packages.</td>
+</tr><tr>
+  <td><img src="tape_bga.png" height="60pt"></td>
+  <td style="vertical-align:middle;">&nbsp;</td>
+  <td><img src="zero_bga.png" height="60pt"></td>
+  <td>Square Grid array IC packages (BGA, LGA, PGA); see above for QFN, QFP and other square IC packages.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<a name="Normal_orientations_notes"></a>
+<h2>Notes</h2>
+<div class="midsection">
+<h3>PLCC2, PLCC4 and PLCC6</h3>
+<p>
+The low pin count PLCC packages for LEDs have a chamfered corner to mark pin&nbsp;1.
+For PLCC2, pin one is usually the cathode (conforming to IPC-7351); for RGB
+LEDs in PLCC4 and PLCC6 packages, pin 1 is typically the common anode.
+</p>
+<p>
+The PLCC4 package uses a clockwise pin numbering scheme, starting from pin&nbsp;1
+in the upper left corner. The zero-orientation is not explicitly defined in the
+IPC-7351 standard (because IPC-7351 assumes a counter-clockwise pin numbering).
+</p>
+<p>
+The PLCC6 package uses a counter-clockwise pin numbering scheme, similar to
+dual-line IC packages.
+</p>
+
+<h3>Crystals, ceramic resonators, oscillators</h3>
+<p>
+Crystals in a 2-pin chip package follow the orientation of 2-pin non-polarized
+chip packages. Ceramic resonators with three aligned pins are oriented as shown
+in the table.
+</p>
+<p>
+For crystals and crystal oscillators with four pins (or more), the orientation
+in tape is inconclusive. Rectangular shaped crystals generally follow the
+alignment as shown in the table. Square packages (which are typically
+oscillators, rather than crystals) regularly use the orientation of PLCC4.
+</p>
+<p>
+4-pin crystals and oscillators may use a clockwise pin numbering, like PLCC4.
+For crystals, the pin numbering direction is mostly irrelevant, because the
+crystal is typically connected between pins 1 and 3 (with pins 2 and 4 either
+unconnected, or both connected to ground). Regardless of the direction of the
+pin numbering, pins 1&nbsp;&amp;&nbsp;3 are at the same positions.
+</p>
+
+<h3>Tube and tray orientations</h3>
+<p>
+Components are oriented sideways in tube (sticks), such that the pins of
+consecutive components do not touch. The end of the tube that &ldquo;pin&nbsp;1&rdquo;
+of the component points to is often marked with a green stop or pin.
+</p>
+<p>
+JEDEC trays have a chamfered corner. If the tray is oriented such that the
+chamfered corner is on the upper left, the components in the tray are oriented
+according to IPC-7351.
+</p>
+</div>
+
+</body>
+</html>

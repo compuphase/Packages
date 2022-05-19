@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html style="direction: ltr;" lang="en">
+<head>
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>Partbase</title>
+  <link rel="stylesheet" href="webviewstyle.css" type="text/css">
+</head>
+<body>
+
+<!-- help menu button & drop-down menu -->
+<div class="dropdown-menu">
+  <input type="image" src="b_menu.png" onclick="DropDownMenu()" class="dropbtn"/>
+  <div id="DropDownHelp" class="dropdown-content">
+    <a href="help-index.html#Overview">Overview</a>
+    <a href="help-main.html">Editing Packages</a>
+    <a href="help-search.html">Search &amp; Selections</a>
+    <a href="help-export.html">Exporting packages</a>
+    <a href="help-import.html">Importing packages</a>
+    <a href="help-concepts.html#Package_concepts">Package concepts</a>
+    <a href="help-fileformat.html#File_format">File format</a>
+    <a href="help-packages.html#SMT_terminal_types">SMT terminal types</a>
+    <a href="help-packages.html#Normal_orientations">Normal orientations</a>
+    <a href="help-standards.html#Package_naming_standards">Package naming standards</a>
+  </div>
+</div>
+<script src="help-menu.js"></script>
+
+<h1 style="font-variant:small-caps;font-size:64pt;font-weight:normal">Packages</h1>
+<p>
+<span class="smallcaps">Packages</span> is a tool to maintain a repository of
+packages of electronic components. It is developed with the goal that various
+applications use one and the same repository as a basis for their handling of
+packages. The repository is in a well-documented JSON format, easy to parse in
+a variety of programming languages.
+</p>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Overview">Overview</a></li>
+<li><a href="#Quick_start">Quick start</a>
+    <ul>
+      <li><a href="help-main.html#Adding_modifying_and_deleting_packages">Adding, modifying and deleting packages</a></li>
+      <li><a href="help-search.html#Searching_and_filtering_packages">Searching and filtering packages</a></li>
+      <li><a href="#Multi_user_operation"Multi-user operation</a></li>
+      <li><a href="help-export.html#Exporting_packages">Exporting packages</a></li>
+      <li><a href="help-import.html#Importing_packages">Importing packages</a></li>
+    </ul>
+</li>
+<li><a href="help-concepts.html#Package_concepts">Package concepts</a>
+    <ul>
+      <li><a href="help-concepts.html#Common_names_variants">Common names &amp; variants</a></li>
+      <li><a href="help-concepts.html#Package_dimensions_and_outlines">Package dimensions and outlines</a></li>
+      <li><a href="help-concepts.html#Origin_offsets">Origin offsets</a></li>
+      <li><a href="help-concepts.html#Pitch_and_spans">Pitch and spans</a></li>
+    </ul>
+</li>
+<li><a href="help-fileformat.html#File_format">File format</a>
+    <ul>
+      <li><a href="help-fileformat.html#File_format_notes">Notes</a></li>
+    </ul>
+</li>
+<li><a href="help-packages.html#SMT_terminal_types">SMT terminal types</a></li>
+<li><a href="help-packages.html#Normal_orientations">Normal orientations</a>
+    <ul>
+      <li><a href="help-packages.html#Normal_orientations_notes">Notes</a></li>
+    </ul>
+</li>
+<li><a href="help-standards.html#Package_naming_standards">Package naming standards</a>
+    <ul>
+      <li><a href="help-standards.html#Metric_versus_Imperial">Metric versus Imperial</a></li>
+      <li><a href="help-standards.html#IPC7351_summary">IPC-7351 summary</a></li>
+      <li><a href="help-standards.html#ED7303_summary">ED-7303 summary</a></li>
+      <li><a href="help-standards.html#Package_naming_examples">Examples of package names</a>
+    </ul>
+</li>
+
+</ul>
+
+
+<h1>Overview</h1>
+<p>
+Many packages for electronic components exist, but it is not as straightforward
+as having a long list. On occasion a package name refers to a <em>group</em> of
+packages, and package name on its own is not conclusive about <em>all</em>
+dimensions of the package. Essentially the same package may also be known under
+multiple names &mdash;this is in part the result of various standardization
+bodies that each on their own standardize packages, without regard to the other
+organizations doing the same.
+</p>
+<p>
+EDA suites (Electronic Design Application) focus on a flattened view of the
+package: the footprint. For mechanical design, the height of the package is
+important too, and pick-&-place machines often need to know the shape of the
+terminals (for example, gull-wing versus lug-lead) to recognize and centre the
+component on the nozzle. That is to say: these various applications all use
+package data, but they don&rsquo;t all need the <em>same</em> data.
+<span class="smallcaps">Packages</span> groups the data in a structured way,
+and makes it easily searchable (using both keyword search and parametric search).
+</p>
+
+<h2>License</h2>
+<p>
+The <span class="smallcaps">Packages</span> application including its data set
+and other resources, hereby collectively referred to as &ldquo;the software&rdquo;,
+is copyright 2021-2022 CompuPhase, and licensed under the Apache License version 2.
+</p>
+<p>
+The manual and these help pages are copyright 2021-2022 CompuPhase and licensed
+under the Creative Commons Attribution-Non-Commercial-ShareAlike 4.0 International License.
+</p>
+<p>
+The project is maintained at: <a href="https://github.com/compuphase/Packages">https://github.com/compuphase/Packages</a>
+</p>
+
+
+<a name="Quick_start"></a>
+<h1>Quick start</h1>
+<p>
+On start-up, <span class="smallcaps">Packages</span> opens the repository that
+was most recently used. In practice, you will probably use a single repository
+for all your packages, but you can have several repositories and select the one
+to browse/edit in the &ldquo;File&rdquo; menu.
+</p>
+<p>
+Changes or additions to the repository are saved automatically on switching to
+a new package or when closing the application. There still is a &ldquo;Save&rdquo;
+option in the File menu, if you wish to save your edits without changing to a
+different package.
+</p>
+<p>
+On start-up, <span class="smallcaps">Packages</span> shows the full list with
+all packages in the repository. You can restrict the range to a subset, based
+on keywords or specific package parameters (e.g. span, height, pin count). See
+topic <a href="help-search.html#Searching_and_filtering_packages">Searching and filtering packages</a>
+for details.
+</p>
+<p>
+For editing the package data, see the section
+<a href="help-main.html#Adding_modifying_and_deleting_packages">Adding, modifying and deleting packages</a>.
+For other topics, use the help menu button <img src="b_menu.png" height="16pt"> in the upper right of this page.
+</p>
+
+</body>
+</html>
