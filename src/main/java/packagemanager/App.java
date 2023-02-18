@@ -1,4 +1,3 @@
-
 /*
  * @author Guido Daniel Wolff
  * Copyright 2021, 2022 CompuPhase
@@ -103,12 +102,13 @@ import com.github.cliftonlabs.json_simple.JsonKey;
 /* 3 */
 public class App extends Application{
     /* core constants */
+    final boolean RELOAD_CSS_BUTTON = false;// for testing CSS changes
     final int STARTING_WINDOW_WIDTH  = 900; // default "scene" width (excluding borders)
     final int STARTING_WINDOW_HEIGHT = 700; // default "scene" height (excluding caption and borders)
     double prevWidth;                       // current window width (including borders)
     double prevHeight;                      // current window height (including caption and borders)
 
-    final String programVersion = "1.2";    //current version number
+    final String programVersion = "1.3.1";  //current version number
 
     final int IMAGE_WIDTH = 200;
     final int IMAGE_HEIGHT = 170;
@@ -315,6 +315,14 @@ public class App extends Application{
             Platform.runLater(()->searchField.requestFocus());
         });
         searchBox.getChildren().add(searchButton);
+        if (RELOAD_CSS_BUTTON){
+            final Button reloadCssButton = new Button("CSS");
+            reloadCssButton.setOnAction((ActionEvent arg0) -> {
+                mainScene.getStylesheets().clear();
+                mainScene.getStylesheets().add("file://" + getResourcePath() + "/packages.css");
+            });
+            searchBox.getChildren().add(reloadCssButton);
+        }
         /* Adding a shortcut, CTRL+F (mnemonic on a control only works with Alt,
          * so we use an accelerator); the accelerator is created here, but added
          * to the scene later (because the scene has not been initialized yet) */
@@ -325,9 +333,14 @@ public class App extends Application{
             Platform.runLater(()->searchField.requestFocus());
         };
 
+        /* style for labels in the left column */
+        final String styleCatLabel = "-fx-font-weight:bold; -fx-text-fill:#446677;";
+
         /* Second row of nodes. controls Package.names through a dynamic number of TextFields */
         final int nameRow = navRow + 1;
         nameLbl = new Label("Name/alias");
+        nameLbl.setStyle(styleCatLabel);
+        nameLbl.setPadding(new Insets(4, 10, 0, 0));    // to align the label with the row
         GridPane.setConstraints(nameLbl, 0, nameRow); // ((node, column, row), columnspan, rowspan)
         GridPane.setValignment(nameLbl, VPos.TOP);
         nameBox = new dtfManager();      //A modified VBox that holds a dynamic number of TextFields, organized in rows of up to 5
@@ -340,6 +353,7 @@ public class App extends Application{
         /* Third row of nodes manages 'Description'. One TextField, nice and easy. */
         final int descRow = nameRow + 1;
         Label descLbl = new Label("Description");
+        descLbl.setStyle(styleCatLabel);
         GridPane.setConstraints(descLbl, 0, descRow);
         initDescField();    //set actionlisteners
         GridPane.setConstraints(descField, 1, descRow);
@@ -355,7 +369,8 @@ public class App extends Application{
         /* Fourth row of nodes manages 'characteristics'*/
         final int charaRow = descRow + 1;
         Label characLbl = new Label("Characteristics");
-        characLbl.setPadding(new Insets(4, 0, 0, 0));    // to align the label with the row
+        characLbl.setStyle(styleCatLabel);
+        characLbl.setPadding(new Insets(4, 10, 0, 0));    // to align the label with the row
         GridPane.setConstraints(characLbl, 0, charaRow);
         GridPane.setValignment(characLbl, VPos.TOP);
         final VBox charaBranch = initCharaBranch();     // initialize subcomponents and add them as children
@@ -367,6 +382,7 @@ public class App extends Application{
         /* Fifth row of nodes manages body size */
         final int bdszRow = charaRow + 1;
         Label bodysizeLbl = new Label("Body size");
+        bodysizeLbl.setStyle(styleCatLabel);
         GridPane.setConstraints(bodysizeLbl, 0, bdszRow);
         final HBox bodySizeBranch = initBodySizeBranch();
         GridPane.setConstraints(bodySizeBranch, 1, bdszRow);
@@ -377,6 +393,7 @@ public class App extends Application{
         /* Sixth row of nodes, for Lead to lead */
         final int ltolRow = bdszRow + 1;
         final Label leadtoleadLbl = new Label("Lead-to-lead");
+        leadtoleadLbl.setStyle(styleCatLabel);
         GridPane.setConstraints(leadtoleadLbl, 0, ltolRow);
         final HBox ltolBranch = initLtolBranch();
         ltolBranch.setAlignment(Pos.CENTER_LEFT);
@@ -387,6 +404,7 @@ public class App extends Application{
         /* Seventh row manages references  */
         final int refRow = ltolRow + 1;
         final Label refLbl = new Label("References");
+        refLbl.setStyle(styleCatLabel);
         GridPane.setConstraints(refLbl, 0, refRow);
         GridPane.setValignment(refLbl, VPos.TOP);
         final TitledPane refHolder = initRefHolder();
@@ -402,9 +420,10 @@ public class App extends Application{
         GridPane.setColumnSpan(relPackHolder, 2);
         GridPane.setHgrow(relPackHolder, Priority.ALWAYS);
 
-        /* Eigth row manages specific package  */
+        /* Eigth row manages variants (standardized specific packages) */
         int spepaRow = relPackRow + 1;
         Label packageLbl = new Label("Variants");
+        packageLbl.setStyle(styleCatLabel);
         GridPane.setConstraints(packageLbl, 0, spepaRow);
         GridPane.setValignment(packageLbl, VPos.TOP);
         final TitledPane spepaHolder = initSpepaHolder();
@@ -417,6 +436,7 @@ public class App extends Application{
         /* Ninth row manages footprint */
         final int ftprintRow = spepaRow + 1;
         final Label footprintLbl = new Label("Footprint");
+        footprintLbl.setStyle(styleCatLabel);
         footprintLbl.setPadding(new Insets(4, 0, 0, 0));    // to align the label with the row
         GridPane.setConstraints(footprintLbl, 0, ftprintRow);
         GridPane.setValignment(footprintLbl, VPos.TOP);
@@ -471,6 +491,7 @@ public class App extends Application{
         /* Put Scrollpane in a Scene, and put the scene in the Stage */
         mainScene = new Scene(realRoot, STARTING_WINDOW_WIDTH, STARTING_WINDOW_HEIGHT); //node, width, minHeight
         mainScene.setUserData(new String("main"));
+        mainScene.getStylesheets().add("file://" + getResourcePath() + "/packages.css");
         primaryStage.setTitle("PACKAGES: repository for component packages & footprints");
         primaryStage.setScene(mainScene);
         currentScene = mainScene;
@@ -648,12 +669,12 @@ public class App extends Application{
             } else if(c == '-' && i == 0 && permitNegative){
                 output += '-';
             } else{
-                tf.setStyle("-fx-control-inner-background: #fff0a0;");
+                tf.setStyle("TextFieldBkgnd: #fff0a0;");
                 return false;
             }
         }
         tf.setText(output);
-        tf.setStyle("-fx-control-inner-background: white;");
+        tf.setStyle("TextFieldBkgnd: white;");
         return true;
     }
 
@@ -843,7 +864,8 @@ public class App extends Application{
         navButtons.setPadding(new Insets(3, 0, 0, 0));
 
         navButtons.setAlignment(Pos.CENTER_LEFT);
-        final Button prvPack = new Button("<<");
+        final Button prvPack = new Button("◀");
+        prvPack.setStyle("-fx-font-size:12pt; -fx-padding:0 6px 0 6px;");
         prvPack.setTooltip(new Tooltip("Ctrl+PageUp"));
         prvPack.setOnAction((ActionEvent arg0) -> {
             if(crntIndex > 0){
@@ -853,7 +875,8 @@ public class App extends Application{
 
         displayedIndex = new Label(Integer.toString(crntIndex + 1) + " of " + Integer.toString(viewedPackages.size()));
 
-        final Button nxtPack = new Button(">>");
+        final Button nxtPack = new Button("▶");
+        nxtPack.setStyle("-fx-font-size:12pt; -fx-padding:0 6px 0 6px;");
         nxtPack.setTooltip(new Tooltip("Ctrl+PageDown"));
         nxtPack.setOnAction((ActionEvent arg0) -> {
             if(crntIndex < viewedPackages.size() - 1){
@@ -937,6 +960,7 @@ public class App extends Application{
         VBox charaBranch = new VBox(SPACING_VBOX); //holds two HBoxes to from two rows of components
 
         final HBox topChaRow = new HBox(SPACING_HBOX);     //contains first row of the characteristics
+        topChaRow.setAlignment(Pos.CENTER_LEFT);
 
         HBox typeBoxBox = new HBox(SPACING_HBOX);
         typeBoxBox.setAlignment(Pos.CENTER_LEFT);
@@ -1070,7 +1094,11 @@ public class App extends Application{
         bodyXsize.setOnKeyPressed( event -> {
             if( event.getCode() == KeyCode.ENTER ) {
                 if(verifyInput(bodyXsize, false)){
-                    crntPkg.body.bodyX = Double.parseDouble(bodyXsize.getText());
+                    try{
+                        crntPkg.body.bodyX = Double.parseDouble(bodyXsize.getText());
+                    } catch(NumberFormatException e){
+                        crntPkg.body.bodyX = 0.0;
+                    }
                     checkBodySize();
                     loadImage();
                     if(crntPkg.body.bodyX != backupPkg.body.bodyX){
@@ -1082,7 +1110,11 @@ public class App extends Application{
         bodyXsize.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
             if (!newPropertyValue){
                 if(verifyInput(bodyXsize, false)){
-                    crntPkg.body.bodyX = Double.parseDouble(bodyXsize.getText());
+                    try{
+                        crntPkg.body.bodyX = Double.parseDouble(bodyXsize.getText());
+                    } catch(NumberFormatException e){
+                        crntPkg.body.bodyX = 0.0;
+                    }
                     checkBodySize();
                     loadImage();
                     if(crntPkg.body.bodyX != backupPkg.body.bodyX){
@@ -1096,7 +1128,11 @@ public class App extends Application{
         bodyXtol.setOnKeyPressed( event -> {
             if( event.getCode() == KeyCode.ENTER ) {
                 if(verifyInput(bodyXtol, false)){
-                    crntPkg.body.bodyXtol = Double.parseDouble(bodyXtol.getText());
+                    try{
+                        crntPkg.body.bodyXtol = Double.parseDouble(bodyXtol.getText());
+                    } catch(NumberFormatException e){
+                        crntPkg.body.bodyXtol = 0.0;
+                    }
                     if(crntPkg.body.bodyXtol != backupPkg.body.bodyXtol){
                         change("bodyXtol");
                     }
@@ -1106,7 +1142,11 @@ public class App extends Application{
         bodyXtol.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
             if (!newPropertyValue){
                 if(verifyInput(bodyXtol, false)){
-                    crntPkg.body.bodyXtol = Double.parseDouble(bodyXtol.getText());
+                    try{
+                        crntPkg.body.bodyXtol = Double.parseDouble(bodyXtol.getText());
+                    } catch(NumberFormatException e){
+                        crntPkg.body.bodyXtol = 0.0;
+                    }
                     if(crntPkg.body.bodyXtol != backupPkg.body.bodyXtol){
                         change("bodyXtol");
                     }
@@ -1118,7 +1158,11 @@ public class App extends Application{
         bodyYsize.setOnKeyPressed( event -> {
             if( event.getCode() == KeyCode.ENTER ) {
                 if(verifyInput(bodyYsize, false)){
-                    crntPkg.body.bodyY = Double.parseDouble(bodyYsize.getText());
+                    try{
+                        crntPkg.body.bodyY = Double.parseDouble(bodyYsize.getText());
+                    } catch(NumberFormatException e){
+                        crntPkg.body.bodyY = 0.0;
+                    }
                     checkBodySize();
                     loadImage();
                     if(crntPkg.body.bodyY != backupPkg.body.bodyY){
@@ -1130,7 +1174,11 @@ public class App extends Application{
         bodyYsize.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
             if (!newPropertyValue){
                 if(verifyInput(bodyYsize, false)){
-                    crntPkg.body.bodyY = Double.parseDouble(bodyYsize.getText());
+                    try{
+                        crntPkg.body.bodyY = Double.parseDouble(bodyYsize.getText());
+                    } catch(NumberFormatException e){
+                        crntPkg.body.bodyY = 0.0;
+                    }
                     checkBodySize();
                     loadImage();
                     if(crntPkg.body.bodyY != backupPkg.body.bodyY){
@@ -1144,7 +1192,11 @@ public class App extends Application{
         bodyYtol.setOnKeyPressed( event -> {
             if( event.getCode() == KeyCode.ENTER ) {
                 if(verifyInput(bodyYtol, false)){
-                    crntPkg.body.bodyYtol = Double.parseDouble(bodyYtol.getText());
+                    try{
+                        crntPkg.body.bodyYtol = Double.parseDouble(bodyYtol.getText());
+                    } catch(NumberFormatException e){
+                        crntPkg.body.bodyYtol = 0.0;
+                    }
                     if(crntPkg.body.bodyYtol != backupPkg.body.bodyYtol){
                         change("bodyYtol");
                     }
@@ -1154,7 +1206,11 @@ public class App extends Application{
         bodyYtol.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
             if (!newPropertyValue){
                 if(verifyInput(bodyYtol, false)){
-                    crntPkg.body.bodyYtol = Double.parseDouble(bodyYtol.getText());
+                    try{
+                        crntPkg.body.bodyYtol = Double.parseDouble(bodyYtol.getText());
+                    } catch(NumberFormatException e){
+                        crntPkg.body.bodyYtol = 0.0;
+                    }
                     if(crntPkg.body.bodyYtol != backupPkg.body.bodyYtol){
                         change("bodyYtol");
                     }
@@ -1425,7 +1481,6 @@ public class App extends Application{
             }
         );
 
-
         TableColumn minHeightCol = new TableColumn("min. height");
         minHeightCol.setMinWidth(THINCOLUMN_MINWIDTH);
         minHeightCol.setPrefWidth(THINCOLUMN_PREFWIDTH);
@@ -1457,7 +1512,7 @@ public class App extends Application{
                 @Override
                 public void handle(CellEditEvent<SpepaMirror, Double> t) {
                     SpepaMirror spep = ((SpepaMirror) t.getTableView().getItems().get(t.getTablePosition().getRow()));
-                    spep.setMinHeight(t.getNewValue());
+                    spep.setMaxHeight(t.getNewValue());
                     spep.getVariant().heightRange.maxHeight = t.getNewValue();
                     if(spep.getVariant(backupPkg) == null || spep.getVariant().heightRange.maxHeight != spep.getVariant(backupPkg).heightRange.maxHeight){
                         change("spepmaxheight");
@@ -1611,7 +1666,8 @@ public class App extends Application{
 
         final HBox navBox = new HBox(SPACING_HBOX);
         navBox.setAlignment(Pos.CENTER);
-        final Button prevButton = new Button("<<");
+        final Button prevButton = new Button("◀");
+        prevButton.setStyle("-fx-font-size:12pt; -fx-padding:0 6px 0 6px;");
         prevButton.setOnAction((ActionEvent arg0) -> {
             if(fpIndex > 0){
                 fpIndex -=1;
@@ -1619,7 +1675,8 @@ public class App extends Application{
             }
         });
         fpIndexLabel = new Label(Integer.toString(fpIndex + 1) + " of " + Integer.toString(crntPkg.footPrints.size()));
-        final Button nextButton = new Button(">>");
+        final Button nextButton = new Button("▶");
+        nextButton.setStyle("-fx-font-size:12pt; -fx-padding:0 6px 0 6px;");
         nextButton.setOnAction((ActionEvent arg0) -> {
             if(fpIndex < crntPkg.footPrints.size() - 1){
                 fpIndex +=1;
@@ -2443,7 +2500,7 @@ public class App extends Application{
 
     private TitledPane initRefHolder(){
         TitledPane refholder = new TitledPane();
-        refholder.setText("References");
+        refholder.setText("Normative specifications");
         refholder.setExpanded(false);
         final VBox refBranch = new VBox(SPACING_VBOX);
 
@@ -2612,7 +2669,7 @@ public class App extends Application{
 
     private void initPopups(){
         /* the style String will be used for all Popups. */
-        final String style = "-fx-border-color:#a9a9a9; -fx-border-radius:4px; -fx-border-width:3px; -fx-background-color:#f0f0ea; -fx-padding:4px 8px 4px 8px;";
+        final String style = "-fx-padding: 16px 32px 8px 32px;";
 
         /* dupWarning is shown when attempting to add a name/alias/ipcname that already exists */
         dupWarning = initDupWarning(style);
@@ -2654,11 +2711,13 @@ public class App extends Application{
         DuplicateWarning dup = new DuplicateWarning();
         final VBox dupWaBranch = new VBox(SPACING_VBOX);
         dupWaBranch.setAlignment(Pos.CENTER);
+        dupWaBranch.getStyleClass().add("message-box");
         dupWaBranch.setStyle(style);
         final Label warn = new Label("The name already exists as a\npackage name, alias or variant.");
         warn.setPadding(new Insets(0, 0, fieldSpacing, 0)); // add spacing below text (above buttons)
 
         final HBox btnBox = new HBox(SPACING_HBOX);
+        btnBox.setAlignment(Pos.CENTER);
         final Button goLook = new Button("View");
         goLook.setOnAction((ActionEvent arg0) -> {
             navigate(dup.index());
@@ -2678,6 +2737,7 @@ public class App extends Application{
         Popup del = new Popup();
         final VBox delWaBranch = new VBox(SPACING_VBOX);
         delWaBranch.setAlignment(Pos.CENTER);
+        delWaBranch.getStyleClass().add("message-box");
         delWaBranch.setStyle(style);
         final Label notice = new Label("Delete package:\nthis operation cannot be undone.\n\nAre you sure?");
 
@@ -2728,10 +2788,12 @@ public class App extends Application{
         Popup del = new Popup();
         final VBox delWaBranch = new VBox(SPACING_VBOX);
         delWaBranch.setAlignment(Pos.CENTER);
+        delWaBranch.getStyleClass().add("message-box");
         delWaBranch.setStyle(style);
         final Label notice = new Label("Delete footprint:\nthis operation cannot be undone.\n\nAre you sure?");
 
         final HBox btnBox = new HBox(SPACING_HBOX);
+        btnBox.setAlignment(Pos.CENTER);
         final Button confirm = new Button(" Yes ");
         confirm.setOnAction((ActionEvent arg0) -> {
             if(crntPkg.footPrints.size() == 1){             //never delete final Footprint, just reset it
@@ -2764,9 +2826,11 @@ public class App extends Application{
         Popup suc = new Popup();
         final VBox impSucBranch = new VBox(SPACING_VBOX);
         impSucBranch.setAlignment(Pos.CENTER);
+        impSucBranch.getStyleClass().add("message-box");
         impSucBranch.setStyle(style);
         final Label sucMsg = new Label("Packages imported. No conflicts found.");
         final HBox btnBox = new HBox(SPACING_HBOX);
+        btnBox.setAlignment(Pos.CENTER);
         final Button inspect = new Button("Inspect");
         inspect.setOnAction((ActionEvent arg0) -> {
             changeScene(importScene);
@@ -2794,10 +2858,12 @@ public class App extends Application{
             final VBox impConfBranch;
             impConfBranch = new VBox(SPACING_VBOX);
             impConfBranch.setAlignment(Pos.CENTER);
+            impConfBranch.getStyleClass().add("message-box");
             impConfBranch.setStyle(style);
             confMsg = new Label("--");
 
             final HBox btnBox = new HBox(SPACING_HBOX);
+            btnBox.setAlignment(Pos.CENTER);
             final Button resolve = new Button("Resolve");
             resolve.setOnAction((ActionEvent arg0) -> {
                 changeScene(importScene);
@@ -3751,7 +3817,7 @@ public class App extends Application{
             String warnText = "This value should not be zero.";
 
             boolean warn = roughCompare(crntPkg.body.bodyX, 0);
-            bodyXsize.setStyle("-fx-control-inner-background:" + (warn ? "#fff0a0;" : "white;"));
+            bodyXsize.setStyle("TextFieldBkgnd:" + (warn ? "#fff0a0;" : "white;"));
             String ttipText = "Horizontal size of the body (excluding pins).";
             if(warn){
                 ttipText += "\n" + warnText;
@@ -3760,7 +3826,7 @@ public class App extends Application{
             bodyXsize.setTooltip(bodyXtip);
 
             warn = roughCompare(crntPkg.body.bodyY, 0);
-            bodyYsize.setStyle("-fx-control-inner-background:" + (warn ? "#fff0a0;" : "white;"));
+            bodyYsize.setStyle("TextFieldBkgnd:" + (warn ? "#fff0a0;" : "white;"));
             ttipText = "Vertical size of the body (excluding pins).";
             if(warn){
                 ttipText += "\n" + warnText;
@@ -3800,7 +3866,7 @@ public class App extends Application{
                  */
                 warn = (crntPkg.lead2lead.x < crntPkg.body.bodyX - 0.0005) || roughCompare(crntPkg.lead2lead.x, 0);
             }
-            ltolXsize.setStyle("-fx-control-inner-background:" + (warn ? "#fff0a0;" : "white;"));
+            ltolXsize.setStyle("TextFieldBkgnd:" + (warn ? "#fff0a0;" : "white;"));
             String ttipText = "Horizontal lead-to-lead size of the package (including pins).";
             if(warn){
                 ttipText += "\n" + warnText;
@@ -3813,7 +3879,7 @@ public class App extends Application{
             } else {
                 warn = (crntPkg.lead2lead.y < crntPkg.body.bodyY - 0.0005) || roughCompare(crntPkg.lead2lead.y, 0);
             }
-            ltolYsize.setStyle("-fx-control-inner-background:" + (warn ? "#fff0a0;" : "white;"));
+            ltolYsize.setStyle("TextFieldBkgnd:" + (warn ? "#fff0a0;" : "white;"));
             ttipText = "Vertical lead-to-lead size of the package (including pins).";
             if(warn){
                 ttipText += "\n" + warnText;
@@ -3903,7 +3969,7 @@ public class App extends Application{
             }
         }
 
-        spanXField.setStyle("-fx-control-inner-background:" + (warn_span_x ? "#fff0a0;" : "white;"));
+        spanXField.setStyle("TextFieldBkgnd:" + (warn_span_x ? "#fff0a0;" : "white;"));
         String ttipText = "Distance between the left & right rows (pad centres)";
         if(warn_span_x){
             ttipText += "\nMismatch between this value and the pad definitions";
@@ -3911,7 +3977,7 @@ public class App extends Application{
         final Tooltip spanXFieldTip = new Tooltip(ttipText);
         spanXField.setTooltip(spanXFieldTip);
 
-        spanYField.setStyle("-fx-control-inner-background:" + (warn_span_y ? "#fff0a0;" : "white;"));
+        spanYField.setStyle("TextFieldBkgnd:" + (warn_span_y ? "#fff0a0;" : "white;"));
         ttipText = "Distance between the top & bottom rows (pad centres)";
         if(warn_span_y){
             ttipText += "\nMismatch between this value and the pad definitions";
@@ -3967,7 +4033,7 @@ public class App extends Application{
         double cy = contourTop - contourBottom;
 
         warn = !roughCompare(crntPkg.footPrints.get(fpIndex).outline.length, cx);
-        fpolLength.setStyle("-fx-control-inner-background:" + (warn ? "#fff0a0;" : "white;"));
+        fpolLength.setStyle("TextFieldBkgnd:" + (warn ? "#fff0a0;" : "white;"));
         ttipText = "Horizontal dimension of the contour of the footprint.";
         if(warn){
             ttipText += "\nThis value does not match the bounding box around the pads (" + Double.toString(Math.round(cx*roundFactor)/roundFactor) + ")";
@@ -3976,7 +4042,7 @@ public class App extends Application{
         fpolLength.setTooltip(fpolLengthTip);
 
         warn = !roughCompare(crntPkg.footPrints.get(fpIndex).outline.width, cy);
-        fpolWidth.setStyle("-fx-control-inner-background:" + (warn ? "#fff0a0;" : "white;"));
+        fpolWidth.setStyle("TextFieldBkgnd:" + (warn ? "#fff0a0;" : "white;"));
         ttipText = "Vertical dimension of the contour of the footprint.";
         if(warn){
             ttipText += "\nThis value does not match the bounding box around the pads (" + Double.toString(Math.round(cy*roundFactor)/roundFactor) + ")";
@@ -3988,7 +4054,7 @@ public class App extends Application{
         double oy = (contourBottom + contourTop) / 2;
 
         warn = !roughCompare(crntPkg.footPrints.get(fpIndex).outline.orgX, ox);
-        fpolOrgX.setStyle("-fx-control-inner-background:" + (warn ? "#fff0a0;" : "white;"));
+        fpolOrgX.setStyle("TextFieldBkgnd:" + (warn ? "#fff0a0;" : "white;"));
         ttipText = "Horizontal offset of the origin from the geometric centre the footprint.";
         if(warn){
             ttipText += "\nThis value does not match the origin calculated from the pads (" + Double.toString(Math.round(ox*roundFactor)/roundFactor) + ")";
@@ -3997,7 +4063,7 @@ public class App extends Application{
         fpolOrgX.setTooltip(fpolOrgXTip);
 
         warn = !roughCompare(crntPkg.footPrints.get(fpIndex).outline.orgY, oy);
-        fpolOrgY.setStyle("-fx-control-inner-background:" + (warn ? "#fff0a0;" : "white;"));
+        fpolOrgY.setStyle("TextFieldBkgnd:" + (warn ? "#fff0a0;" : "white;"));
         ttipText = "Vertical offset of the origin from the geometric centre the footprint.";
         if(warn){
             ttipText += "\nThis value does not match the origin calculated from the pads (" + Double.toString(Math.round(oy*roundFactor)/roundFactor) + ")";
@@ -4259,6 +4325,7 @@ public class App extends Application{
         root.setContent(importBranch);
         Scene scene = new Scene(root);
         scene.setUserData(new String("import"));
+        scene.getStylesheets().add("file://" + getResourcePath() + "/packages.css");
         return scene;
     }
 
@@ -4298,7 +4365,7 @@ public class App extends Application{
         String wvStylePath = getResourcePath() + "/webviewstyle.css";   //stylesheet currently only disables horizontal scrollbar
         File file = new File(wvStylePath);
         if(!file.exists()){
-            System.out.println("Can't find webview stylesheet");
+            System.out.println("Warning: can't find webview stylesheet");
         } else{
             webView.getEngine().setUserStyleSheetLocation("file://" + wvStylePath);
         }
@@ -4307,6 +4374,7 @@ public class App extends Application{
         root.setTop(buttonBox);
         Scene scene = new Scene(root);
         scene.setUserData(new String("help"));
+        scene.getStylesheets().add("file://" + getResourcePath() + "/packages.css");
         return scene;
     }
     private void updateHelpTopic(){
@@ -4340,13 +4408,14 @@ public class App extends Application{
                 }
             }
             /* also check whether trailing sub-path is "target" or "bin"; if
-             * so, strip it off and replace it with "doc"
+             * so, strip it off
              */
             last_slash = url.lastIndexOf('/');
             String subpath = url.substring(last_slash + 1);
             if(subpath.equalsIgnoreCase("target") || subpath.equalsIgnoreCase("bin")){
-                url = url.substring(0, last_slash) + "/doc";
+                url = url.substring(0, last_slash);
             }
+            url += "/doc";
         }
         return url;
     }
@@ -4515,17 +4584,19 @@ public class App extends Application{
         });
         pinConstraint.setOnKeyPressed( event -> {
             if( event.getCode() == KeyCode.ENTER ) {
-                if(pinConstraint.getText().equals("")){
-                    sc.hasPinConstraint = false;
-                    pinCountCheck.setSelected(false);
-                } else{
-                    pinCountCheck.setSelected(true);
-                    sc.isActive = true;
-                    sc.pinConstraint = Integer.parseInt(pinConstraint.getText());
-                    sc.hasPinConstraint = true;
-                    fullSearch(allPackages, searchField.getText(), results, sc);
-                    selectAll.setSelected(false);
-                }
+                sc.isActive = true;
+                fullSearch(allPackages, searchField.getText(), results, sc);
+                selectAll.setSelected(false);
+            }
+        });
+        pinConstraint.setOnKeyReleased( event -> {
+            String value = pinConstraint.getText();
+            sc.hasPinConstraint = !value.equals("");
+            pinCountCheck.setSelected(sc.hasPinConstraint);
+            try{
+                sc.pinConstraint = Integer.parseInt(value);
+            } catch(Exception e){
+                sc.hasPinConstraint = false;
             }
         });
 
@@ -4555,17 +4626,19 @@ public class App extends Application{
         });
         pitchConstraint.setOnKeyPressed( event -> {
             if( event.getCode() == KeyCode.ENTER ) {
-                if(pitchConstraint.getText().equals("")){
-                    sc.hasPitchConstraint = false;
-                    pitchCheck.setSelected(false);
-                } else{
-                    pitchCheck.setSelected(true);
-                    sc.isActive = true;
-                    sc.pitchConstraint = Double.parseDouble(pitchConstraint.getText());
-                    sc.hasPitchConstraint = true;
-                    fullSearch(allPackages, searchField.getText(), results, sc);
-                    selectAll.setSelected(false);
-                }
+                sc.isActive = true;
+                fullSearch(allPackages, searchField.getText(), results, sc);
+                selectAll.setSelected(false);
+            }
+        });
+        pitchConstraint.setOnKeyReleased( event -> {
+            String value = pitchConstraint.getText();
+            sc.hasPitchConstraint = !value.equals("");
+            pitchCheck.setSelected(sc.hasPitchConstraint);
+            try{
+                sc.pitchConstraint = Double.parseDouble(value);
+            } catch(Exception e){
+                sc.hasPitchConstraint = false;
             }
         });
 
@@ -4595,17 +4668,19 @@ public class App extends Application{
         });
         spanConstraint.setOnKeyPressed( event -> {
             if( event.getCode() == KeyCode.ENTER ) {
-                if(spanConstraint.getText().equals("")){
-                    sc.hasSpanConstraint = false;
-                    spanCheck.setSelected(false);
-                } else{
-                    spanCheck.setSelected(true);
-                    sc.isActive = true;
-                    sc.spanConstraint = Double.parseDouble(spanConstraint.getText());
-                    sc.hasSpanConstraint = true;
-                    fullSearch(allPackages, searchField.getText(), results, sc);
-                    selectAll.setSelected(false);
-                }
+                sc.isActive = true;
+                fullSearch(allPackages, searchField.getText(), results, sc);
+                selectAll.setSelected(false);
+            }
+        });
+        spanConstraint.setOnKeyReleased( event -> {
+            String value = spanConstraint.getText();
+            sc.hasSpanConstraint = !value.equals("");
+            spanCheck.setSelected(sc.hasSpanConstraint);
+            try{
+                sc.spanConstraint = Double.parseDouble(value);
+            } catch(Exception e){
+                sc.hasSpanConstraint = false;
             }
         });
 
@@ -4635,17 +4710,19 @@ public class App extends Application{
         });
         heightConstraint.setOnKeyPressed( event -> {
             if( event.getCode() == KeyCode.ENTER ) {
-                if(heightConstraint.getText().equals("")){
-                    sc.hasSpanConstraint = false;
-                    heightCheck.setSelected(false);
-                } else{
-                    heightCheck.setSelected(true);
-                    sc.isActive = true;
-                    sc.heightConstraint = Double.parseDouble(heightConstraint.getText());
-                    sc.hasHeightConstraint = true;
-                    fullSearch(allPackages, searchField.getText(), results, sc);
-                    selectAll.setSelected(false);
-                }
+                sc.isActive = true;
+                fullSearch(allPackages, searchField.getText(), results, sc);
+                selectAll.setSelected(false);
+            }
+        });
+        heightConstraint.setOnKeyReleased( event -> {
+            String value = heightConstraint.getText();
+            sc.hasSpanConstraint = !value.equals("");
+            heightCheck.setSelected(sc.hasSpanConstraint);
+            try{
+                sc.heightConstraint = Double.parseDouble(value);
+            } catch(Exception e){
+                sc.hasSpanConstraint = false;
             }
         });
 
@@ -4757,6 +4834,7 @@ public class App extends Application{
         root.setContent(searchBranch);
         Scene scene = new Scene(root); //node, width, minHeight
         scene.setUserData(new String("search"));
+        scene.getStylesheets().add("file://" + getResourcePath() + "/packages.css");
         return scene;
     }
 
@@ -5152,6 +5230,40 @@ public class App extends Application{
             }
         }
 
+        protected int dtfCount(){
+            int count = 0;
+            for(Node n: this.getChildren()){
+                Row r = (Row) n;
+                count += r.getChildren().size();
+            }
+            return count;
+        }
+
+        protected int dtfIndex(Row.DTF d){
+            int index = 0;
+            for(Node n: this.getChildren()){
+                Row r = (Row) n;
+                if(r.getChildren().contains(d)){
+                    index += r.getChildren().indexOf(d);
+                    return index;
+                }
+                index += r.getChildren().size();
+            }
+            return -1;
+        }
+
+        protected Row.DTF dtfGetTextField(int index){
+            for(Node n: this.getChildren()){
+                Row r = (Row) n;
+                for(Node n2 : r.getChildren()){
+                    if (index == 0)
+                        return (Row.DTF) n2;
+                    index -= 1;
+                }
+            }
+            return null;
+        }
+
         protected Row dtfBelongsTo(Row.DTF d){
             for(Node n: this.getChildren()){
                 Row r = (Row) n;
@@ -5280,13 +5392,33 @@ public class App extends Application{
                     }
                 }
 
+                protected void move_position(Row.DTF field, int step){
+                    assert field != null;
+                    int first = dtfIndex(field);
+                    int second = first + step;
+                    int total = dtfCount() - 1; /* -1 because last field is empty */
+                    if (second >= 0 && second < total){
+                        Row.DTF secondField = dtfGetTextField(second);
+                        assert secondField != null;
+                        String t1 = field.getText();
+                        String t2 = secondField.getText();
+                        field.setText(t2);
+                        field.check = t2;
+                        secondField.setText(t1);
+                        secondField.check = t1;
+                        store();
+                        change("names swapped");
+                        secondField.requestFocus();
+                    }
+                }
+
                 protected void flagDuplicate(boolean dup){
                     if (dup){
                         this.clear();
                         dupWarning.show(stage);
                     } else {
                         // make sure to undo yellowing
-                        this.setStyle("-fx-control-inner-background: white;");
+                        this.setStyle("TextFieldBkgnd: white;");
                     }
                 }
 
@@ -5295,7 +5427,12 @@ public class App extends Application{
                     check = s;
 
                     this.setOnKeyPressed( event -> {
-                        if( event.getCode() == KeyCode.ENTER ) {
+                        KeyCode keycode = event.getCode();
+                        if ( event.isControlDown() ){
+                            if ( keycode == KeyCode.LEFT || keycode == KeyCode.RIGHT ){
+                                move_position(this, (keycode == KeyCode.LEFT) ? -1 : 1);
+                            }
+                        } else if( keycode == KeyCode.ENTER ){
                             handle(this.getText());
                         }
                     });
@@ -5400,7 +5537,7 @@ public class App extends Application{
             protected void addDoMore(DTF dtf){
                 //if it's a duplicate, mark it with a yellow background
                 if(!notDuplicate(dtf.getText())){
-                    dtf.setStyle("-fx-control-inner-background: #fff0a0;");
+                    dtf.setStyle("TextFieldBkgnd: #fff0a0;");
                 }
             }
 
@@ -5413,10 +5550,10 @@ public class App extends Application{
                 //override methods and create constructors
                 protected void flagDuplicate(boolean dup){
                     if (dup){
-                        this.setStyle("-fx-control-inner-background: #fff0a0;");
+                        this.setStyle("TextFieldBkgnd: #fff0a0;");
                         dupSoftWarning.show(stage);
                     } else {
-                        this.setStyle("-fx-control-inner-background: white;");
+                        this.setStyle("TextFieldBkgnd: white;");
                     }
                 }
                 DTFImports(String s){
@@ -6404,6 +6541,7 @@ public class App extends Application{
             super();
             branch = new VBox(SPACING_VBOX);
             branch.setAlignment(Pos.CENTER);
+            branch.getStyleClass().add("message-box");
             branch.setStyle(style);
             messageLbl = new Label(message);
             messageLbl.setPadding(new Insets(0, 0, fieldSpacing, 0)); // add spacing below text (above button)
@@ -6438,6 +6576,7 @@ public class App extends Application{
             final VBox branch;
             branch = new VBox(SPACING_VBOX);
             branch.setAlignment(Pos.CENTER_LEFT);
+            branch.getStyleClass().add("message-box");
             branch.setStyle(style);
 
             final Label Caption = new Label("PACKAGES " + programVersion);
@@ -6448,11 +6587,11 @@ public class App extends Application{
             String version = System.getProperty("java.version");
             String fxversion = System.getProperty("javafx.version");
             String jre_path = System.getProperty("java.home");
-            String sysmsg = "JDK:\t\t" + version + " (" + jre_path + ")\n"
-                            + "JavaFx:\t" + fxversion;
+            String sysmsg = "JDK: \t" + version + " (" + jre_path + ")\n"
+                            + "JavaFx: \t" + fxversion;
             final Label SystemInfo = new Label(sysmsg);
 
-            FileInfo = new Label("Data file:\t(none)");
+            FileInfo = new Label("Data file: \t(none)");
             FileInfo.setPadding(new Insets(0, 0, fieldSpacing, 0)); // add spacing below text (above button)
 
             final HBox buttonBox = new HBox(SPACING_HBOX);
@@ -6510,6 +6649,7 @@ public class App extends Application{
             super();
             final VBox branch = new VBox(SPACING_VBOX);
             branch.setAlignment(Pos.CENTER_LEFT);
+            branch.getStyleClass().add("message-box");
             branch.setStyle(style);
 
             final Label instruction = new Label("Add vertices to construct a polygon");
@@ -6702,6 +6842,7 @@ public class App extends Application{
             super();
             final VBox branch = new VBox(SPACING_VBOX);
             branch.setAlignment(Pos.CENTER_LEFT);
+            branch.getStyleClass().add("message-box");
             branch.setStyle(style);
 
             canvas = new Canvas(POP_IMG_WIDTH, POP_IMG_HEIGHT);

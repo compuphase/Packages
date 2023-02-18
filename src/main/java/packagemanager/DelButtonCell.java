@@ -24,6 +24,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import java.io.File;
 
 /**
@@ -48,7 +49,25 @@ public class DelButtonCell<T extends Removable> extends TableCell<T, Boolean>{
                 System.out.println("DelButtonCell Image failed to load!");
             }
         }
-        cellButton.setStyle("-fx-padding:2px 8px 2px 8px;");
+
+        /* set styles (for hover/click) */
+        final String styleIdle = "-fx-padding:2px 8px 2px 8px; -fx-background-color:transparent; -fx-border-radius:4px; -fx-border-width:0px;";
+        final String styleHover = "-fx-padding:2px 8px 2px 8px; -fx-background-color:lightblue; -fx-border-radius:4px; -fx-border-width:0px;";
+        final String styleClick =  "-fx-padding:2px 8px 2px 8px; -fx-background-color:#9DC8D6; -fx-border-radius:4px; -fx-border-width:0px;";
+        cellButton.setStyle(styleIdle);
+        cellButton.setOnMouseEntered((MouseEvent arg0) -> {
+            cellButton.setStyle(styleHover);
+        });
+        cellButton.setOnMouseExited((MouseEvent arg0) -> {
+            cellButton.setStyle(styleIdle);
+        });
+        cellButton.setOnMousePressed((MouseEvent arg0) -> {
+            cellButton.setStyle(styleClick);
+        });
+        cellButton.setOnMouseReleased((MouseEvent arg0) -> {
+            cellButton.setStyle(styleHover);
+        });
+
         /* Set button tooltip */
         Tooltip tooltip = new Tooltip("Delete this entry");
         cellButton.setTooltip(tooltip);

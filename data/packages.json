@@ -4,8 +4,8 @@
 			"0201",
 			"0603M",
 			"C0201",
-			"R0201",
-			"C_0201"
+			"C_0201",
+			"R0201"
 		],
 		"references":[
 			{
@@ -14,7 +14,7 @@
 			}
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-05-19T08:51:29",
+		"date-modified":"2023-02-16T21:27:21",
 		"description":"chip capacitor, resistor or ferrite bead",
 		"terminal":"endcap",
 		"variants":[
@@ -122,7 +122,7 @@
 			}
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-05-01T15:55:30",
+		"date-modified":"2022-06-15T19:58:45",
 		"description":"chip capacitor, resistor or ferrite bead",
 		"terminal":"endcap",
 		"variants":[
@@ -539,7 +539,7 @@
 			}
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-05-01T16:01:01",
+		"date-modified":"2022-07-26T14:42:27",
 		"description":"chip capacitor, resistor or ferrite bead",
 		"terminal":"endcap",
 		"variants":[
@@ -621,6 +621,14 @@
 				"height":{
 					"high":0.75,
 					"low":0.6
+				}
+			},
+			{
+				"standard":"IPC-7351",
+				"name":"BEADC1608X80",
+				"height":{
+					"high":0.8,
+					"low":0.5
 				}
 			}
 		],
@@ -1835,7 +1843,7 @@
 			}
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-05-01T19:24:54",
+		"date-modified":"2022-10-08T15:42:47",
 		"description":"chip capacitor, resistor or ferrite bead",
 		"terminal":"endcap",
 		"variants":[
@@ -1971,7 +1979,9 @@
 		"type":"SMD",
 		"body":{
 			"cx":3.2,
-			"cy":1.6
+			"cy":1.6,
+			"tol-x":0.15,
+			"tol-y":0.15
 		},
 		"pin-count":2,
 		"footprints":[
@@ -2098,7 +2108,7 @@
 			"3216MD"
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-08-09T15:15:34",
 		"description":"diode or LED in 1206 package",
 		"terminal":"endcap",
 		"variants":[
@@ -2123,7 +2133,9 @@
 		"polarized":true,
 		"body":{
 			"cx":3.2,
-			"cy":1.6
+			"cy":1.6,
+			"tol-x":0.15,
+			"tol-y":0.15
 		},
 		"pin-count":2,
 		"footprints":[
@@ -2166,15 +2178,98 @@
 	},
 	{
 		"names":[
+			"1206D-RM"
+		],
+		"tape-orientation":90,
+		"related packages":[
+			"1206D"
+		],
+		"date-modified":"2023-02-16T21:28:49",
+		"description":"LED, reverse mount",
+		"terminal":"endcap",
+		"variants":[
+			{
+				"standard":"",
+				"notes":"total height = 1.4",
+				"name":"156120xS75300",
+				"height":{
+					"high":0.5,
+					"low":0.3
+				}
+			}
+		],
+		"type":"SMD",
+		"polarized":true,
+		"body":{
+			"cx":3.2,
+			"cy":1.6,
+			"tol-x":0.2,
+			"tol-y":0.2
+		},
+		"pin-count":2,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-1.8,
+						"y":0.0,
+						"pin-id":"1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":1.8,
+						"y":0.0,
+						"pin-id":"2"
+					},
+					{
+						"pad-id":2,
+						"rotation":0,
+						"x":0.0,
+						"y":0.0,
+						"pin-id":"*"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":4.6,
+					"cy":2.1
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"rectangle",
+						"cx":1.0,
+						"pad-id":1,
+						"cy":1.6
+					},
+					{
+						"pad-type":"mechanical",
+						"shape":"round",
+						"cx":2.1,
+						"pad-id":2,
+						"cy":2.1,
+						"hole-diameter":2.1
+					}
+				]
+			}
+		]
+	},
+	{
+		"names":[
 			"1206L",
 			"3216ML"
 		],
 		"lead-to-lead":{
 			"cx":3.5,
-			"cy":1.6
+			"cy":1.6,
+			"tol-x":0.2,
+			"tol-y":0.15
 		},
 		"tape-orientation":90,
-		"date-modified":"2022-05-01T19:28:18",
+		"date-modified":"2022-08-09T15:15:50",
 		"description":"molded chip, ferrite or inductor",
 		"terminal":"inward-L",
 		"variants":[
@@ -2230,7 +2325,9 @@
 		"type":"SMD",
 		"body":{
 			"cx":3.2,
-			"cy":1.6
+			"cy":1.6,
+			"tol-x":0.15,
+			"tol-y":0.15
 		},
 		"pin-count":2,
 		"footprints":[
@@ -2290,7 +2387,7 @@
 			}
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-05-01T19:29:05",
+		"date-modified":"2022-08-09T15:15:58",
 		"description":"chip capacitor, resistor or ferrite bead",
 		"terminal":"endcap",
 		"variants":[
@@ -2466,7 +2563,9 @@
 		"type":"SMD",
 		"body":{
 			"cx":3.2,
-			"cy":2.5
+			"cy":2.5,
+			"tol-x":0.2,
+			"tol-y":0.2
 		},
 		"pin-count":2,
 		"footprints":[
@@ -2594,7 +2693,7 @@
 			"3225MC"
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-08-09T15:16:09",
 		"description":"fuse, PPTC, polyfuse",
 		"terminal":"castellated",
 		"variants":[
@@ -2610,7 +2709,9 @@
 		"type":"SMD",
 		"body":{
 			"cx":3.2,
-			"cy":2.5
+			"cy":2.5,
+			"tol-x":0.2,
+			"tol-y":0.2
 		},
 		"pin-count":2,
 		"footprints":[
@@ -2657,7 +2758,7 @@
 			"3225MD"
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-08-09T15:16:23",
 		"description":"diode or LED in chip package",
 		"terminal":"endcap",
 		"variants":[
@@ -2682,7 +2783,9 @@
 		"polarized":true,
 		"body":{
 			"cx":3.2,
-			"cy":2.5
+			"cy":2.5,
+			"tol-x":0.2,
+			"tol-y":0.2
 		},
 		"pin-count":2,
 		"footprints":[
@@ -2731,10 +2834,12 @@
 		],
 		"lead-to-lead":{
 			"cx":3.5,
-			"cy":2.5
+			"cy":2.5,
+			"tol-x":0.3,
+			"tol-y":0.2
 		},
 		"tape-orientation":90,
-		"date-modified":"2022-05-01T19:32:49",
+		"date-modified":"2022-08-09T15:16:38",
 		"description":"molded chip, ferrite or inductor",
 		"terminal":"inward-L",
 		"variants":[
@@ -2782,7 +2887,9 @@
 		"type":"SMD",
 		"body":{
 			"cx":3.2,
-			"cy":2.5
+			"cy":2.5,
+			"tol-x":0.2,
+			"tol-y":0.2
 		},
 		"pin-count":2,
 		"footprints":[
@@ -2820,6 +2927,84 @@
 				"span":{
 					"cx":3.0
 				}
+			}
+		]
+	},
+	{
+		"names":[
+			"1612",
+			"4030M"
+		],
+		"tape-orientation":90,
+		"date-modified":"2022-06-15T19:11:33",
+		"description":"3-terminal SMD fuse",
+		"terminal":"no-lead",
+		"variants":[
+			{
+				"standard":"",
+				"name":"SCF4030",
+				"height":{
+					"high":1.0,
+					"low":0.75
+				}
+			}
+		],
+		"type":"SMD",
+		"body":{
+			"cx":4.0,
+			"cy":3.0,
+			"tol-x":0.2,
+			"tol-y":0.2
+		},
+		"pin-count":3,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.25,
+						"y":-1.225,
+						"pin-id":"1"
+					},
+					{
+						"pad-id":2,
+						"rotation":0,
+						"x":-1.9,
+						"y":0.0,
+						"pin-id":"2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.25,
+						"y":1.225,
+						"pin-id":"3"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":3.95,
+					"cy":4.0,
+					"x":-0.525,
+					"y":0.0
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"rectangle",
+						"cx":2.4,
+						"pad-id":1,
+						"cy":1.55
+					},
+					{
+						"pad-type":"standard",
+						"shape":"rectangle",
+						"cx":1.2,
+						"pad-id":2,
+						"cy":1.6
+					}
+				]
 			}
 		]
 	},
@@ -3475,15 +3660,16 @@
 	{
 		"names":[
 			"2012L",
-			"5032M",
-			"X532"
+			"5032ML",
+			"X532",
+			"5032M"
 		],
 		"lead-to-lead":{
 			"cx":5.4,
 			"cy":3.2
 		},
 		"tape-orientation":90,
-		"date-modified":"2022-05-01T19:47:18",
+		"date-modified":"2022-06-12T15:14:30",
 		"description":"molded chip, ferrite or inductor, crystal",
 		"terminal":"inward-L",
 		"variants":[
@@ -3866,13 +4052,78 @@
 	},
 	{
 		"names":[
+			"2410",
+			"6125M"
+		],
+		"tape-orientation":90,
+		"date-modified":"2022-06-15T18:53:26",
+		"description":"fuse, PPTC",
+		"terminal":"endcap",
+		"variants":[
+			{
+				"standard":"IPC-7351",
+				"name":"FUSC6125X260",
+				"height":{
+					"high":2.6,
+					"low":2.1
+				}
+			}
+		],
+		"type":"SMD",
+		"body":{
+			"cx":6.2,
+			"cy":2.6,
+			"tol-x":0.5,
+			"tol-y":0.5
+		},
+		"pin-count":2,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-2.5,
+						"y":0.0,
+						"pin-id":"1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":2.5,
+						"y":0.0,
+						"pin-id":"2"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":7.0,
+					"cy":3.18
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"rectangle",
+						"cx":2.0,
+						"pad-id":1,
+						"cy":3.18
+					}
+				],
+				"span":{
+					"cx":5.0
+				}
+			}
+		]
+	},
+	{
+		"names":[
 			"2512",
 			"6432M",
 			"C2512",
 			"C_2512"
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-07-10T13:56:07",
 		"description":"chip capacitor, resistor or ferrite bead",
 		"terminal":"endcap",
 		"variants":[
@@ -3890,6 +4141,14 @@
 				"height":{
 					"high":0.7,
 					"low":0.5
+				}
+			},
+			{
+				"standard":"IPC-7351",
+				"name":"RESC6432X100",
+				"height":{
+					"high":1.0,
+					"low":0.8
 				}
 			}
 		],
@@ -4201,11 +4460,6 @@
 		]
 	},
 	{
-		"names":[
-			"434153017835",
-			"EVP-AAU02Q",
-			"EVPAA"
-		],
 		"lead-to-lead":{
 			"cx":4.55,
 			"cy":2.9,
@@ -4213,10 +4467,8 @@
 			"tol-y":0.2
 		},
 		"tape-orientation":90,
-		"date-modified":"2022-04-05T20:07:47",
 		"description":"Tact switch, SPST OFF-(ON)",
 		"terminal":"J-lead",
-		"pitch":1.5,
 		"variants":[
 			{
 				"standard":"",
@@ -4244,7 +4496,6 @@
 			"tol-x":0.2,
 			"tol-y":0.2
 		},
-		"pin-count":4,
 		"footprints":[
 			{
 				"pad-positions":[
@@ -4295,7 +4546,18 @@
 					"cx":3.35
 				}
 			}
-		]
+		],
+		"names":[
+			"434153017835",
+			"EVP-AAU02Q",
+			"EVPAA"
+		],
+		"related packages":[
+			"EVPBF"
+		],
+		"date-modified":"2022-07-09T16:32:26",
+		"pitch":1.5,
+		"pin-count":4
 	},
 	{
 		"names":[
@@ -4367,14 +4629,15 @@
 	{
 		"names":[
 			"6035ML",
-			"6x3.5mm"
+			"6x3.5mm",
+			"6035M"
 		],
 		"lead-to-lead":{
 			"cx":6.4,
 			"cy":3.5
 		},
 		"tape-orientation":90,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-06-12T15:13:26",
 		"description":"molded chip, ferrite or inductor, 6.0x3.5mm",
 		"terminal":"inward-L",
 		"variants":[
@@ -5686,14 +5949,314 @@
 	},
 	{
 		"names":[
+			"CUI_5023S-SMT-TR"
+		],
+		"lead-to-lead":{
+			"cx":5.0,
+			"cy":5.0,
+			"tol-x":0.2,
+			"tol-y":0.2
+		},
+		"tape-orientation":270,
+		"date-modified":"2023-02-16T21:30:49",
+		"description":"CUI Magnetic buzzer",
+		"terminal":"inward-L",
+		"variants":[
+			{
+				"standard":"",
+				"name":"5023S-SMT-TR",
+				"height":{
+					"high":2.1,
+					"low":1.9
+				}
+			}
+		],
+		"type":"SMD",
+		"body":{
+			"cx":5.0,
+			"cy":5.0,
+			"tol-x":0.2,
+			"tol-y":0.2
+		},
+		"pin-count":2,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":2,
+						"rotation":0,
+						"x":-1.75,
+						"y":-1.8,
+						"pin-id":"2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":1.75,
+						"y":-1.8,
+						"pin-id":"3"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":1.75,
+						"y":1.8,
+						"pin-id":"4"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":4.5,
+					"cy":5.3
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"rectangle",
+						"cx":1.0,
+						"pad-id":1,
+						"cy":1.7
+					},
+					{
+						"pad-type":"mechanical",
+						"shape":"rectangle",
+						"cx":1.0,
+						"pad-id":2,
+						"cy":1.7
+					}
+				]
+			}
+		]
+	},
+	{
+		"names":[
+			"CUI_85853-97-SMT-TR"
+		],
+		"lead-to-lead":{
+			"cx":8.5,
+			"cy":8.5,
+			"tol-x":0.5,
+			"tol-y":0.5
+		},
+		"tape-orientation":180,
+		"date-modified":"2023-02-16T21:31:10",
+		"description":"CUI Magnetic buzzer",
+		"terminal":"inward-L",
+		"variants":[
+			{
+				"standard":"",
+				"notes":"CUI",
+				"name":"85853-97-SMT-TR",
+				"height":{
+					"high":3.1,
+					"low":2.9
+				}
+			}
+		],
+		"type":"SMD",
+		"body":{
+			"cx":8.5,
+			"cy":8.5,
+			"tol-x":0.5,
+			"tol-y":0.5
+		},
+		"pin-count":2,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":2,
+						"rotation":0,
+						"x":-3.5,
+						"y":3.5,
+						"pin-id":"1"
+					},
+					{
+						"pad-id":2,
+						"rotation":0,
+						"x":-3.5,
+						"y":-3.5,
+						"pin-id":"2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":3.5,
+						"y":-3.5,
+						"pin-id":"3"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":3.5,
+						"y":3.5,
+						"pin-id":"4"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":9.5,
+					"cy":9.5
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"rectangle",
+						"cx":2.5,
+						"pad-id":1,
+						"cy":2.5
+					},
+					{
+						"pad-type":"mechanical",
+						"shape":"rectangle",
+						"cx":2.5,
+						"pad-id":2,
+						"cy":2.5
+					}
+				]
+			}
+		]
+	},
+	{
+		"names":[
+			"DFN0603-2",
+			"SOD972",
+			"X3-DFN0603-2"
+		],
+		"tape-orientation":90,
+		"related packages":[
+			"DFN0603-3",
+			"DFN1006-2"
+		],
+		"date-modified":"2023-02-05T17:03:57",
+		"description":"diode, leadless ultra small package",
+		"terminal":"no-lead",
+		"variants":[
+			{
+				"standard":"IPC-7351",
+				"notes":"SOD972E",
+				"name":"DIODFN0603X28",
+				"height":{
+					"high":0.275,
+					"low":0.225
+				}
+			}
+		],
+		"type":"SMD",
+		"polarized":true,
+		"body":{
+			"cx":0.63,
+			"cy":0.33,
+			"tol-x":0.025,
+			"tol-y":0.025
+		},
+		"pin-count":2,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.19,
+						"y":0.0,
+						"pin-id":"1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.19,
+						"y":0.0,
+						"pin-id":"2"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":0.61,
+					"cy":0.3
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"rectangle",
+						"cx":0.23,
+						"pad-id":1,
+						"cy":0.3
+					}
+				]
+			}
+		]
+	},
+	{
+		"names":[
+			"DFN0603-3",
+			"SOT8013"
+		],
+		"tape-orientation":0,
+		"date-modified":"2023-02-05T17:04:35",
+		"description":"transistor, HUSON, leadless ultra small package",
+		"terminal":"no-lead",
+		"pitch":0.225,
+		"type":"SMD",
+		"polarized":true,
+		"body":{
+			"cx":0.63,
+			"cy":0.33,
+			"tol-x":0.025,
+			"tol-y":0.025
+		},
+		"pin-count":3,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.225,
+						"y":0.0,
+						"pin-id":"1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.0,
+						"y":0.0,
+						"pin-id":"2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.225,
+						"y":0.0,
+						"pin-id":"3"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":0.55,
+					"cy":0.25
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"rectangle",
+						"cx":0.1,
+						"pad-id":1,
+						"cy":0.25
+					}
+				]
+			}
+		]
+	},
+	{
+		"names":[
 			"DFN1006-2",
 			"SOD882",
 			"X1-DFN1006-2",
 			"X2-DFN1006-2"
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-04-05T20:07:47",
-		"description":"leadless ultra small package",
+		"date-modified":"2023-02-05T15:24:09",
+		"description":"diode, leadless ultra small package",
 		"terminal":"no-lead",
 		"variants":[
 			{
@@ -5761,11 +6324,95 @@
 	},
 	{
 		"names":[
+			"DFN1006-3",
+			"SOT883",
+			"X2-DFN1003-3",
+			"SC-101",
+			"XDFN3"
+		],
+		"references":[
+			{
+				"standard":"SC-101",
+				"organization":"JEITA"
+			}
+		],
+		"tape-orientation":90,
+		"related packages":[
+			"DFN1006-2",
+			"DFN0603-3"
+		],
+		"date-modified":"2023-02-05T17:12:22",
+		"description":"transistor, leadless ultra small package",
+		"terminal":"no-lead",
+		"pitch":0.35,
+		"type":"SMD",
+		"body":{
+			"cx":1.0,
+			"cy":0.6,
+			"tol-x":0.05,
+			"tol-y":0.05
+		},
+		"pin-count":3,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.35,
+						"y":0.175,
+						"pin-id":"1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.35,
+						"y":-0.175,
+						"pin-id":"2"
+					},
+					{
+						"pad-id":2,
+						"rotation":0,
+						"x":0.35,
+						"y":0.0,
+						"pin-id":"3"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":1.15,
+					"cy":0.55
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"rectangle",
+						"cx":0.45,
+						"pad-id":1,
+						"cy":0.2
+					},
+					{
+						"pad-type":"standard",
+						"shape":"rectangle",
+						"cx":0.45,
+						"pad-id":2,
+						"cy":0.55
+					}
+				],
+				"span":{
+					"cx":0.75
+				}
+			}
+		]
+	},
+	{
+		"names":[
 			"DFN1612-8",
-			"SOT1225"
+			"SOT1225",
+			"SOT-1225"
 		],
 		"tape-orientation":0,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-05-31T13:38:29",
 		"description":"Small Outline (pulled-back) No-leads (PSON, DFN), body 1.6x1.2mm",
 		"terminal":"no-lead",
 		"pitch":0.4,
@@ -5889,6 +6536,240 @@
 				"span":{
 					"cx":0.9
 				}
+			}
+		]
+	},
+	{
+		"names":[
+			"DHVQFN24",
+			"DHVQFN-24",
+			"SOT815",
+			"SOT-815"
+		],
+		"tape-orientation":0,
+		"date-modified":"2023-02-16T21:31:49",
+		"description":"Quad Flat\/No-leads, body 3.5x4.1mm",
+		"terminal":"no-lead",
+		"pitch":0.5,
+		"variants":[
+			{
+				"standard":"",
+				"exposed-pad":true,
+				"name":"SOT815-1",
+				"height":{
+					"high":1.0,
+					"low":0.8
+				}
+			}
+		],
+		"type":"SMD",
+		"body":{
+			"cx":3.5,
+			"cy":5.5,
+			"tol-x":0.1,
+			"tol-y":0.1
+		},
+		"pin-count":24,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":270,
+						"x":-0.75,
+						"y":2.675,
+						"pin-id":"1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-1.675,
+						"y":2.25,
+						"pin-id":"2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-1.675,
+						"y":1.75,
+						"pin-id":"3"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-1.675,
+						"y":1.25,
+						"pin-id":"4"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-1.675,
+						"y":0.75,
+						"pin-id":"5"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-1.675,
+						"y":0.25,
+						"pin-id":"6"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-1.675,
+						"y":-0.25,
+						"pin-id":"7"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-1.675,
+						"y":-0.75,
+						"pin-id":"8"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-1.675,
+						"y":-1.25,
+						"pin-id":"9"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-1.675,
+						"y":-1.75,
+						"pin-id":"10"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-1.675,
+						"y":-2.25,
+						"pin-id":"11"
+					},
+					{
+						"pad-id":1,
+						"rotation":90,
+						"x":-0.75,
+						"y":-2.675,
+						"pin-id":"12"
+					},
+					{
+						"pad-id":1,
+						"rotation":90,
+						"x":0.75,
+						"y":-2.675,
+						"pin-id":"13"
+					},
+					{
+						"pad-id":1,
+						"rotation":180,
+						"x":1.675,
+						"y":-2.25,
+						"pin-id":"14"
+					},
+					{
+						"pad-id":1,
+						"rotation":180,
+						"x":1.675,
+						"y":-1.75,
+						"pin-id":"15"
+					},
+					{
+						"pad-id":1,
+						"rotation":180,
+						"x":1.675,
+						"y":-1.25,
+						"pin-id":"16"
+					},
+					{
+						"pad-id":1,
+						"rotation":180,
+						"x":1.675,
+						"y":-0.75,
+						"pin-id":"17"
+					},
+					{
+						"pad-id":1,
+						"rotation":180,
+						"x":1.675,
+						"y":-0.25,
+						"pin-id":"18"
+					},
+					{
+						"pad-id":1,
+						"rotation":180,
+						"x":1.675,
+						"y":0.25,
+						"pin-id":"19"
+					},
+					{
+						"pad-id":1,
+						"rotation":180,
+						"x":1.675,
+						"y":0.75,
+						"pin-id":"20"
+					},
+					{
+						"pad-id":1,
+						"rotation":180,
+						"x":1.675,
+						"y":1.25,
+						"pin-id":"21"
+					},
+					{
+						"pad-id":1,
+						"rotation":180,
+						"x":1.675,
+						"y":1.75,
+						"pin-id":"22"
+					},
+					{
+						"pad-id":1,
+						"rotation":180,
+						"x":1.675,
+						"y":2.25,
+						"pin-id":"23"
+					},
+					{
+						"pad-id":1,
+						"rotation":270,
+						"x":0.75,
+						"y":2.675,
+						"pin-id":"24"
+					},
+					{
+						"pad-id":2,
+						"rotation":0,
+						"x":0.0,
+						"y":0.0,
+						"pin-id":"*"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":4.05,
+					"cy":6.05
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"roundedrect",
+						"cx":0.7,
+						"pad-id":1,
+						"cy":0.3
+					},
+					{
+						"pad-type":"exposed",
+						"shape":"rectangle",
+						"cx":2.1,
+						"pad-id":2,
+						"cy":4.1
+					}
+				]
 			}
 		]
 	},
@@ -9316,6 +10197,84 @@
 		]
 	},
 	{
+		"names":[
+			"DSBGA4",
+			"DSBGA-4"
+		],
+		"tape-orientation":0,
+		"date-modified":"2022-07-13T18:36:31",
+		"description":"Ball-Grid Array, 2x2 full matrix",
+		"terminal":"ball-grid",
+		"pitch":0.5,
+		"variants":[
+			{
+				"standard":"IPC-7351",
+				"notes":"TI:*YZV",
+				"name":"BGA4NP50_2X2_90X90X50",
+				"height":{
+					"high":0.5,
+					"low":0.4
+				}
+			}
+		],
+		"type":"SMD",
+		"body":{
+			"cx":0.9,
+			"cy":0.9,
+			"tol-x":0.05,
+			"tol-y":0.05
+		},
+		"pin-count":4,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.25,
+						"y":0.25,
+						"pin-id":"A1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.25,
+						"y":0.25,
+						"pin-id":"A2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.25,
+						"y":-0.25,
+						"pin-id":"B1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.25,
+						"y":-0.25,
+						"pin-id":"B2"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":0.75,
+					"cy":0.75
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"round",
+						"cx":0.25,
+						"pad-id":1,
+						"cy":0.25
+					}
+				]
+			}
+		]
+	},
+	{
 		"lead-to-lead":{
 			"cx":1.9,
 			"cy":0.8
@@ -10545,13 +11504,107 @@
 		]
 	},
 	{
+		"lead-to-lead":{
+			"cx":6.6,
+			"cy":6.0,
+			"tol-x":0.2,
+			"tol-y":0.2
+		},
+		"tape-orientation":90,
+		"description":"Tact switch, SPST OFF-(ON)",
+		"terminal":"J-lead",
+		"variants":[
+			{
+				"standard":"",
+				"name":"Panasonic_EVPBFAC1A000",
+				"height":{
+					"high":3.6,
+					"low":3.4
+				}
+			},
+			{
+				"standard":"",
+				"name":"Panasonic_EVPBF6C1A000",
+				"height":{
+					"high":3.6,
+					"low":3.4
+				}
+			}
+		],
+		"type":"SMD",
+		"body":{
+			"cx":6.0,
+			"cy":6.0,
+			"tol-x":0.2,
+			"tol-y":0.2
+		},
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-2.875,
+						"y":2.0,
+						"pin-id":"1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-2.875,
+						"y":-2.0,
+						"pin-id":"2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":2.875,
+						"y":-2.0,
+						"pin-id":"3"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":2.875,
+						"y":2.0,
+						"pin-id":"4"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":8.5,
+					"cy":5.0
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"roundedrect",
+						"cx":2.75,
+						"pad-id":1,
+						"cy":1.0
+					}
+				]
+			}
+		],
+		"names":[
+			"EVPBF"
+		],
+		"related packages":[
+			"EVPAA"
+		],
+		"date-modified":"2022-07-09T16:31:56",
+		"pitch":4.0,
+		"pin-count":4
+	},
+	{
 		"names":[
 			"FBGA48",
 			"FBGA-48",
-			"SOT1155"
+			"SOT1155",
+			"SOT-1155"
 		],
 		"tape-orientation":0,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-05-31T13:38:37",
 		"description":"Ball-Grid Array, 8x8 perimeter matrix",
 		"terminal":"ball-grid",
 		"pitch":0.5,
@@ -11053,7 +12106,10 @@
 			"HC-49\/U-S",
 			"HC49SMD",
 			"HC49USSMD",
-			"X10.3x3.8"
+			"X10.3x3.8",
+			"X10.3x4,1",
+			"HC49\/US",
+			"ABLS"
 		],
 		"lead-to-lead":{
 			"cx":13.6,
@@ -11063,9 +12119,10 @@
 		},
 		"tape-orientation":90,
 		"related packages":[
-			"HC49SMD4"
+			"HC49SMD4",
+			"X7.0x4.1"
 		],
-		"date-modified":"2022-05-09T10:12:23",
+		"date-modified":"2022-10-11T18:33:37",
 		"description":"Crystal, metal can, SMD",
 		"terminal":"lug-lead",
 		"variants":[
@@ -11292,13 +12349,14 @@
 			"tol-y":0.1
 		},
 		"tape-orientation":0,
-		"date-modified":"2022-04-12T08:22:29",
+		"date-modified":"2022-05-28T20:06:45",
 		"description":"LFPAK power package",
 		"terminal":"gull-wing",
 		"pitch":2.0,
 		"variants":[
 			{
 				"standard":"",
+				"notes":"SOT-1235",
 				"name":"SOT1235",
 				"height":{
 					"high":0.185,
@@ -11962,16 +13020,18 @@
 			"TSSOP8N",
 			"mini-SOIC8",
 			"µMAX-8",
-			"SOT505"
+			"SM8",
+			"SOT505",
+			"SOT-505"
 		],
 		"lead-to-lead":{
 			"cx":4.9,
 			"cy":3.0,
-			"tol-x":0.2,
+			"tol-x":0.25,
 			"tol-y":0.1
 		},
 		"tape-orientation":0,
-		"date-modified":"2022-05-08T13:22:59",
+		"date-modified":"2022-07-14T19:05:44",
 		"description":"miniature SOIC\/TSSOP, body 3.0x3.0 mm",
 		"terminal":"gull-wing",
 		"pitch":0.65,
@@ -12001,6 +13061,15 @@
 				"height":{
 					"high":1.1,
 					"low":1.0
+				}
+			},
+			{
+				"standard":"IPC-7351",
+				"notes":"TI:*DCT",
+				"name":"SOP8P65_400X130",
+				"height":{
+					"high":1.3,
+					"low":1.2
 				}
 			}
 		],
@@ -12111,25 +13180,26 @@
 			"MSOP10",
 			"MSOP-10",
 			"uSOP10",
-			"SOT552",
 			"mini-SOIC10",
-			"µMAX-10"
+			"µMAX-10",
+			"SOT552",
+			"SOT-552"
 		],
 		"lead-to-lead":{
 			"cx":4.9,
 			"cy":3.0,
-			"tol-x":0.1,
+			"tol-x":0.2,
 			"tol-y":0.1
 		},
 		"tape-orientation":0,
-		"date-modified":"2022-05-08T13:23:08",
+		"date-modified":"2022-07-12T19:08:06",
 		"description":"miniature SOIC\/TSSOP, body 3x3mm",
 		"terminal":"gull-wing",
 		"pitch":0.5,
 		"variants":[
 			{
 				"standard":"IPC-7351",
-				"notes":"SOT552-1",
+				"notes":"SOT552-1, TI:*DGS",
 				"name":"SOP10P50_490X110",
 				"height":{
 					"high":1.1,
@@ -12633,10 +13703,11 @@
 	},
 	{
 		"names":[
-			"PBGA144"
+			"PBGA144",
+			"PBGA-144"
 		],
 		"tape-orientation":0,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-07-12T18:46:35",
 		"description":"Ball-Grid Array, 12x12 full matrix",
 		"terminal":"ball-grid",
 		"pitch":1.0,
@@ -13701,10 +14772,11 @@
 	},
 	{
 		"names":[
-			"PBGA160"
+			"PBGA160",
+			"PBGA-160"
 		],
 		"tape-orientation":0,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-07-12T18:46:43",
 		"description":"Ball-Grid Array, 14x14 perimeter matrix",
 		"terminal":"ball-grid",
 		"pitch":1.0,
@@ -14881,10 +15953,11 @@
 	},
 	{
 		"names":[
-			"PBGA196"
+			"PBGA196",
+			"PBGA-196"
 		],
 		"tape-orientation":0,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-07-12T18:46:52",
 		"description":"Ball-Grid Array, 14x14 full matrix",
 		"terminal":"ball-grid",
 		"pitch":1.0,
@@ -16313,14 +17386,15 @@
 	},
 	{
 		"names":[
-			"PLCC2"
+			"PLCC2",
+			"PLCC-2"
 		],
 		"lead-to-lead":{
 			"cx":3.5,
 			"cy":2.8
 		},
 		"tape-orientation":270,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-06-12T15:16:06",
 		"description":"low power LED",
 		"terminal":"inward-L",
 		"variants":[
@@ -16591,7 +17665,8 @@
 		"names":[
 			"PSON6-1.0x1.5",
 			"XSON6",
-			"SOT886"
+			"SOT886",
+			"SOT-886"
 		],
 		"references":[
 			{
@@ -16600,7 +17675,7 @@
 			}
 		],
 		"tape-orientation":0,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-05-31T13:38:57",
 		"description":"Small Outline (pulled-back) No-leads (PSON, DFN), body 1.0x1.5mm",
 		"terminal":"no-lead",
 		"pitch":0.5,
@@ -16691,8 +17766,11 @@
 		"names":[
 			"QFN8",
 			"QFN8p50",
+			"QFN-8",
 			"SOT902",
-			"SOT1193"
+			"SOT-902",
+			"SOT1193",
+			"SOT-1193"
 		],
 		"references":[
 			{
@@ -16701,7 +17779,7 @@
 			}
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-05-08T13:24:06",
+		"date-modified":"2022-06-12T15:17:00",
 		"description":"Quad Flat, No pins, No exposed pad",
 		"terminal":"no-lead",
 		"pitch":0.5,
@@ -17008,7 +18086,9 @@
 		"names":[
 			"QFN10",
 			"QFN10p50",
-			"SOT1049"
+			"QFN-10",
+			"SOT1049",
+			"SOT-1049"
 		],
 		"references":[
 			{
@@ -17017,7 +18097,7 @@
 			}
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-05-08T13:27:11",
+		"date-modified":"2022-06-12T15:16:53",
 		"description":"Quad Flat, No pins, No exposed pad",
 		"terminal":"no-lead",
 		"pitch":0.5,
@@ -17178,7 +18258,8 @@
 	{
 		"names":[
 			"QFN12",
-			"QFN12p50"
+			"QFN12p50",
+			"QFN-12"
 		],
 		"references":[
 			{
@@ -17187,7 +18268,7 @@
 			}
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-05-08T13:27:32",
+		"date-modified":"2022-06-12T15:16:48",
 		"description":"Quad Flat\/No-leads, 3x3mm",
 		"terminal":"no-lead",
 		"pitch":0.5,
@@ -17383,6 +18464,139 @@
 	},
 	{
 		"names":[
+			"QFN12p40"
+		],
+		"tape-orientation":0,
+		"date-modified":"2022-07-12T19:09:36",
+		"description":"Quad Flat\/No-leads, body 1.45x2.05mm",
+		"terminal":"no-lead",
+		"pitch":0.4,
+		"variants":[
+			{
+				"standard":"ED-7303",
+				"notes":"TI:*RUE",
+				"name":"P-XQFN12-1.45x2.05-0.4",
+				"height":{
+					"high":0.4,
+					"low":0.35
+				}
+			}
+		],
+		"type":"SMD",
+		"body":{
+			"cx":1.45,
+			"cy":2.05,
+			"tol-x":0.05,
+			"tol-y":0.05
+		},
+		"pin-count":12,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.675,
+						"y":0.8,
+						"pin-id":"1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.675,
+						"y":0.4,
+						"pin-id":"2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.675,
+						"y":0.0,
+						"pin-id":"3"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.675,
+						"y":-0.4,
+						"pin-id":"4"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.675,
+						"y":-0.8,
+						"pin-id":"5"
+					},
+					{
+						"pad-id":1,
+						"rotation":90,
+						"x":0.0,
+						"y":-0.975,
+						"pin-id":"6"
+					},
+					{
+						"pad-id":1,
+						"rotation":180,
+						"x":0.675,
+						"y":-0.8,
+						"pin-id":"7"
+					},
+					{
+						"pad-id":1,
+						"rotation":180,
+						"x":0.675,
+						"y":-0.4,
+						"pin-id":"8"
+					},
+					{
+						"pad-id":1,
+						"rotation":180,
+						"x":0.675,
+						"y":0.0,
+						"pin-id":"9"
+					},
+					{
+						"pad-id":1,
+						"rotation":180,
+						"x":0.675,
+						"y":0.4,
+						"pin-id":"10"
+					},
+					{
+						"pad-id":1,
+						"rotation":180,
+						"x":0.675,
+						"y":0.8,
+						"pin-id":"11"
+					},
+					{
+						"pad-id":1,
+						"rotation":270,
+						"x":0.0,
+						"y":0.975,
+						"pin-id":"12"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":1.95,
+					"cy":2.55
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"roundedrect",
+						"cx":0.6,
+						"pad-id":1,
+						"cy":0.25
+					}
+				]
+			}
+		]
+	},
+	{
+		"names":[
 			"QFN12p65",
 			"QFN12p0.65"
 		],
@@ -17571,7 +18785,8 @@
 	{
 		"names":[
 			"QFN14",
-			"QFN14p50"
+			"QFN14p50",
+			"QFN-14"
 		],
 		"references":[
 			{
@@ -17580,7 +18795,7 @@
 			}
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-05-08T13:28:01",
+		"date-modified":"2022-06-12T15:17:11",
 		"description":"Quad Flat\/No-leads, 3.5x3.5mm",
 		"terminal":"no-lead",
 		"pitch":0.5,
@@ -17773,7 +18988,8 @@
 		"names":[
 			"QFN16",
 			"QFN16-EP",
-			"QFN16p50"
+			"QFN16p50",
+			"QFN-16"
 		],
 		"references":[
 			{
@@ -17782,7 +18998,7 @@
 			}
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-05-08T13:28:30",
+		"date-modified":"2022-07-12T19:10:24",
 		"description":"Quad Flat\/No-leads, 3x3mm",
 		"terminal":"no-lead",
 		"pitch":0.5,
@@ -17799,7 +19015,7 @@
 			{
 				"standard":"IPC-7351",
 				"exposed-pad":true,
-				"notes":"VQFN16",
+				"notes":"VQFN16, TI:*RGT",
 				"name":"QFN16P50_300X300X100",
 				"height":{
 					"high":1.0,
@@ -17858,8 +19074,8 @@
 		"body":{
 			"cx":3.0,
 			"cy":3.0,
-			"tol-x":0.1,
-			"tol-y":0.1
+			"tol-x":0.15,
+			"tol-y":0.15
 		},
 		"pin-count":16,
 		"footprints":[
@@ -18024,7 +19240,7 @@
 			}
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-05-08T13:28:48",
+		"date-modified":"2022-07-08T19:00:41",
 		"description":"Quad Flat\/No-leads, body 3x3mm",
 		"terminal":"no-lead",
 		"pitch":0.4,
@@ -18436,7 +19652,8 @@
 		"names":[
 			"QFN20",
 			"QFN20-EP",
-			"QFN20p50"
+			"QFN20p50",
+			"QFN-20"
 		],
 		"references":[
 			{
@@ -18445,7 +19662,7 @@
 			}
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-05-08T13:29:25",
+		"date-modified":"2022-06-12T15:04:19",
 		"description":"Quad Flat\/No-leads, body 4x4mm",
 		"terminal":"no-lead",
 		"pitch":0.5,
@@ -19201,7 +20418,9 @@
 		"names":[
 			"QFN24",
 			"QFN24p50",
-			"SOT616"
+			"QFN-24",
+			"SOT616",
+			"SOT-616"
 		],
 		"references":[
 			{
@@ -19210,7 +20429,7 @@
 			}
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-05-08T13:30:12",
+		"date-modified":"2022-10-08T13:03:03",
 		"description":"Quad Flat\/No-leads, body 4x4mm",
 		"terminal":"no-lead",
 		"pitch":0.5,
@@ -19227,7 +20446,7 @@
 			{
 				"standard":"IPC-7351",
 				"exposed-pad":true,
-				"notes":"VQFN24, SOT616-3",
+				"notes":"VQFN24, SOT616-3, TI:*RGE",
 				"name":"QFN24P50_400X400X100",
 				"height":{
 					"high":1.0,
@@ -19260,6 +20479,16 @@
 				"height":{
 					"high":1.0,
 					"low":0.8
+				}
+			},
+			{
+				"standard":"IPC-7351",
+				"exposed-pad":true,
+				"notes":"TI:*RTW",
+				"name":"QFN24P50_400X400X80",
+				"height":{
+					"high":0.8,
+					"low":0.7
 				}
 			}
 		],
@@ -19766,7 +20995,8 @@
 	{
 		"names":[
 			"QFN28",
-			"QFN28p50"
+			"QFN28p50",
+			"QFN-28"
 		],
 		"references":[
 			{
@@ -19775,7 +21005,7 @@
 			}
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-05-08T13:30:32",
+		"date-modified":"2022-06-12T15:17:48",
 		"description":"Quad Flat\/No-leads, body 5x5mm",
 		"terminal":"no-lead",
 		"pitch":0.5,
@@ -20354,7 +21584,9 @@
 		"names":[
 			"QFN32",
 			"QFN32p50",
-			"SOT617"
+			"QFN-32",
+			"SOT617",
+			"SOT-617"
 		],
 		"references":[
 			{
@@ -20363,7 +21595,7 @@
 			}
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-05-08T13:30:56",
+		"date-modified":"2022-06-12T15:17:59",
 		"description":"Quad Flat\/No-leads, body 5x5mm",
 		"terminal":"no-lead",
 		"pitch":0.5,
@@ -20690,8 +21922,10 @@
 	{
 		"names":[
 			"QFN32p65",
+			"QFN32p0.65",
 			"SOT865",
-			"QFN32p0.65"
+			"SOT-865",
+			"QFN-32p.65"
 		],
 		"references":[
 			{
@@ -20700,7 +21934,7 @@
 			}
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-05-08T13:31:10",
+		"date-modified":"2022-06-12T15:21:57",
 		"description":"Quad Flat\/No leads, body 7x7mm",
 		"terminal":"no-lead",
 		"pitch":0.65,
@@ -38809,9 +40043,11 @@
 			"QFP48p50",
 			"TQFP48",
 			"TQFP48p50",
-			"SOT313"
+			"QFP-48",
+			"SOT313",
+			"SOT-313"
 		],
-		"date-modified":"2022-05-08T13:51:19",
+		"date-modified":"2022-06-12T15:05:02",
 		"pitch":0.5,
 		"pin-count":48
 	},
@@ -40812,9 +42048,11 @@
 			"QFP64p50",
 			"TQFP64",
 			"TQFP64p50",
-			"SOT314"
+			"QFP-64",
+			"SOT314",
+			"SOT-314"
 		],
-		"date-modified":"2022-05-08T13:52:34",
+		"date-modified":"2022-06-12T15:22:42",
 		"pitch":0.5,
 		"pin-count":64
 	},
@@ -43174,9 +44412,10 @@
 			"QFP80",
 			"TQFP80",
 			"QFP80p50",
-			"TQFP80p50"
+			"TQFP80p50",
+			"QFP-80"
 		],
-		"date-modified":"2022-05-08T13:57:13",
+		"date-modified":"2022-06-12T15:23:04",
 		"pitch":0.5,
 		"pin-count":80
 	},
@@ -45352,10 +46591,12 @@
 			"QFP100p50",
 			"TQFP100",
 			"TQFP100p50",
+			"QFP-100",
 			"CQFP-100",
-			"SOT407"
+			"SOT407",
+			"SOT-407"
 		],
-		"date-modified":"2022-05-08T13:57:59",
+		"date-modified":"2022-06-12T15:23:17",
 		"pitch":0.5,
 		"pin-count":100
 	},
@@ -49848,9 +51089,10 @@
 			"QFP128",
 			"QFP128p50",
 			"TQFP128",
-			"TQFP128p50"
+			"TQFP128p50",
+			"QFP-128"
 		],
-		"date-modified":"2022-05-08T13:58:56",
+		"date-modified":"2022-06-12T15:23:34",
 		"pitch":0.5,
 		"pin-count":128
 	},
@@ -51978,9 +53220,10 @@
 			"QFP144p50",
 			"TQFP144",
 			"TQFP144p50",
+			"QFP-144",
 			"CQFP-144"
 		],
-		"date-modified":"2022-05-08T13:59:12",
+		"date-modified":"2022-06-12T15:23:51",
 		"pitch":0.5,
 		"pin-count":144
 	},
@@ -53173,9 +54416,10 @@
 		],
 		"names":[
 			"QFP160",
+			"QFP-160",
 			"CQFP-160"
 		],
-		"date-modified":"2022-05-08T13:59:23",
+		"date-modified":"2022-06-12T15:23:59",
 		"pitch":0.5,
 		"pin-count":160
 	},
@@ -55755,9 +56999,10 @@
 			"QFP176",
 			"QFP176p50",
 			"TQFP176",
-			"TQFP176p50"
+			"TQFP176p50",
+			"QFP-176"
 		],
-		"date-modified":"2022-05-08T13:59:47",
+		"date-modified":"2022-06-12T15:24:08",
 		"pitch":0.5,
 		"pin-count":176
 	},
@@ -58673,9 +59918,10 @@
 			"QFP208",
 			"QFP208p50",
 			"TQFP208",
-			"TQFP208p40"
+			"TQFP208p40",
+			"QFP-208"
 		],
-		"date-modified":"2022-05-08T14:00:11",
+		"date-modified":"2022-06-12T15:24:15",
 		"pitch":0.5,
 		"pin-count":208
 	},
@@ -62464,9 +63710,10 @@
 			}
 		],
 		"names":[
-			"QSOP28"
+			"QSOP28",
+			"QSOP-28"
 		],
-		"date-modified":"2022-05-08T14:00:48",
+		"date-modified":"2022-06-12T15:24:26",
 		"pitch":0.635,
 		"pin-count":28
 	},
@@ -62641,28 +63888,23 @@
 		]
 	},
 	{
-		"names":[
-			"SMFPAK-6"
-		],
 		"lead-to-lead":{
 			"cx":1.5,
 			"cy":1.5,
 			"tol-x":0.1,
-			"tol-y":0.05
+			"tol-y":0.1
 		},
 		"tape-orientation":270,
-		"date-modified":"2022-05-08T14:07:41",
 		"description":"Transistor\/IC",
 		"terminal":"lug-lead",
-		"pitch":0.5,
 		"variants":[
 			{
 				"standard":"IPC-7351",
-				"notes":"SMFPAK-6",
-				"name":"TRXSOFL6P50_150X55",
+				"notes":"TI:*DRL",
+				"name":"TRXSOFL5P50_150X60",
 				"height":{
-					"high":0.55,
-					"low":0.45
+					"high":0.6,
+					"low":0.5
 				}
 			}
 		],
@@ -62671,9 +63913,113 @@
 			"cx":1.1,
 			"cy":1.5,
 			"tol-x":0.1,
-			"tol-y":0.05
+			"tol-y":0.1
 		},
-		"pin-count":6,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.65,
+						"y":0.5,
+						"pin-id":"1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.65,
+						"y":0.0,
+						"pin-id":"2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.65,
+						"y":-0.5,
+						"pin-id":"3"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.65,
+						"y":-0.5,
+						"pin-id":"4"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.65,
+						"y":0.5,
+						"pin-id":"5"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":2.0,
+					"cy":1.24
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"roundedrect",
+						"cx":0.7,
+						"pad-id":1,
+						"cy":0.24
+					}
+				],
+				"span":{
+					"cx":1.3
+				}
+			}
+		],
+		"names":[
+			"SMFPAK5",
+			"SMFPAK-5"
+		],
+		"related packages":[
+			"SMFPAK6"
+		],
+		"date-modified":"2022-07-14T19:02:10",
+		"pitch":0.5,
+		"pin-count":5
+	},
+	{
+		"lead-to-lead":{
+			"cx":1.5,
+			"cy":1.5,
+			"tol-x":0.1,
+			"tol-y":0.1
+		},
+		"tape-orientation":270,
+		"description":"Transistor\/IC",
+		"terminal":"lug-lead",
+		"variants":[
+			{
+				"standard":"IPC-7351",
+				"name":"TRXSOFL6P50_150X55",
+				"height":{
+					"high":0.55,
+					"low":0.45
+				}
+			},
+			{
+				"standard":"IPC-7351",
+				"notes":"TI:*DRL",
+				"name":"TRXSOFL6P50_150X60",
+				"height":{
+					"high":0.6,
+					"low":0.5
+				}
+			}
+		],
+		"type":"SMD",
+		"body":{
+			"cx":1.1,
+			"cy":1.5,
+			"tol-x":0.1,
+			"tol-y":0.1
+		},
 		"footprints":[
 			{
 				"pad-positions":[
@@ -62738,7 +64084,17 @@
 					"cx":1.3
 				}
 			}
-		]
+		],
+		"names":[
+			"SMFPAK6",
+			"SMFPAK-6"
+		],
+		"related packages":[
+			"SMFPAK5"
+		],
+		"date-modified":"2022-07-14T19:02:16",
+		"pitch":0.5,
+		"pin-count":6
 	},
 	{
 		"names":[
@@ -62830,11 +64186,13 @@
 			"SO6-4"
 		],
 		"lead-to-lead":{
-			"cx":7.0,
-			"cy":3.85
+			"cx":6.8,
+			"cy":3.85,
+			"tol-x":0.4,
+			"tol-y":0.3
 		},
 		"tape-orientation":0,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-08-01T11:49:34",
 		"description":"Solid-state relay or opto-coupler",
 		"terminal":"gull-wing",
 		"pitch":2.54,
@@ -62846,8 +64204,10 @@
 		],
 		"type":"SMD",
 		"body":{
-			"cx":4.51,
-			"cy":3.85
+			"cx":4.4,
+			"cy":3.85,
+			"tol-x":0.2,
+			"tol-y":0.3
 		},
 		"pin-count":4,
 		"footprints":[
@@ -62915,14 +64275,18 @@
 			"tol-y":0.4
 		},
 		"tape-orientation":0,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-09-27T18:48:28",
 		"description":"Solid-state relay or opto-coupler",
 		"terminal":"gull-wing",
 		"pitch":2.54,
 		"variants":[
 			{
 				"standard":"IPC-7351",
-				"name":"SOP4P254_980X210"
+				"name":"SOP4P254_980X210",
+				"height":{
+					"high":2.1,
+					"low":1.8
+				}
 			}
 		],
 		"type":"SMD",
@@ -63825,12 +65189,15 @@
 		],
 		"names":[
 			"SOIC8",
+			"SOIC-8",
 			"SO8",
 			"SO-8",
 			"HSOIC8",
-			"SOT96"
+			"SOT96",
+			"SOT-96",
+			"SOICE"
 		],
-		"date-modified":"2022-05-04T09:05:02",
+		"date-modified":"2022-10-13T15:21:53",
 		"pitch":1.27,
 		"pin-count":8
 	},
@@ -63990,10 +65357,11 @@
 		],
 		"names":[
 			"SOIC8W",
+			"SOIC-8W",
 			"SO8W",
 			"SO-8W"
 		],
-		"date-modified":"2022-05-08T14:09:03",
+		"date-modified":"2022-06-12T15:06:31",
 		"pitch":1.27,
 		"pin-count":8
 	},
@@ -64187,12 +65555,14 @@
 		],
 		"names":[
 			"SOIC14",
+			"SOIC-14",
 			"SO14",
 			"SO-14",
 			"HSOIC14",
-			"SOT108"
+			"SOT108",
+			"SOT-108"
 		],
-		"date-modified":"2022-05-08T14:09:21",
+		"date-modified":"2022-06-12T14:56:03",
 		"pitch":1.27,
 		"pin-count":14
 	},
@@ -64385,12 +65755,13 @@
 		],
 		"names":[
 			"SOIC14W",
+			"SOIC-14W",
 			"SO14W",
 			"SO-14W",
 			"SOICW14",
 			"SOICW-14"
 		],
-		"date-modified":"2022-05-08T14:09:37",
+		"date-modified":"2022-06-12T15:06:56",
 		"pitch":1.27,
 		"pin-count":14
 	},
@@ -64602,12 +65973,14 @@
 		],
 		"names":[
 			"SOIC16",
+			"HSOIC16",
+			"SOIC-16",
 			"SO16",
 			"SO-16",
-			"HSOIC16",
-			"SOT109"
+			"SOT109",
+			"SOT-109"
 		],
-		"date-modified":"2022-05-08T14:10:03",
+		"date-modified":"2022-06-12T15:07:08",
 		"pitch":1.27,
 		"pin-count":16
 	},
@@ -64813,13 +66186,15 @@
 		],
 		"names":[
 			"SOIC16W",
+			"SOIC-16W",
 			"SO16W",
 			"SO-16W",
 			"SOICW16",
 			"SOICW-16",
-			"SOT162"
+			"SOT162",
+			"SOT-162"
 		],
-		"date-modified":"2022-05-08T14:10:17",
+		"date-modified":"2022-06-12T15:07:24",
 		"pitch":1.27,
 		"pin-count":16
 	},
@@ -65007,10 +66382,11 @@
 		],
 		"names":[
 			"SOIC18",
+			"SOIC-18",
 			"SO18",
 			"SO-18"
 		],
-		"date-modified":"2022-05-08T14:10:30",
+		"date-modified":"2022-06-12T15:07:33",
 		"pitch":1.27,
 		"pin-count":18
 	},
@@ -65230,12 +66606,13 @@
 		],
 		"names":[
 			"SOIC18W",
+			"SOIC-18W",
 			"SO18W",
 			"SO-18W",
 			"SOICW18",
 			"SOICW-18"
 		],
-		"date-modified":"2022-05-08T14:10:44",
+		"date-modified":"2022-06-12T15:07:43",
 		"pitch":1.27,
 		"pin-count":18
 	},
@@ -65473,14 +66850,16 @@
 		],
 		"names":[
 			"SOIC20",
+			"SOIC-20",
 			"SO20",
 			"SO-20",
 			"SOIC20W",
 			"SOICW20",
 			"SOICW-20",
-			"SOT163"
+			"SOT163",
+			"SOT-163"
 		],
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-06-12T15:08:01",
 		"pitch":1.27,
 		"pin-count":20
 	},
@@ -65681,9 +67060,10 @@
 			}
 		],
 		"names":[
-			"SOIC20N"
+			"SOIC20N",
+			"SOIC-20N"
 		],
-		"date-modified":"2022-05-08T14:11:17",
+		"date-modified":"2022-06-12T15:08:11",
 		"pitch":1.27,
 		"pin-count":20
 	},
@@ -65918,6 +67298,7 @@
 		],
 		"names":[
 			"SOIC24",
+			"SOIC-24",
 			"SOIC24W",
 			"SO24",
 			"SO24W",
@@ -65925,9 +67306,10 @@
 			"SO-24W",
 			"SOICW24",
 			"SOICW-24",
-			"SOT137"
+			"SOT137",
+			"SOT-137"
 		],
-		"date-modified":"2022-05-08T14:11:45",
+		"date-modified":"2022-06-12T15:08:28",
 		"pitch":1.27,
 		"pin-count":24
 	},
@@ -66157,12 +67539,13 @@
 		],
 		"names":[
 			"SOIC24X",
+			"SOIC-24X",
 			"SO24X",
 			"SO-24X",
 			"SOICX24",
 			"SOICX-24"
 		],
-		"date-modified":"2022-05-08T14:11:58",
+		"date-modified":"2022-06-12T15:08:42",
 		"pitch":1.27,
 		"pin-count":24
 	},
@@ -66421,6 +67804,7 @@
 		],
 		"names":[
 			"SOIC28",
+			"SOIC-28",
 			"SOIC28W",
 			"SO28",
 			"SO28W",
@@ -66428,9 +67812,10 @@
 			"SO-28W",
 			"SOICW28",
 			"SOICW-28",
-			"SOT136"
+			"SOT136",
+			"SOT-136"
 		],
-		"date-modified":"2022-05-08T14:12:12",
+		"date-modified":"2022-06-12T15:09:01",
 		"pitch":1.27,
 		"pin-count":28
 	},
@@ -66688,12 +68073,13 @@
 		],
 		"names":[
 			"SOIC28X",
+			"SOIC-28X",
 			"SO28X",
 			"SO-28X",
 			"SOICX28",
 			"SOICX-28"
 		],
-		"date-modified":"2022-05-08T14:12:41",
+		"date-modified":"2022-06-12T15:09:10",
 		"pitch":1.27,
 		"pin-count":28
 	},
@@ -66980,6 +68366,7 @@
 		],
 		"names":[
 			"SOIC32",
+			"SOIC-32",
 			"SOIC32W",
 			"SO32",
 			"SO32W",
@@ -66987,9 +68374,10 @@
 			"SO-32W",
 			"SOICW32",
 			"SOICW-32",
-			"SOT287"
+			"SOT287",
+			"SOT-287"
 		],
-		"date-modified":"2022-05-08T14:13:02",
+		"date-modified":"2022-06-12T15:09:19",
 		"pitch":1.27,
 		"pin-count":32
 	},
@@ -67284,12 +68672,13 @@
 		],
 		"names":[
 			"SOIC32X",
+			"SOIC-32X",
 			"SO32X",
 			"SO-32X",
 			"SOICX32",
 			"SOICX-32"
 		],
-		"date-modified":"2022-05-08T14:13:15",
+		"date-modified":"2022-06-12T15:09:29",
 		"pitch":1.27,
 		"pin-count":32
 	},
@@ -67603,6 +68992,7 @@
 		],
 		"names":[
 			"SOIC36",
+			"SOIC-36",
 			"SOIC36W",
 			"SO36",
 			"SO36W",
@@ -67611,7 +69001,7 @@
 			"SOICW36",
 			"SOICW-36"
 		],
-		"date-modified":"2022-05-08T14:13:27",
+		"date-modified":"2022-06-12T15:09:39",
 		"pitch":1.27,
 		"pin-count":36
 	},
@@ -67925,12 +69315,13 @@
 		],
 		"names":[
 			"SOIC36X",
+			"SOIC-36X",
 			"SO36X",
 			"SO-36X",
 			"SOICX36",
 			"SOICX-36"
 		],
-		"date-modified":"2022-05-08T14:13:40",
+		"date-modified":"2022-06-12T15:09:47",
 		"pitch":1.27,
 		"pin-count":36
 	},
@@ -68245,10 +69636,11 @@
 	{
 		"names":[
 			"SON6-1.5",
-			"DFN6"
+			"DFN6",
+			"SON-1.5x1.5-6"
 		],
 		"tape-orientation":0,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-06-12T19:49:37",
 		"description":"Small Outline No-leads (SON, DFN), body 1.5x1.5mm",
 		"terminal":"no-lead",
 		"pitch":0.5,
@@ -68458,10 +69850,11 @@
 			"SON6p65",
 			"SON6p65-EP",
 			"WSON6p65",
-			"WSON6p65-EP"
+			"WSON6p65-EP",
+			"SON-2x2-6"
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-06-12T19:48:38",
 		"description":"WSON \/ DFN, body 2x2mm, exposed pad",
 		"terminal":"no-lead",
 		"pitch":0.65,
@@ -68577,10 +69970,12 @@
 			"DFN8",
 			"DFN-8",
 			"WSON8",
-			"SON8-EP"
+			"SON8-EP",
+			"DFN8p.65",
+			"DFN-8p.65"
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-06-12T19:06:20",
 		"description":"WSON \/ DFN, body 3x3mm",
 		"terminal":"no-lead",
 		"pitch":0.65,
@@ -69116,17 +70511,21 @@
 		],
 		"lead-to-lead":{
 			"cx":6.0,
-			"cy":4.5
+			"cy":4.5,
+			"tol-x":0.3,
+			"tol-y":0.2
 		},
 		"tape-orientation":90,
-		"date-modified":"2022-04-05T20:07:47",
-		"description":"SOP with DIL dimensions, optocoupler, relay",
+		"date-modified":"2022-06-17T14:43:51",
+		"description":"SOP with DIL dimensions, optocoupler, relay, bridge rectifier",
 		"terminal":"gull-wing",
 		"pitch":2.54,
 		"type":"SMD",
 		"body":{
 			"cx":4.0,
-			"cy":4.5
+			"cy":4.5,
+			"tol-x":0.2,
+			"tol-y":0.2
 		},
 		"pin-count":4,
 		"footprints":[
@@ -69449,12 +70848,13 @@
 	{
 		"names":[
 			"SOT23",
+			"SOT-23",
 			"TO236AB",
 			"TO-236AB",
 			"SOT23W",
 			"SOT23C",
 			"SOT23-3",
-			"SOT-23",
+			"SOT-23-3",
 			"SC-59",
 			"SC-96",
 			"MPAK"
@@ -69466,7 +70866,7 @@
 			"tol-y":0.1
 		},
 		"tape-orientation":270,
-		"date-modified":"2022-05-08T14:14:18",
+		"date-modified":"2022-05-31T13:41:16",
 		"description":"Transistor",
 		"terminal":"gull-wing",
 		"pitch":0.95,
@@ -69687,30 +71087,30 @@
 		],
 		"names":[
 			"SOT23-5",
+			"SOT-23-5",
 			"SOT753",
 			"SOT25",
 			"SOT235",
 			"SOT-753",
-			"SOT-23-5",
 			"SC74A",
 			"SC59-5",
 			"SC-74A",
 			"MPAK-5"
 		],
-		"date-modified":"2022-05-08T14:14:31",
+		"date-modified":"2022-05-31T13:41:26",
 		"pitch":0.95,
 		"pin-count":5
 	},
 	{
 		"names":[
 			"SOT23-6",
+			"SOT-23-6",
 			"TSOP6",
 			"TSOP-6",
 			"SOT457",
 			"SOT26",
 			"SOT236",
 			"SOT-457",
-			"SOT-23-6",
 			"SC-74",
 			"SC-59-6",
 			"SC-95",
@@ -69723,7 +71123,7 @@
 			"tol-y":0.1
 		},
 		"tape-orientation":270,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-05-31T13:41:44",
 		"description":"IC",
 		"terminal":"gull-wing",
 		"pitch":0.95,
@@ -69832,10 +71232,10 @@
 	{
 		"names":[
 			"SOT23-8",
+			"SOT-23-8",
 			"TSOP-8",
 			"SOT28",
 			"SOT238",
-			"SOT-23-8",
 			"SC59-8"
 		],
 		"lead-to-lead":{
@@ -69843,7 +71243,7 @@
 			"cy":2.9
 		},
 		"tape-orientation":0,
-		"date-modified":"2022-05-08T14:15:19",
+		"date-modified":"2022-05-31T13:41:54",
 		"description":"IC",
 		"terminal":"gull-wing",
 		"pitch":0.65,
@@ -70073,9 +71473,10 @@
 		],
 		"names":[
 			"SOT89",
+			"SOT-89",
 			"UPAK",
 			"SOT89-3",
-			"SOT-89",
+			"SOT-89-3",
 			"SC-62",
 			"TO243",
 			"TO243AA",
@@ -70083,13 +71484,14 @@
 			"TO-243AA",
 			"UPAK"
 		],
-		"date-modified":"2022-05-08T14:15:30",
+		"date-modified":"2022-05-31T13:42:11",
 		"pitch":1.5,
 		"pin-count":3
 	},
 	{
 		"names":[
-			"SOT89-5"
+			"SOT89-5",
+			"SOT-89-5"
 		],
 		"lead-to-lead":{
 			"cx":4.5,
@@ -70098,7 +71500,7 @@
 			"tol-y":0.1
 		},
 		"tape-orientation":180,
-		"date-modified":"2022-05-08T14:15:39",
+		"date-modified":"2022-05-31T13:42:16",
 		"description":"Transistor\/diode array",
 		"terminal":"lug-lead",
 		"pitch":1.5,
@@ -70249,6 +71651,7 @@
 	{
 		"names":[
 			"SOT143",
+			"SOT-143",
 			"TO253",
 			"TO-253"
 		],
@@ -70259,7 +71662,7 @@
 			"tol-y":0.1
 		},
 		"tape-orientation":270,
-		"date-modified":"2022-05-08T14:15:46",
+		"date-modified":"2022-05-31T13:42:24",
 		"description":"Transistor",
 		"terminal":"gull-wing",
 		"pitch":1.92,
@@ -70343,9 +71746,9 @@
 	{
 		"names":[
 			"SOT223",
+			"SOT-223",
 			"TO261",
 			"TO-261",
-			"SOT-223",
 			"SC-73",
 			"TO261AA",
 			"TO-261AA"
@@ -70353,11 +71756,11 @@
 		"lead-to-lead":{
 			"cx":7.2,
 			"cy":6.6,
-			"tol-x":0.0,
+			"tol-x":0.3,
 			"tol-y":0.2
 		},
 		"tape-orientation":270,
-		"date-modified":"2022-05-08T14:15:52",
+		"date-modified":"2022-07-30T16:25:58",
 		"description":"Power transistor\/regulator",
 		"terminal":"gull-wing",
 		"pitch":2.3,
@@ -70456,6 +71859,7 @@
 	{
 		"names":[
 			"SOT223-5",
+			"SOT-223-5",
 			"SC-73-5",
 			"TO261AB",
 			"TO-261AB"
@@ -70467,7 +71871,7 @@
 			"tol-y":0.2
 		},
 		"tape-orientation":270,
-		"date-modified":"2022-05-08T14:16:00",
+		"date-modified":"2022-05-31T13:42:40",
 		"description":"Power IC (linear regulator)",
 		"terminal":"gull-wing",
 		"pitch":1.5,
@@ -70559,6 +71963,7 @@
 	{
 		"names":[
 			"SOT223-6",
+			"SOT-223-6",
 			"SC-73-6"
 		],
 		"lead-to-lead":{
@@ -70568,7 +71973,7 @@
 			"tol-y":0.2
 		},
 		"tape-orientation":270,
-		"date-modified":"2022-05-08T14:16:04",
+		"date-modified":"2022-05-31T13:42:45",
 		"description":"Power IC (linear regulator)",
 		"terminal":"gull-wing",
 		"pitch":1.15,
@@ -70671,7 +72076,7 @@
 			"tol-y":0.1
 		},
 		"tape-orientation":270,
-		"date-modified":"2022-05-08T14:16:12",
+		"date-modified":"2022-05-31T13:42:51",
 		"description":"Transistor",
 		"terminal":"gull-wing",
 		"pitch":0.65,
@@ -70741,13 +72146,14 @@
 	{
 		"names":[
 			"SOT353",
-			"SOT323-5",
 			"SOT-353",
+			"SOT323-5",
 			"SC88A",
 			"SC-88A",
 			"SC70-5",
 			"SC-70-5",
-			"CMPAK-5"
+			"CMPAK-5",
+			"SOT-323-5"
 		],
 		"lead-to-lead":{
 			"cx":2.1,
@@ -70756,7 +72162,7 @@
 			"tol-y":0.1
 		},
 		"tape-orientation":270,
-		"date-modified":"2022-05-08T14:16:19",
+		"date-modified":"2022-05-31T13:43:02",
 		"description":"Transistor\/IC",
 		"terminal":"gull-wing",
 		"pitch":0.65,
@@ -70840,14 +72246,15 @@
 	{
 		"names":[
 			"SOT363",
-			"SOT323-6",
 			"SOT-363",
+			"SOT323-6",
 			"SC88",
 			"SC-88",
 			"SC70-6",
 			"SC-70-6",
 			"6-TSSOP",
-			"CMPAK-6"
+			"CMPAK-6",
+			"SOT-363-6"
 		],
 		"lead-to-lead":{
 			"cx":2.1,
@@ -70856,7 +72263,7 @@
 			"tol-y":0.1
 		},
 		"tape-orientation":270,
-		"date-modified":"2022-05-08T14:16:25",
+		"date-modified":"2022-05-31T13:43:08",
 		"description":"Transistor\/IC",
 		"terminal":"gull-wing",
 		"pitch":0.65,
@@ -70956,9 +72363,9 @@
 	{
 		"names":[
 			"SOT523",
-			"SOT523F",
 			"SOT-523",
 			"SOT-523F",
+			"SOT523F",
 			"SC-89",
 			"SC-89-3"
 		],
@@ -70967,7 +72374,7 @@
 			"cy":1.7
 		},
 		"tape-orientation":270,
-		"date-modified":"2022-05-08T14:16:36",
+		"date-modified":"2022-05-31T13:43:14",
 		"description":"Transistor",
 		"terminal":"gull-wing",
 		"pitch":0.5,
@@ -71043,7 +72450,7 @@
 			"cy":1.7
 		},
 		"tape-orientation":270,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-05-31T13:43:19",
 		"description":"IC",
 		"terminal":"lug-lead",
 		"pitch":0.5,
@@ -71131,13 +72538,14 @@
 	{
 		"names":[
 			"SOT1226",
+			"SOT-1226",
 			"X2SON5"
 		],
 		"tape-orientation":0,
 		"related packages":[
 			"SOT1255"
 		],
-		"date-modified":"2022-04-11T19:11:38",
+		"date-modified":"2022-05-31T13:43:23",
 		"description":"Small Outline (pulled-back) No-leads (GX package), body 0.8x0.8mm",
 		"terminal":"no-lead",
 		"pitch":0.5,
@@ -71283,6 +72691,7 @@
 	{
 		"names":[
 			"SOT1233",
+			"SOT-1233",
 			"X2SON8"
 		],
 		"tape-orientation":0,
@@ -71290,7 +72699,7 @@
 			"SOT1255",
 			"SOT1226"
 		],
-		"date-modified":"2022-04-12T08:08:36",
+		"date-modified":"2022-05-31T13:43:28",
 		"description":"Small Outline (pulled-back) No-leads (GX-package), body 1.35x0.8mm",
 		"terminal":"no-lead",
 		"pitch":0.5,
@@ -71491,14 +72900,15 @@
 	},
 	{
 		"names":[
-			"SOT1255"
+			"SOT1255",
+			"SOT-1255"
 		],
 		"tape-orientation":0,
 		"related packages":[
 			"SOT1226",
 			"SOT1255"
 		],
-		"date-modified":"2022-04-12T07:41:54",
+		"date-modified":"2022-05-31T13:43:33",
 		"description":"Small Outline (pulled-back) No-leads (GX-package), body 1.0x0.8mm",
 		"terminal":"no-lead",
 		"pitch":0.4,
@@ -71671,27 +73081,245 @@
 	},
 	{
 		"names":[
+			"SPDIP8-5L",
+			"SMD8DIP-5"
+		],
+		"lead-to-lead":{
+			"cx":11.3,
+			"cy":13.45,
+			"tol-x":0.4,
+			"tol-y":0.75
+		},
+		"tape-orientation":0,
+		"date-modified":"2022-06-16T19:05:23",
+		"description":"DC-DC-converter, SPDIP8 less pins 6\/7",
+		"terminal":"gull-wing",
+		"pitch":2.54,
+		"variants":[
+			{
+				"standard":"IPC-7351",
+				"name":"SOP5-8P254_885x1350x740",
+				"height":{
+					"high":7.4,
+					"low":7.2
+				}
+			}
+		],
+		"type":"SMD",
+		"body":{
+			"cx":8.85,
+			"cy":13.45,
+			"tol-x":0.35,
+			"tol-y":0.75
+		},
+		"pin-count":5,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-5.2,
+						"y":3.81,
+						"pin-id":"1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-5.2,
+						"y":1.27,
+						"pin-id":"2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-5.2,
+						"y":-3.81,
+						"pin-id":"4"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":5.2,
+						"y":-3.81,
+						"pin-id":"5"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":5.2,
+						"y":3.81,
+						"pin-id":"8"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":12.7,
+					"cy":8.82
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"rectangle",
+						"cx":2.3,
+						"pad-id":1,
+						"cy":1.2
+					}
+				],
+				"span":{
+					"cx":10.4
+				}
+			}
+		]
+	},
+	{
+		"names":[
+			"SPDIP10-6L",
+			"SMD10DIP-6"
+		],
+		"lead-to-lead":{
+			"cx":11.3,
+			"cy":15.5,
+			"tol-x":0.4,
+			"tol-y":0.75
+		},
+		"tape-orientation":0,
+		"date-modified":"2022-06-22T15:39:07",
+		"description":"DC-DC-converter, SPDIP10 less pins 3\/6\/8\/9",
+		"terminal":"gull-wing",
+		"pitch":2.54,
+		"variants":[
+			{
+				"standard":"IPC-7351",
+				"name":"SOP6-10P254_885x1550x740",
+				"height":{
+					"high":7.4,
+					"low":7.2
+				}
+			}
+		],
+		"type":"SMD",
+		"body":{
+			"cx":8.85,
+			"cy":15.5,
+			"tol-x":0.35,
+			"tol-y":0.75
+		},
+		"pin-count":6,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-5.2,
+						"y":5.08,
+						"pin-id":"1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-5.2,
+						"y":2.54,
+						"pin-id":"2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-5.2,
+						"y":-2.54,
+						"pin-id":"4"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-5.2,
+						"y":-5.08,
+						"pin-id":"5"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":5.2,
+						"y":-2.54,
+						"pin-id":"7"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":5.2,
+						"y":5.08,
+						"pin-id":"10"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":12.7,
+					"cy":11.36
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"rectangle",
+						"cx":2.3,
+						"pad-id":1,
+						"cy":1.2
+					}
+				],
+				"span":{
+					"cx":10.4
+				}
+			}
+		]
+	},
+	{
+		"names":[
 			"SPDIP-4L"
 		],
 		"lead-to-lead":{
-			"cx":9.7,
-			"cy":8.25
+			"cx":9.8,
+			"cy":8.25,
+			"tol-x":0.4,
+			"tol-y":0.2
 		},
 		"tape-orientation":0,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-07-15T13:22:59",
 		"description":"Bridge rectifier",
 		"terminal":"lug-lead",
 		"pitch":5.1,
 		"variants":[
 			{
 				"standard":"IPC-7351",
-				"name":"SOP4P510_830x950x260"
+				"name":"SOP4P510_830x950x260",
+				"height":{
+					"high":2.6,
+					"low":2.3
+				}
+			},
+			{
+				"standard":"IPC-7351",
+				"name":"SOP4P510_830x950x280",
+				"height":{
+					"high":2.8,
+					"low":2.4
+				}
+			},
+			{
+				"standard":"IPC-7351",
+				"notes":"legacy naming convention",
+				"name":"SOP510P1005X363-4N",
+				"height":{
+					"high":3.6,
+					"low":3.0
+				}
 			}
 		],
 		"type":"SMD",
 		"body":{
 			"cx":6.35,
-			"cy":8.25
+			"cy":8.25,
+			"tol-x":0.2,
+			"tol-y":0.2
 		},
 		"pin-count":4,
 		"footprints":[
@@ -73395,9 +75023,10 @@
 		"names":[
 			"SSOP20",
 			"SSOP-20",
-			"SOT724"
+			"SOT724",
+			"SOT-724"
 		],
-		"date-modified":"2022-05-08T14:23:00",
+		"date-modified":"2022-05-31T13:43:42",
 		"pitch":0.635,
 		"pin-count":20
 	},
@@ -73629,9 +75258,10 @@
 		"names":[
 			"SSOP24",
 			"SSOP-24",
-			"SOT556"
+			"SOT556",
+			"SOT-556"
 		],
-		"date-modified":"2022-05-08T14:23:14",
+		"date-modified":"2022-05-31T13:43:46",
 		"pitch":0.635,
 		"pin-count":24
 	},
@@ -74866,7 +76496,8 @@
 	{
 		"names":[
 			"sTSOP32",
-			"sTSOP-I32"
+			"sTSOP-I32",
+			"sTSOP-32"
 		],
 		"lead-to-lead":{
 			"cx":13.4,
@@ -74875,7 +76506,7 @@
 			"tol-y":0.15
 		},
 		"tape-orientation":90,
-		"date-modified":"2022-04-16T14:44:11",
+		"date-modified":"2022-06-12T15:15:43",
 		"description":"TSOP-I, small variant",
 		"terminal":"gull-wing",
 		"pitch":0.5,
@@ -75138,10 +76769,12 @@
 	{
 		"names":[
 			"TFBGA80",
-			"SOT1328"
+			"TFBGA-80",
+			"SOT1328",
+			"SOT-1328"
 		],
 		"tape-orientation":0,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-07-12T18:47:16",
 		"description":"Ball-Grid Array, 10x10 semi-perimeter matrix",
 		"terminal":"ball-grid",
 		"pitch":0.65,
@@ -75751,10 +77384,12 @@
 	{
 		"names":[
 			"TFBGA100",
-			"SOT926"
+			"TFBGA-100",
+			"SOT926",
+			"SOT-926"
 		],
 		"tape-orientation":0,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-07-12T18:47:45",
 		"description":"Ball-Grid Array, 10x10 full matrix",
 		"terminal":"ball-grid",
 		"pitch":0.8,
@@ -76932,14 +78567,15 @@
 	},
 	{
 		"names":[
-			"TSOP-I32"
+			"TSOP-I32",
+			"TSOP-I-32"
 		],
 		"lead-to-lead":{
 			"cx":19.9,
 			"cy":8.0
 		},
 		"tape-orientation":90,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-06-12T18:59:49",
 		"description":"TSOP-I",
 		"terminal":"gull-wing",
 		"pitch":0.5,
@@ -77363,9 +78999,10 @@
 			"TSSOP-8",
 			"HTSSOP8",
 			"HTSSOP-8",
-			"SOT530"
+			"SOT530",
+			"SOT-530"
 		],
-		"date-modified":"2022-05-08T14:24:54",
+		"date-modified":"2022-05-31T13:43:59",
 		"pitch":0.65,
 		"pin-count":8
 	},
@@ -78061,9 +79698,10 @@
 		"names":[
 			"TSSOP14W",
 			"TSSOP-14W",
-			"SOT337"
+			"SOT337",
+			"SOT-337"
 		],
-		"date-modified":"2022-05-08T14:25:38",
+		"date-modified":"2022-05-31T13:44:05",
 		"pitch":0.65,
 		"pin-count":14
 	},
@@ -78102,6 +79740,7 @@
 			},
 			{
 				"standard":"IPC-7351",
+				"notes":"TI:*.PW",
 				"name":"SOP16P65_640X120",
 				"height":{
 					"high":1.2,
@@ -78305,9 +79944,10 @@
 			"TSSOP-16",
 			"HTSSOP16",
 			"HTSSOP-16",
-			"SOT403"
+			"SOT403",
+			"SOT-403"
 		],
-		"date-modified":"2022-05-08T14:25:51",
+		"date-modified":"2022-07-12T19:10:54",
 		"pitch":0.65,
 		"pin-count":16
 	},
@@ -78499,9 +80139,10 @@
 		"names":[
 			"TSSOP16W",
 			"TSSOP-16W",
-			"SOT338"
+			"SOT338",
+			"SOT-338"
 		],
-		"date-modified":"2022-05-08T14:26:02",
+		"date-modified":"2022-05-31T13:44:16",
 		"pitch":0.65,
 		"pin-count":16
 	},
@@ -78738,6 +80379,7 @@
 			},
 			{
 				"standard":"IPC-7351",
+				"notes":"TI:*PW",
 				"name":"SOP20P65_640X120",
 				"height":{
 					"high":1.2,
@@ -78969,9 +80611,10 @@
 			"TSSOP-20",
 			"HTSSOP20",
 			"HTSSOP-20",
-			"SOT360"
+			"SOT360",
+			"SOT-360"
 		],
-		"date-modified":"2022-05-08T14:26:26",
+		"date-modified":"2022-07-12T19:11:31",
 		"pitch":0.65,
 		"pin-count":20
 	},
@@ -79215,9 +80858,9 @@
 			"TSSOP20p50",
 			"HTSSOP20p50"
 		],
-		"date-modified":"2022-05-08T14:26:39",
+		"date-modified":"2022-06-12T19:04:47",
 		"pitch":0.5,
-		"pin-count":0
+		"pin-count":20
 	},
 	{
 		"lead-to-lead":{
@@ -79435,9 +81078,10 @@
 		"names":[
 			"TSSOP20W",
 			"TSSOP-20W",
-			"SOT339"
+			"SOT339",
+			"SOT-339"
 		],
-		"date-modified":"2022-05-08T14:26:49",
+		"date-modified":"2022-05-31T13:44:26",
 		"pitch":0.65,
 		"pin-count":20
 	},
@@ -79945,9 +81589,10 @@
 			"TSSOP-24",
 			"HTSSOP24",
 			"HTSSOP-24",
-			"SOT355"
+			"SOT355",
+			"SOT-355"
 		],
-		"date-modified":"2022-05-08T14:27:13",
+		"date-modified":"2022-05-31T13:44:40",
 		"pitch":0.65,
 		"pin-count":24
 	},
@@ -80739,9 +82384,10 @@
 		"names":[
 			"TSSOP24W",
 			"TSSOP-24W",
-			"SOT340"
+			"SOT340",
+			"SOT-340"
 		],
-		"date-modified":"2022-05-08T14:33:29",
+		"date-modified":"2022-05-31T13:44:46",
 		"pitch":0.65,
 		"pin-count":24
 	},
@@ -81044,11 +82690,13 @@
 			"TSSOP-28",
 			"HTSSOP28",
 			"HTSSOP-28",
-			"SOT1172",
 			"TSSOP28E",
-			"SOT361"
+			"SOT1172",
+			"SOT-1172",
+			"SOT361",
+			"SOT-361"
 		],
-		"date-modified":"2022-05-08T14:33:43",
+		"date-modified":"2022-05-31T13:45:01",
 		"pitch":0.65,
 		"pin-count":28
 	},
@@ -82550,9 +84198,10 @@
 			"TSSOP-32",
 			"HTSSOP32",
 			"HTSSOP-32",
-			"SOT487"
+			"SOT487",
+			"SOT-487"
 		],
-		"date-modified":"2022-05-08T14:34:51",
+		"date-modified":"2022-05-31T13:45:08",
 		"pitch":0.65,
 		"pin-count":32
 	},
@@ -84320,9 +85969,10 @@
 		"names":[
 			"TSSOP38p50",
 			"HTSSOP38p50",
-			"SOT510"
+			"SOT510",
+			"SOT-510"
 		],
-		"date-modified":"2022-05-08T14:39:24",
+		"date-modified":"2022-05-31T13:45:14",
 		"pitch":0.5,
 		"pin-count":38
 	},
@@ -86722,9 +88372,10 @@
 		"names":[
 			"TSSOP48p50",
 			"HTSSOP48p50",
-			"SOT362"
+			"SOT362",
+			"SOT-362"
 		],
-		"date-modified":"2022-05-08T14:41:36",
+		"date-modified":"2022-05-31T13:45:18",
 		"pitch":0.5,
 		"pin-count":48
 	},
@@ -90412,11 +92063,321 @@
 	},
 	{
 		"names":[
+			"TVSOP16",
+			"TVSOP-16"
+		],
+		"lead-to-lead":{
+			"cx":6.4,
+			"cy":3.6,
+			"tol-x":0.2,
+			"tol-y":0.1
+		},
+		"tape-orientation":0,
+		"date-modified":"2022-07-12T19:12:13",
+		"description":"Fine-pitch SSOP, body width 4.4mm",
+		"terminal":"gull-wing",
+		"pitch":0.4,
+		"variants":[
+			{
+				"standard":"IPC-7351",
+				"notes":"TI:*DGV",
+				"name":"SOP16P40_640X120",
+				"height":{
+					"high":1.2,
+					"low":1.0
+				}
+			},
+			{
+				"standard":"ED-7303",
+				"name":"P-TSSOP16-4.4x3.6-0.4",
+				"height":{
+					"high":1.2,
+					"low":1.0
+				}
+			}
+		],
+		"type":"SMD",
+		"body":{
+			"cx":4.4,
+			"cy":3.6,
+			"tol-x":0.1,
+			"tol-y":0.1
+		},
+		"pin-count":16,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-2.8,
+						"y":1.4,
+						"pin-id":"1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-2.8,
+						"y":1.0,
+						"pin-id":"2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-2.8,
+						"y":0.6,
+						"pin-id":"3"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-2.8,
+						"y":0.2,
+						"pin-id":"4"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-2.8,
+						"y":-0.2,
+						"pin-id":"5"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-2.8,
+						"y":-0.6,
+						"pin-id":"6"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-2.8,
+						"y":-1.0,
+						"pin-id":"7"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-2.8,
+						"y":-1.4,
+						"pin-id":"8"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":2.8,
+						"y":-1.4,
+						"pin-id":"9"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":2.8,
+						"y":-1.0,
+						"pin-id":"10"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":2.8,
+						"y":-0.6,
+						"pin-id":"11"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":2.8,
+						"y":-0.2,
+						"pin-id":"12"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":2.8,
+						"y":0.2,
+						"pin-id":"13"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":2.8,
+						"y":0.6,
+						"pin-id":"14"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":2.8,
+						"y":1.0,
+						"pin-id":"15"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":2.8,
+						"y":1.4,
+						"pin-id":"16"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":6.8,
+					"cy":3.04
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"roundedrect",
+						"cx":1.2,
+						"pad-id":1,
+						"cy":0.24
+					}
+				]
+			}
+		]
+	},
+	{
+		"names":[
+			"UFBGA12",
+			"UFBGA-12"
+		],
+		"tape-orientation":0,
+		"date-modified":"2022-07-12T19:13:03",
+		"description":"Ball-Grid Array, 3x4 full matrix",
+		"terminal":"ball-grid",
+		"pitch":0.5,
+		"variants":[
+			{
+				"standard":"IPC-7351",
+				"notes":"TI:*ZXU",
+				"name":"BGA12NP50_3X4_200X250X45",
+				"height":{
+					"high":0.45,
+					"low":0.4
+				}
+			}
+		],
+		"type":"SMD",
+		"body":{
+			"cx":2.0,
+			"cy":2.5,
+			"tol-x":0.2,
+			"tol-y":0.2
+		},
+		"pin-count":12,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.5,
+						"y":0.75,
+						"pin-id":"A1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.0,
+						"y":0.75,
+						"pin-id":"A2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.5,
+						"y":0.75,
+						"pin-id":"A3"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.5,
+						"y":0.25,
+						"pin-id":"B1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.0,
+						"y":0.25,
+						"pin-id":"B2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.5,
+						"y":0.25,
+						"pin-id":"B3"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.5,
+						"y":-0.25,
+						"pin-id":"C1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.0,
+						"y":-0.25,
+						"pin-id":"C2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.5,
+						"y":-0.25,
+						"pin-id":"C3"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.5,
+						"y":-0.75,
+						"pin-id":"D1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.0,
+						"y":-0.75,
+						"pin-id":"D2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.5,
+						"y":-0.75,
+						"pin-id":"D3"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":1.25,
+					"cy":1.75
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"round",
+						"cx":0.25,
+						"pad-id":1,
+						"cy":0.25
+					}
+				]
+			}
+		]
+	},
+	{
+		"names":[
 			"UFBGA64",
 			"UFBGA-64"
 		],
 		"tape-orientation":0,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-07-06T19:09:08",
 		"description":"Ball-Grid Array, 8x8 full matrix",
 		"terminal":"ball-grid",
 		"pitch":0.5,
@@ -91324,7 +93285,7 @@
 			"tol-y":0.1
 		},
 		"tape-orientation":0,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2023-01-30T20:01:04",
 		"description":"USB mini-B connector, female, through-hole",
 		"terminal":"gull-wing",
 		"pitch":0.8,
@@ -91352,7 +93313,7 @@
 					{
 						"pad-id":1,
 						"rotation":0,
-						"x":3.75,
+						"x":1.0,
 						"y":1.6,
 						"pin-id":"1"
 					},
@@ -91559,6 +93520,403 @@
 	},
 	{
 		"names":[
+			"VFBGA20",
+			"VFBGA-20"
+		],
+		"tape-orientation":0,
+		"date-modified":"2022-07-12T19:13:22",
+		"description":"Ball-Grid Array, 5x4 full matrix",
+		"terminal":"ball-grid",
+		"pitch":0.5,
+		"variants":[
+			{
+				"standard":"IPC-7351",
+				"notes":"TI:*ZXY",
+				"name":"BGA20NP50_4X5_250X300X45",
+				"height":{
+					"high":0.45,
+					"low":0.35
+				}
+			}
+		],
+		"type":"SMD",
+		"body":{
+			"cx":2.5,
+			"cy":3.0,
+			"tol-x":0.1,
+			"tol-y":0.1
+		},
+		"pin-count":20,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.75,
+						"y":1.0,
+						"pin-id":"A1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.25,
+						"y":1.0,
+						"pin-id":"A2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.25,
+						"y":1.0,
+						"pin-id":"A3"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.75,
+						"y":1.0,
+						"pin-id":"A4"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.75,
+						"y":0.5,
+						"pin-id":"B1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.25,
+						"y":0.5,
+						"pin-id":"B2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.25,
+						"y":0.5,
+						"pin-id":"B3"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.75,
+						"y":0.5,
+						"pin-id":"B4"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.75,
+						"y":0.0,
+						"pin-id":"C1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.25,
+						"y":0.0,
+						"pin-id":"C2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.25,
+						"y":0.0,
+						"pin-id":"C3"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.75,
+						"y":0.0,
+						"pin-id":"C4"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.75,
+						"y":-0.5,
+						"pin-id":"D1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.25,
+						"y":-0.5,
+						"pin-id":"D2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.25,
+						"y":-0.5,
+						"pin-id":"D3"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.75,
+						"y":-0.5,
+						"pin-id":"D4"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.75,
+						"y":-1.0,
+						"pin-id":"E1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.25,
+						"y":-1.0,
+						"pin-id":"E2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.25,
+						"y":-1.0,
+						"pin-id":"E3"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.75,
+						"y":-1.0,
+						"pin-id":"E4"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":1.75,
+					"cy":2.25
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"round",
+						"cx":0.25,
+						"pad-id":1,
+						"cy":0.25
+					}
+				]
+			}
+		]
+	},
+	{
+		"names":[
+			"VFBGA24",
+			"VFBGA-24"
+		],
+		"tape-orientation":0,
+		"date-modified":"2022-07-12T18:57:32",
+		"description":"Ball-Grid Array, 5x5 sparse matrix, *ZQS (TI)",
+		"terminal":"ball-grid",
+		"pitch":0.5,
+		"type":"SMD",
+		"body":{
+			"cx":3.0,
+			"cy":3.0,
+			"tol-x":0.1,
+			"tol-y":0.1
+		},
+		"pin-count":24,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-1.0,
+						"y":1.0,
+						"pin-id":"A1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.5,
+						"y":1.0,
+						"pin-id":"A2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.0,
+						"y":1.0,
+						"pin-id":"A3"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.5,
+						"y":1.0,
+						"pin-id":"A4"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":1.0,
+						"y":1.0,
+						"pin-id":"A5"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-1.0,
+						"y":0.5,
+						"pin-id":"B1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.5,
+						"y":0.5,
+						"pin-id":"B2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.0,
+						"y":0.5,
+						"pin-id":"B3"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.5,
+						"y":0.5,
+						"pin-id":"B4"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":1.0,
+						"y":0.5,
+						"pin-id":"B5"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-1.0,
+						"y":0.0,
+						"pin-id":"C1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.5,
+						"y":0.0,
+						"pin-id":"C2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.0,
+						"y":0.0,
+						"pin-id":"C3"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.5,
+						"y":0.0,
+						"pin-id":"C4"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":1.0,
+						"y":0.0,
+						"pin-id":"C5"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-1.0,
+						"y":-0.5,
+						"pin-id":"D1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.0,
+						"y":-0.5,
+						"pin-id":"D3"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.5,
+						"y":-0.5,
+						"pin-id":"D4"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":1.0,
+						"y":-0.5,
+						"pin-id":"D5"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-1.0,
+						"y":-1.0,
+						"pin-id":"E1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.5,
+						"y":-1.0,
+						"pin-id":"E2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.0,
+						"y":-1.0,
+						"pin-id":"E3"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.5,
+						"y":-1.0,
+						"pin-id":"E4"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":1.0,
+						"y":-1.0,
+						"pin-id":"E5"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":2.25,
+					"cy":2.25
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"round",
+						"cx":0.25,
+						"pad-id":1,
+						"cy":0.25
+					}
+				]
+			}
+		]
+	},
+	{
+		"names":[
 			"VSON-5"
 		],
 		"lead-to-lead":{
@@ -91651,21 +94009,39 @@
 	},
 	{
 		"names":[
-			"VSSOP8"
+			"VSSOP8",
+			"VSSOP-8",
+			"US8",
+			"US-8"
 		],
 		"lead-to-lead":{
-			"cx":4.6,
-			"cy":3.2
+			"cx":3.2,
+			"cy":2.1,
+			"tol-x":0.2,
+			"tol-y":0.1
 		},
 		"tape-orientation":0,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-07-14T19:03:28",
 		"description":"VSSOP (MO-187), body 2.3mm wide",
 		"terminal":"gull-wing",
 		"pitch":0.5,
+		"variants":[
+			{
+				"standard":"ED-7303",
+				"notes":"TI:*DCU",
+				"name":"P-VSSOP8-2.3x2.1-0.5",
+				"height":{
+					"high":0.95,
+					"low":0.85
+				}
+			}
+		],
 		"type":"SMD",
 		"body":{
-			"cx":2.6,
-			"cy":3.2
+			"cx":2.3,
+			"cy":2.1,
+			"tol-x":0.05,
+			"tol-y":0.1
 		},
 		"pin-count":8,
 		"footprints":[
@@ -91745,6 +94121,301 @@
 				"span":{
 					"cx":2.9
 				}
+			}
+		]
+	},
+	{
+		"names":[
+			"WCSP5",
+			"WCSP-5"
+		],
+		"tape-orientation":0,
+		"related packages":[
+			"WCSP6",
+			"WCSP8"
+		],
+		"date-modified":"2022-07-14T18:46:30",
+		"description":"Ball-Grid Array, 2x3 sparse matrix, NanoFree",
+		"terminal":"ball-grid",
+		"pitch":0.5,
+		"variants":[
+			{
+				"standard":"IPC-7351",
+				"notes":"TI:*YZP",
+				"name":"BGA5NP50_2X3_80X140X50",
+				"height":{
+					"high":0.5,
+					"low":0.45
+				}
+			}
+		],
+		"type":"SMD",
+		"body":{
+			"cx":0.8,
+			"cy":1.4,
+			"tol-x":0.05,
+			"tol-y":0.05
+		},
+		"pin-count":5,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.25,
+						"y":0.5,
+						"pin-id":"A1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.25,
+						"y":0.5,
+						"pin-id":"A2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.25,
+						"y":0.0,
+						"pin-id":"B1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.25,
+						"y":-0.5,
+						"pin-id":"C1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.25,
+						"y":-0.5,
+						"pin-id":"C2"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":0.75,
+					"cy":1.25
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"round",
+						"cx":0.25,
+						"pad-id":1,
+						"cy":0.25
+					}
+				]
+			}
+		]
+	},
+	{
+		"names":[
+			"WCSP6",
+			"WCSP-6"
+		],
+		"tape-orientation":0,
+		"related packages":[
+			"WCSP5",
+			"WCSP8"
+		],
+		"date-modified":"2022-07-14T18:46:43",
+		"description":"Ball-Grid Array, 2x3 full matrix, NanoFree",
+		"terminal":"ball-grid",
+		"pitch":0.5,
+		"variants":[
+			{
+				"standard":"IPC-7351",
+				"notes":"TI:*YZP",
+				"name":"BGA6NP50_2X3_80X140X50",
+				"height":{
+					"high":0.5,
+					"low":0.45
+				}
+			}
+		],
+		"type":"SMD",
+		"body":{
+			"cx":0.8,
+			"cy":1.4,
+			"tol-x":0.05,
+			"tol-y":0.05
+		},
+		"pin-count":6,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.25,
+						"y":0.5,
+						"pin-id":"A1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.25,
+						"y":0.5,
+						"pin-id":"A2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.25,
+						"y":0.0,
+						"pin-id":"B1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.25,
+						"y":0.0,
+						"pin-id":"B2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.25,
+						"y":-0.5,
+						"pin-id":"C1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.25,
+						"y":-0.5,
+						"pin-id":"C2"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":0.75,
+					"cy":1.25
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"round",
+						"cx":0.25,
+						"pad-id":1,
+						"cy":0.25
+					}
+				]
+			}
+		]
+	},
+	{
+		"names":[
+			"WCSP8",
+			"WCSP-8"
+		],
+		"tape-orientation":0,
+		"related packages":[
+			"WCSP5",
+			"WCSP6"
+		],
+		"date-modified":"2022-07-14T18:46:54",
+		"description":"Ball-Grid Array, 2x4 full matrix, NanoFree",
+		"terminal":"ball-grid",
+		"pitch":0.5,
+		"variants":[
+			{
+				"standard":"IPC-7351",
+				"notes":"TI:*YZP",
+				"name":"BGA8NP50_2X4_90X190X50",
+				"height":{
+					"high":0.5,
+					"low":0.45
+				}
+			}
+		],
+		"type":"SMD",
+		"body":{
+			"cx":0.9,
+			"cy":1.9,
+			"tol-x":0.05,
+			"tol-y":0.05
+		},
+		"pin-count":8,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.25,
+						"y":0.75,
+						"pin-id":"A1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.25,
+						"y":0.75,
+						"pin-id":"A2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.25,
+						"y":0.25,
+						"pin-id":"B1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.25,
+						"y":0.25,
+						"pin-id":"B2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.25,
+						"y":-0.25,
+						"pin-id":"C1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.25,
+						"y":-0.25,
+						"pin-id":"C2"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-0.25,
+						"y":-0.75,
+						"pin-id":"D1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":0.25,
+						"y":-0.75,
+						"pin-id":"D2"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":0.75,
+					"cy":1.75
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"round",
+						"cx":0.25,
+						"pad-id":1,
+						"cy":0.25
+					}
+				]
 			}
 		]
 	},
@@ -92130,7 +94801,7 @@
 			"WLCSP48"
 		],
 		"tape-orientation":0,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-07-12T18:34:43",
 		"description":"Ball-Grid Array, 7x13 staggered matrix",
 		"terminal":"ball-grid",
 		"pitch":0.4,
@@ -95702,6 +98373,77 @@
 	},
 	{
 		"names":[
+			"X7.0x4.1",
+			"ABLS7M2"
+		],
+		"lead-to-lead":{
+			"cx":7.6,
+			"cy":4.1,
+			"tol-x":0.5,
+			"tol-y":0.2
+		},
+		"tape-orientation":0,
+		"related packages":[
+			"HC49-SMD"
+		],
+		"date-modified":"2022-10-11T18:34:36",
+		"description":"Crystal, metal can, SMD, reduced size from HC49\/US",
+		"terminal":"lug-lead",
+		"variants":[
+			{
+				"standard":"IPC-7351",
+				"name":"XTAL760X410X200",
+				"height":{
+					"high":2.0,
+					"low":1.9
+				}
+			}
+		],
+		"type":"SMD",
+		"body":{
+			"cx":7.0,
+			"cy":4.1,
+			"tol-x":0.2,
+			"tol-y":0.2
+		},
+		"pin-count":2,
+		"footprints":[
+			{
+				"pad-positions":[
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":-2.75,
+						"y":0.0,
+						"pin-id":"1"
+					},
+					{
+						"pad-id":1,
+						"rotation":0,
+						"x":2.75,
+						"y":0.0,
+						"pin-id":"2"
+					}
+				],
+				"type":"nominal",
+				"contour":{
+					"cx":9.0,
+					"cy":1.2
+				},
+				"pad-shapes":[
+					{
+						"pad-type":"standard",
+						"shape":"roundedrect",
+						"cx":3.5,
+						"pad-id":1,
+						"cy":1.2
+					}
+				]
+			}
+		]
+	},
+	{
+		"names":[
 			"X2520-4"
 		],
 		"tape-orientation":0,
@@ -96057,10 +98799,11 @@
 	{
 		"names":[
 			"X5032-4",
-			"X53"
+			"X53",
+			"5032M-4"
 		],
 		"tape-orientation":0,
-		"date-modified":"2022-05-08T14:52:53",
+		"date-modified":"2022-06-13T12:15:35",
 		"description":"Crystal or oscillator",
 		"terminal":"no-lead",
 		"pitch":2.2,
@@ -96208,12 +98951,14 @@
 	{
 		"names":[
 			"XPSON6p35",
+			"X2SON6",
 			"SOT891",
+			"SOT-891",
 			"SOT1202",
-			"X2SON6"
+			"SOT-1202"
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-04-11T18:47:03",
+		"date-modified":"2022-05-31T13:45:39",
 		"description":"Small Outline (pulled-back) No-leads (PSON, DFN), body 1.0x1.0mm",
 		"terminal":"no-lead",
 		"pitch":0.35,
@@ -96323,7 +99068,8 @@
 	{
 		"names":[
 			"XSON8",
-			"SOT1187"
+			"SOT1187",
+			"SOT-1187"
 		],
 		"references":[
 			{
@@ -96332,7 +99078,7 @@
 			}
 		],
 		"tape-orientation":90,
-		"date-modified":"2022-04-05T20:07:47",
+		"date-modified":"2022-05-31T13:45:31",
 		"description":"Small Outline No-leads (SON), body 3.0x2.0mm",
 		"terminal":"no-lead",
 		"pitch":0.5,
