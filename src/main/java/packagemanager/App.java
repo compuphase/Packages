@@ -1,4 +1,5 @@
-/*
+/* Packages
+ *
  * @author Guido Daniel Wolff
  * Copyright 2021, 2022 CompuPhase
  *
@@ -6582,7 +6583,7 @@ public class App extends Application{
             final Label Caption = new Label("PACKAGES " + programVersion);
             Caption.setStyle("-fx-font-size:14; -fx-font-weight:bold");
             final Label Copyright = new Label("Copyright 2021, 2022 CompuPhase\n" +
-                                              "Developed by Guido Wolff & Thiadmer Riemersma");
+                                              "Developed by Guido Wolff");
 
             String version = System.getProperty("java.version");
             String fxversion = System.getProperty("javafx.version");
