@@ -1,7 +1,7 @@
 /* Packages
  *
  * @author Guido Daniel Wolff
- * Copyright 2021, 2022 CompuPhase
+ * Copyright 2021-2024 CompuPhase
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,7 +109,7 @@ public class App extends Application{
     double prevWidth;                       // current window width (including borders)
     double prevHeight;                      // current window height (including caption and borders)
 
-    final String programVersion = "1.3.1";  //current version number
+    final String programVersion = "1.3.2";  //current version number
 
     final int IMAGE_WIDTH = 200;
     final int IMAGE_HEIGHT = 170;
@@ -1449,7 +1449,7 @@ public class App extends Application{
 
     private TitledPane initSpepaHolder(){
         TitledPane spepaholder = new TitledPane();
-        spepaholder.setText("Specific package variants");
+        spepaholder.setText("Specific Package Variants");
         VBox spepaBranch = new VBox(SPACING_VBOX);
 
         /*The table */
@@ -1587,13 +1587,17 @@ public class App extends Application{
         spepaTable.setItems(spePacks);
         spepaTable.getColumns().addAll(ipcNameCol, minHeightCol, maxHeightCol, standardCol, xposedCol, notesCol, delCol);
 
-        HBox spepaAdditionBox = new HBox(SPACING_HBOX);
+        HBox spepaAdditionBox = new HBox(0);    /* no spacing, because controls are aligned to table columns */
         spepaAdditionBox.setAlignment(Pos.CENTER_LEFT);
 
         final TextField ipcNameInput = new TextField();
+        ipcNameInput.minWidthProperty().bind(ipcNameCol.widthProperty());
+        ipcNameInput.prefWidthProperty().bind(ipcNameCol.widthProperty());
         ipcNameInput.setPromptText("name");
 
         final TextField minHeightInput = new TextField();
+        minHeightInput.minWidthProperty().bind(minHeightCol.widthProperty());
+        minHeightInput.prefWidthProperty().bind(minHeightCol.widthProperty());
         minHeightInput.setMaxWidth(dimInputPrefWidth);
         minHeightInput.setPromptText("H min");
         minHeightInput.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
@@ -1605,6 +1609,8 @@ public class App extends Application{
         });
 
         final TextField maxHeightInput = new TextField();
+        maxHeightInput.minWidthProperty().bind(maxHeightCol.widthProperty());
+        maxHeightInput.prefWidthProperty().bind(maxHeightCol.widthProperty());
         maxHeightInput.setMaxWidth(dimInputPrefWidth);
         maxHeightInput.setPromptText("H max");
         maxHeightInput.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
@@ -1616,11 +1622,17 @@ public class App extends Application{
         });
 
         final ComboBox nameStandardInput =  new ComboBox(Package.nameStandardValues());
+        nameStandardInput.minWidthProperty().bind(standardCol.widthProperty());
+        nameStandardInput.prefWidthProperty().bind(standardCol.widthProperty());
 
         final CheckBox exposedInput = new CheckBox("exposed center pad");
         exposedInput.setPadding(new Insets(0, fieldSpacing, 0, fieldSpacing));
+        exposedInput.minWidthProperty().bind(xposedCol.widthProperty());
+        exposedInput.prefWidthProperty().bind(xposedCol.widthProperty());
 
         final TextField spepaNotesInput = new TextField();
+        spepaNotesInput.minWidthProperty().bind(notesCol.widthProperty());
+        spepaNotesInput.prefWidthProperty().bind(notesCol.widthProperty());
         spepaNotesInput.setPromptText("notes");
 
         final Button addSpepaButton = new Button("Add");
@@ -1881,7 +1893,7 @@ public class App extends Application{
 
     private TitledPane initPadshapeHolder(){
         TitledPane padshapeholder = new TitledPane();
-        padshapeholder.setText("Pad shapes");
+        padshapeholder.setText("Pad Shapes");
         padshapeholder.setExpanded(false);
         VBox shaBranch = new VBox(SPACING_VBOX);//parameter is spacing
 
@@ -1913,11 +1925,11 @@ public class App extends Application{
             }
         );
 
-        TableColumn widCol = new TableColumn("cx");
-        widCol.setMinWidth(50);
-        widCol.setCellValueFactory(new PropertyValueFactory<>("widthppt"));
-        widCol.setCellFactory(cellDoubleFactory);
-        widCol.setOnEditCommit(
+        TableColumn lengthCol = new TableColumn("cx");
+        lengthCol.setMinWidth(50);
+        lengthCol.setCellValueFactory(new PropertyValueFactory<>("widthppt"));
+        lengthCol.setCellFactory(cellDoubleFactory);
+        lengthCol.setOnEditCommit(
             new EventHandler<CellEditEvent<PadDimMirror, Double>>() {
                 @Override
                 public void handle(CellEditEvent<PadDimMirror, Double> t) {
@@ -1932,11 +1944,11 @@ public class App extends Application{
             }
         );
 
-        TableColumn lenCol = new TableColumn("cy");
-        lenCol.setMinWidth(50);
-        lenCol.setCellValueFactory(new PropertyValueFactory<>("lengthppt"));
-        lenCol.setCellFactory(cellDoubleFactory);
-        lenCol.setOnEditCommit(
+        TableColumn widthCol = new TableColumn("cy");
+        widthCol.setMinWidth(50);
+        widthCol.setCellValueFactory(new PropertyValueFactory<>("lengthppt"));
+        widthCol.setCellFactory(cellDoubleFactory);
+        widthCol.setOnEditCommit(
             new EventHandler<CellEditEvent<PadDimMirror, Double>>() {
                 @Override
                 public void handle(CellEditEvent<PadDimMirror, Double> t) {
@@ -2069,13 +2081,15 @@ public class App extends Application{
         editCol.setCellFactory(cellEditFactory);
 
         padshapeTable.setItems(pdDimensions);
-        padshapeTable.getColumns().addAll(nrCol, widCol, lenCol, holeCol, ognxCol, ognyCol, shapeCol, xposedCol, delCol, editCol);
+        padshapeTable.getColumns().addAll(nrCol, lengthCol, widthCol, holeCol, ognxCol, ognyCol, shapeCol, xposedCol, delCol, editCol);
 
         /* shapeAdditionBox contains controls for adding items the list, and therefore the padShape table */
-        HBox shapeAdditionBox = new HBox(SPACING_HBOX);
+        HBox shapeAdditionBox = new HBox(0);    /* no spacing, because controls are aligned to table columns */
         shapeAdditionBox.setAlignment(Pos.CENTER_LEFT);
 
         padIdInput = new TextField(Integer.toString(highestPadId() + 1));
+        padIdInput.minWidthProperty().bind(nrCol.widthProperty());
+        padIdInput.prefWidthProperty().bind(nrCol.widthProperty());
         padIdInput.setMaxWidth(dimInputPrefWidth);
         padIdInput.setPromptText("pad-id");
         padIdInput.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
@@ -2087,6 +2101,8 @@ public class App extends Application{
         });
 
         final TextField lengthInput = new TextField();
+        lengthInput.minWidthProperty().bind(lengthCol.widthProperty());
+        lengthInput.prefWidthProperty().bind(lengthCol.widthProperty());
         lengthInput.setMaxWidth(dimInputPrefWidth);
         lengthInput.setPromptText("cx");
         lengthInput.setTooltip(new Tooltip("Horizontal dimension of the pad (mandatory)."));
@@ -2099,6 +2115,8 @@ public class App extends Application{
         });
 
         final TextField widthInput = new TextField();
+        widthInput.minWidthProperty().bind(widthCol.widthProperty());
+        widthInput.prefWidthProperty().bind(widthCol.widthProperty());
         widthInput.setMaxWidth(dimInputPrefWidth);
         widthInput.setPromptText("cy");
         widthInput.setTooltip(new Tooltip("Vertical dimension of the pad (mandatory)."));
@@ -2111,7 +2129,9 @@ public class App extends Application{
         });
 
         final TextField holeInput = new TextField();
-        holeInput.setMaxWidth(100); //Deze is dik
+        holeInput.minWidthProperty().bind(holeCol.widthProperty());
+        holeInput.prefWidthProperty().bind(holeCol.widthProperty());
+        holeInput.setMaxWidth(dimInputPrefWidth);
         holeInput.setPromptText("hole diameter");
         holeInput.setTooltip(new Tooltip("Hole size for through-hole pads.\nLeave empty (or set to zero) for SMD pads."));
         holeInput.focusedProperty().addListener((ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
@@ -2123,6 +2143,8 @@ public class App extends Application{
         });
 
         final TextField oriXinput = new TextField();
+        oriXinput.minWidthProperty().bind(ognxCol.widthProperty());
+        oriXinput.prefWidthProperty().bind(ognxCol.widthProperty());
         oriXinput.setMaxWidth(dimInputPrefWidth);
         oriXinput.setPromptText("origin-x");
         oriXinput.setTooltip(new Tooltip("Offset of the pad's origin from the geometric centre (optional)."));
@@ -2135,6 +2157,8 @@ public class App extends Application{
         });
 
         final TextField oriYinput = new TextField();
+        oriYinput.minWidthProperty().bind(ognyCol.widthProperty());
+        oriYinput.prefWidthProperty().bind(ognyCol.widthProperty());
         oriYinput.setMaxWidth(dimInputPrefWidth);
         oriYinput.setPromptText("origin-y");
         oriYinput.setTooltip(new Tooltip("Offset of the pad's origin from the geometric centre (optional)."));
@@ -2147,9 +2171,13 @@ public class App extends Application{
         });
 
         final ComboBox shapeBox = new ComboBox(Package.padShapeValues());
+        shapeBox.minWidthProperty().bind(shapeCol.widthProperty());
+        shapeBox.prefWidthProperty().bind(shapeCol.widthProperty());
         shapeBox.setTooltip(new Tooltip("Pad shape (mandatory)."));
 
         final ComboBox padTypeInput = new ComboBox(Package.padTypeValues());
+        padTypeInput.minWidthProperty().bind(xposedCol.widthProperty());
+        padTypeInput.prefWidthProperty().bind(xposedCol.widthProperty());
         padTypeInput.setPadding(new Insets(0, fieldSpacing, 0, fieldSpacing));
         padTypeInput.setValue(Package.padTypeAsString(Package.PadType.STANDARD));
 
@@ -2205,7 +2233,7 @@ public class App extends Application{
 
     private TitledPane initPadposHolder(){
         TitledPane padposholder = new TitledPane();
-        padposholder.setText("Pad positions");
+        padposholder.setText("Pad Positions");
         padposholder.setExpanded(false);
         VBox posBranch = new VBox(SPACING_VBOX);//parameter is spacing
 
@@ -2323,9 +2351,11 @@ public class App extends Application{
         padposTable.setItems(pdPositions);
         padposTable.getColumns().addAll(idCol, padidCol, xposCol, yposCol, rotCol, delCol);
 
-        HBox positionAdditionBox = new HBox(SPACING_HBOX);
+        HBox positionAdditionBox = new HBox(0);         /* no spacing, because controls are aligned to table columns */
 
         pinIdInput = new TextField(Integer.toString(highestPinId() + 1));
+        pinIdInput.minWidthProperty().bind(idCol.widthProperty());
+        pinIdInput.prefWidthProperty().bind(idCol.widthProperty());
         pinIdInput.setMaxWidth(dimInputPrefWidth);
         pinIdInput.setPromptText("pin-id");
         pinIdInput.setTooltip(new Tooltip("Pin number or pin name (may be a * for a mechanical pad)"));
@@ -2338,6 +2368,8 @@ public class App extends Application{
         });
 
         pinPadIdInput = new TextField();
+        pinPadIdInput.minWidthProperty().bind(padidCol.widthProperty());
+        pinPadIdInput.prefWidthProperty().bind(padidCol.widthProperty());
         pinPadIdInput.setMaxWidth(dimInputPrefWidth);
         pinPadIdInput.setPromptText("pad-id");
         pinPadIdInput.setTooltip(new Tooltip("Pad number, as defined above"));
@@ -2350,6 +2382,8 @@ public class App extends Application{
         });
 
         final TextField posXinput = new TextField();
+        posXinput.minWidthProperty().bind(xposCol.widthProperty());
+        posXinput.prefWidthProperty().bind(xposCol.widthProperty());
         posXinput.setMaxWidth(dimInputPrefWidth);
         posXinput.setPromptText("X");
         posXinput.setTooltip(new Tooltip("Pin X position"));
@@ -2362,6 +2396,8 @@ public class App extends Application{
         });
 
         final TextField posYinput = new TextField();
+        posYinput.minWidthProperty().bind(yposCol.widthProperty());
+        posYinput.prefWidthProperty().bind(yposCol.widthProperty());
         posYinput.setMaxWidth(dimInputPrefWidth);
         posYinput.setPromptText("Y");
         posYinput.setTooltip(new Tooltip("Pin Y position"));
@@ -2374,6 +2410,8 @@ public class App extends Application{
         });
 
         final ComboBox rotationBox = new ComboBox();
+        rotationBox.minWidthProperty().bind(rotCol.widthProperty());
+        rotationBox.prefWidthProperty().bind(rotCol.widthProperty());
         rotationBox.getItems().addAll(Package.orientationValues());
 
         final Button addPosButton = new Button("Add");
@@ -2501,7 +2539,7 @@ public class App extends Application{
 
     private TitledPane initRefHolder(){
         TitledPane refholder = new TitledPane();
-        refholder.setText("Normative specifications");
+        refholder.setText("Normative Specifications");
         refholder.setExpanded(false);
         final VBox refBranch = new VBox(SPACING_VBOX);
 
@@ -2558,11 +2596,15 @@ public class App extends Application{
         refTable.setItems(referenceList);
         refTable.getColumns().addAll(standardCol, companyCol, delCol);
 
-        final HBox refAdditionBox = new HBox(SPACING_HBOX);
+        final HBox refAdditionBox = new HBox(0);        /* no spacing, because controls are aligned to table columns */
         refAdditionBox.setAlignment(Pos.CENTER_LEFT);
         final TextField standardInput = new TextField();
+        standardInput.minWidthProperty().bind(standardCol.widthProperty());
+        standardInput.prefWidthProperty().bind(standardCol.widthProperty());
         standardInput.setPromptText("standard");
         final TextField companyInput = new TextField();
+        companyInput.minWidthProperty().bind(companyCol.widthProperty());
+        companyInput.prefWidthProperty().bind(companyCol.widthProperty());
         companyInput.setPromptText("organization");
 
         final Button addButton = new Button("Add");
@@ -2640,9 +2682,11 @@ public class App extends Application{
         relpaTable.setItems(relatedList);
         relpaTable.getColumns().addAll(nameCol, descCol, delCol);
 
-        final HBox relpaAdditionBox = new HBox(SPACING_HBOX);
+        final HBox relpaAdditionBox = new HBox(0);      /* no spacing, because controls are aligned to table columns */
         relpaAdditionBox.setAlignment(Pos.CENTER_LEFT);
         final TextField nameInput = new TextField();
+        nameInput.minWidthProperty().bind(nameCol.widthProperty());
+        nameInput.prefWidthProperty().bind(nameCol.widthProperty());
         nameInput.setPromptText("name");
 
         final Button addButton = new Button("Add");
@@ -6582,7 +6626,7 @@ public class App extends Application{
 
             final Label Caption = new Label("PACKAGES " + programVersion);
             Caption.setStyle("-fx-font-size:14; -fx-font-weight:bold");
-            final Label Copyright = new Label("Copyright 2021, 2022 CompuPhase\n" +
+            final Label Copyright = new Label("Copyright 2021-2024 CompuPhase\n" +
                                               "Developed by Guido Wolff");
 
             String version = System.getProperty("java.version");

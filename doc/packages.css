@@ -1,0 +1,239 @@
+/*
+Copyright 2022 CompuPhase. Thiadmer Riemermsa.
+
+Licensed under the Apache License, Version 2.0 (the "License"):
+     http://www.apache.org/licenses/LICENSE-2.0
+
+*/
+
+* { /* black mirror color scheme (with added colours) */
+    AntiFlashWhite: #f3f1f4;
+    LavenderGray: #bbc9d2;
+    CrystalBlue: #6b9ea8;
+    LightBlue: #5080fa;
+    DarkSteelBlue: #446677;
+    LavenderWhite: #f7f9fa; /* lighter tint of LavenderGray */
+    LavenderDark: #8896a0;
+    
+    TextFieldBkgnd: white;  /* default, may change to yellow on error */
+}
+
+.root {
+    -fx-background-color: AntiFlashWhite;
+    -fx-font-family: "Segoe UI", "Tahoma";
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.button {
+    -fx-background-color: LavenderDark;
+    -fx-text-fill: LavenderWhite;
+    -fx-font-weight: 700;
+    -fx-border-width: 1.5px;
+    -fx-border-color: transparent;
+    -fx-border-style: solid;
+    -fx-padding: 2px 8px 2px 8px;
+}
+
+.button:focused {
+    /* -fx-border-width: 1.3px; */
+}
+
+.button:hover {
+    -fx-background-color: #98a6b0;
+}
+
+.button:pressed {
+    -fx-border-color: LightBlue;
+}
+
+
+.check-box {
+    -fx-border-width: 0;
+    -fx-background-color: transparent;
+}
+
+.check-box > .box {
+    -fx-border-radius: 0;
+    -fx-border-width: 1.5px;
+    -fx-border-color: LavenderDark;
+    -fx-background-color: white;
+}
+
+.check-box:focused > .box {
+    -fx-border-color: LightBlue;
+}
+
+.check-box > .text {
+    /* -fx-insets: 0 0 10 100; */
+}
+
+.check-box:hover > .box>.mark {
+    /* -fx-background-color: #c7c7c7; */
+}
+
+.check-box > .box > .mark {
+    -fx-background-color: transparent;
+    -fx-shape: "M 9.97498 1.22334L 4.6983 9.09834 L 4.52164 9.09834 L 0 5.19331 L 1.27664 3.52165 L 4.255 6.08833 L 8.33331 1.52588e-005 L 9.97498 1.22334 Z ";
+}
+
+.check-box:selected > .box {
+    -fx-background-color: LavenderDark;
+}
+
+.check-box:selected > .box > .mark {
+    -fx-background-color: white;
+}
+
+.check-box:pressed > .box {
+    -fx-background-color: LavenderGray;
+}
+
+.check-box:pressed > .box > .mark {
+    /* -fx-background-color: LightBlue; */
+}
+
+.check-box:indeterminate > .box > .mark {
+    -fx-background-color: transparent;
+}
+
+.check-box:indeterminate > .box {
+    -fx-background-color: white;
+    -fx-scale-x: .7;
+    -fx-scale-y: .7;
+    -fx-scale-z: .7;
+    -fx-border-color: rgb(16, 110, 190);
+    -fx-border-width: 7;
+}
+
+.check-box:indeterminate {
+    -fx-padding: 0 0 0 0;
+}
+
+.check-box:indeterminate > .text {
+    -fx-padding: 0 0 0 0;
+}
+
+
+.text-field {
+    -fx-background-color: TextFieldBkgnd;
+    -fx-border-color: LavenderDark;
+    -fx-border-radius: 2px;
+    -fx-border-width: 1px;
+}
+
+.text-field:hover {}
+
+.text-field:focused {
+    -fx-border-color: LightBlue;
+}
+
+
+.combo-box-base {
+    -fx-background-color: white;
+    -fx-border-width: 1px;
+    -fx-border-color: LavenderDark;
+    -fx-border-style: solid;
+}
+
+.combo-box-base:focused {
+    -fx-border-color: LightBlue;
+}
+
+.combo-box-base .list-cell:selected {
+    /* -fx-background-color: CrystalBlue; */
+}
+
+.combo-box-base .list-cell:hover {
+    -fx-background-color: CrystalBlue;
+}
+
+
+/* https://stackoverflow.com/questions/12299162/how-to-style-menu-button-and-menu-items */
+.menu-bar {
+    -fx-background-color: AntiFlashWhite;
+    -fx-border-radius: 4px;
+    -fx-border-width: 1.5px;
+    -fx-border-color: transparent;
+    -fx-border-insets: 3px;
+}
+
+.menu-bar .menu-button {
+    -fx-padding: 3px 8px 3px 8px;
+    -fx-background-color: LavenderDark;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 1px;
+    -fx-border-style: solid;
+    -fx-border-color: AntiFlashWhite;
+}
+
+.menu-bar .menu-button .label {
+    -fx-text-fill: LavenderWhite;
+    -fx-font-weight: 700;
+}
+
+.menu-bar .menu-button:hover,
+.menu-bar .menu-button:focused,
+.menu-bar .menu-button:showing {
+    -fx-background-color: #98a6b0;
+}
+
+.context-menu {
+    -fx-background-color: LavenderDark;
+    -fx-border-width: 0.2px;
+    -fx-border-radius: 5;
+    -fx-border-color: black;
+}
+
+
+.table-view {
+    -fx-border-width: 0;
+    -fx-border-color: transparent;
+    -fx-border-style: none;
+}
+
+.table-view .filler {
+    -fx-background-color: white;
+}
+
+.table-view .column-header {
+    -fx-background-color: LavenderGray;
+    -fx-border-style: solid;
+    -fx-border-color: transparent transparent transparent LavenderDark;
+    -fx-border-width: 1px;
+}
+
+.table-view .column-header .label {
+    -fx-alignment: CENTER_LEFT;
+}
+
+.table-view .column-drag-header {
+}
+
+.titled-pane {
+    /* -fx-label-padding: 0 0 -7 0; */
+    -fx-background-color: transparent;
+    -fx-text-fill: LavenderWhite;
+}
+
+.titled-pane .title {
+    -fx-background-color: LavenderDark;
+    -fx-font-weight: 700;
+}
+
+.titled-pane > .title > .arrow-button > .arrow {
+    -fx-background-color: LavenderWhite;
+}
+
+
+.message-box {
+    -fx-border-color: DarkSteelBlue, LavenderWhite, DarkSteelBlue;
+    -fx-border-radius: 4px;
+    -fx-border-width: 4px, 1px, 1px;
+    -fx-border-style: solid;
+    -fx-border-insets: -2px, 1px, 2px;
+    -fx-background-color: white;
+    /* -fx-padding: 8px 16px 8px 16px; */
+    -fx-font-weight: 700;
+}
+
